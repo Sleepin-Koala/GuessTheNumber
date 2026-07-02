@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+
+.icon {
+    @apply flex bg-black/30 backdrop-blur-sm rounded-full px-4 py-2 text-white font-semibold;
+}
+
+@theme {
+    --color-cartoon-pink: #FF6B8B;
+    --color-cartoon-blue: #4FACFE;
+    --color-cartoon-yellow: #FFD200;
+    --color-cartoon-purple: #A18CD1;
+    --color-cartoon-dark: #2D2D2D;
+    --color-cartoon-green: #2ECC71;
+    --color-cartoon-red: #FF3838;
+
+    --shadow-hard : 6px 6px 10px rgba(0,0,0,1);
+    --shadow-simple: 4px 4px 0px rgba(0,0,0,1);
+
+    --shadow-sample-hover : 0 6px 0 #1d4ed8, 0 12px 28px rgba(99,102,241,0.5);
+    --shadow-sample : 0 4px 0 #1d4ed8, 0 8px 24px rgba(99,102,241,0.4);
+    --shadow-3d-button: 0 3px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    --shadow-3d-button-hov: 0 5px 0 rgba(0, 0, 0, 0.4), 0 0 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+
+html {
+    color: antiquewhite;
+    user-select: none;
+}
+
+
+
+
+
+
+
+
