@@ -1,0 +1,13 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Forme de touche "retour arrière" : un pentagone pointant vers la
+       gauche, rempli blanc avec contour noir (comme play/settings). -->
+  <polygon points="10,24 19,10 40,10 40,38 19,38"
+    fill="#FFFFFF" stroke="#000000" stroke-width="3.5"
+    stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- Le "X" à l'intérieur, en noir plein directement (il est déjà sur
+       fond blanc donc pas besoin de double tracé ici). -->
+  <g stroke="#000000" stroke-width="3.2" stroke-linecap="round">
+    <line x1="23" y1="18" x2="33" y2="30"/>
+    <line x1="33" y1="18" x2="23" y2="30"/>
+  </g>
+</svg>

@@ -1,0 +1,7 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Un simple triangle : stroke-linejoin="round" arrondit les 3 angles
+       automatiquement, pas besoin de courbes de Bézier manuelles. -->
+  <polygon points="14,9 14,39 39,24"
+    fill="#FFFFFF" stroke="#000000" stroke-width="3.5"
+    stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

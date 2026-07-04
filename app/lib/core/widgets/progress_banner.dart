@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../data/models/player.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
+import './CartoonIcon.dart';
+import '../theme/app_icon.dart';
 
 class PlayerProgressBanner extends StatelessWidget {
   final Player player;
@@ -83,7 +85,7 @@ class PlayerProgressBanner extends StatelessWidget {
           const SizedBox(width: 14),
 
           // --- Pièces ---
-          // const CartoonIcon(AppIcons.coin, size: 26), // TODO: icône finale
+          const CartoonIcon(assetPath : AppIcons.coin, size: 26), // TODO: icône finale
           const SizedBox(width: 4),
           Text(
             "${player.coins}",
@@ -92,7 +94,7 @@ class PlayerProgressBanner extends StatelessWidget {
           const SizedBox(width: 12),
 
           // --- Gemmes ---
-          // const CartoonIcon(AppIcons.gem, size: 26), // TODO: icône finale
+          const CartoonIcon(assetPath: AppIcons.gem, size: 26), // TODO: icône finale
           const SizedBox(width: 4),
           Text(
             "${player.gems}",

@@ -43,12 +43,11 @@ class _LevelSelectionViewState extends State<LevelSelectionView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Barre supérieure avec bouton retour
           Row(
             children: [
               IconButton(
                 icon: const Icon(LucideIcons.arrowLeft, color: Colors.white, size: 28),
-                onPressed: () => {},
+                onPressed: () => context.read<GameCubit>().onMenu() ,
               ),
               const SizedBox(width: 8),
               const Text(

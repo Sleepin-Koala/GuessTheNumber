@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../../../core/widgets/CartoonCard.dart';
 import '../bloc/game_cubit.dart';
 import '../bloc/game_state.dart';
 import '../../../data/models/GameMode.dart';
@@ -56,54 +55,20 @@ class MenuView extends StatelessWidget {
 
         children: [
           PlayerProgressBanner(player: player),
-
+          const SizedBox(height : 32),
           Expanded(child: 
           ModeCarousel(
             modes: modes,
             onModeSelected: (mode)=> {
               switch (mode.id) {
                 "classic" => context.read<GameCubit>().onLevelSelection(),
-                "discovery" => (){},
+                "discovery" => context.read<GameCubit>().onDiscoveryPage(),
                 "duel" => (){},
                 String() => throw UnimplementedError(),
               }
             },
             
-            ))
-
-          // Expanded(
-          //   child: GridView.builder(
-          //     padding: const EdgeInsets.symmetric(vertical: 8),
-
-          //     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          //       crossAxisCount: 2,
-          //       crossAxisSpacing: 16,
-          //       mainAxisSpacing: 16,
-          //       childAspectRatio: 0.85,
-          //     ),
-          //     itemCount: modes.length,
-          //     itemBuilder: (context, index) {
-          //       return CartoonCard(
-          //         onPressed: switch (modes[index].id) {
-          //           "classic" => context.read<GameCubit>().onLevelSelection,
-          //           "discovery" => () {},
-          //           "duel" => () {},
-
-          //           // TODO: Handle this case.
-          //           String() => throw UnimplementedError(),
-          //         },
-          //         title: modes[index].title,
-          //         color: modes[index].color,
-          //         shadowColor: modes[index].shadowColor,
-          //         icon: modes[index].icon,
-          //         description: modes[index].description,
-          //       );
-          //     },
-          //   ),
-          // ),
-        
-        
-        
+            ))    
         ],
       ),
     );

@@ -1,7 +1,7 @@
 
 
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../theme/app_typography.dart';
 
 class ShakingText extends StatefulWidget {
   final String text;

@@ -7,6 +7,7 @@ import './loading_view.dart';
 import './playing_view.dart';
 import './result_view.dart';
 import './menu_view.dart';
+import './discovery_view.dart';
 import './levelselection_view.dart';
 import "../../../core/widgets/animated_background.dart";
 
@@ -28,11 +29,12 @@ class GameScreen extends StatelessWidget {
                   GameSelection() => LevelSelectionView(),
                   GameLoading() => const LoadingView(),
                   GameInProgress() => PlayingView(state: state),
+                  GameDiscovery() => DiscoveryView(),
                   GameSuccess() => ResultView(
                     isWin: true,
                     attempts: state.finalAttemptsUsed,
                   ),
-                  GameFailure() => const ResultView(isWin: false),
+                  GameFailure() => ResultView(isWin: false, reason: state.reason),
                   GameError() => Center(
                     child: Text(
                       'Erreur : ${state.errorMessage}',

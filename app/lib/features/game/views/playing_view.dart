@@ -1,17 +1,14 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/game_cubit.dart';
 import '../bloc/game_state.dart';
-import "../../../core/theme/app_colors.dart";
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../core/widgets/GameKeyboard.dart';
-import "./widgets/shaking_text.dart";
-import "./widgets/heat_gauge.dart";
 import "./widgets/animated_lives_counter.dart";
 import '../../../core/services/haptic_service.dart';
-import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/Gamepanel.dart';
+import '../../../core/widgets/TimerBar.dart';
 
 class PlayingView extends StatefulWidget {
   final GameInProgress state;
@@ -25,6 +22,8 @@ class _PlayingViewState extends State<PlayingView> {
   String _currentInput = "";
   bool _showGauge = false;
   Timer? _gaugeTimer;
+  
+
 
   void _handleKeyTap(String key) {
     HapticService.triggerKeyTap();
@@ -49,12 +48,6 @@ class _PlayingViewState extends State<PlayingView> {
         _currentInput = "";
       });
     }
-  }
-
-  double _computeProximity(double? distance, int maxRange) {
-    if (distance == null || maxRange <= 0) return 0.0;
-    final normalized = 1 - (distance / maxRange);
-    return normalized.clamp(0.0, 1.0);
   }
 
   @override
@@ -88,79 +81,57 @@ class _PlayingViewState extends State<PlayingView> {
   @override
   Widget build(BuildContext context) {
     final session = widget.state.session;
+    final isDiscovertMode = (session.maxAttempt == -1);
 
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(LucideIcons.x, color: Colors.white, size: 28),
-                onPressed: () => {context.read<GameCubit>().onLevelSelection()},
-              ),
-
-              AnimatedLivesCounter(
-                maxLives: session.maxAttempt,
-                remainingLives: session.attemptLeft,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.cardBg,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.black, width: 3),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _currentInput.isEmpty ? "?" : _currentInput,
-                    style: AppTypography.body(fontSize: 64 , fontWeight: FontWeight.w900,color: _currentInput.isEmpty
-                          ? Colors.white24
-                          : AppColors.primary,
-                    )), 
-                                 
-                  const SizedBox(height: 16),
-
-                  if (_showGauge) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: HeatGauge(
-                        proximity: _computeProximity(
-                          widget.state.lastDistance,
-                          session.maxRange,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  ShakingText(
-                    text:
-                        widget.state.feedbackMessage ??
-                        "Devine le nombre entre 1 et ${session.maxRange} !",
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(
+                    LucideIcons.x,
+                    color: Colors.white,
+                    size: 28,
                   ),
-                ],
+                  onPressed: () => {
+                    isDiscovertMode ?  context.read<GameCubit>().onDiscoveryPage() : context.read<GameCubit>().onLevelSelection(),
+                  },
+                ),
+
+                if (!isDiscovertMode) 
+                  AnimatedLivesCounter(maxLives: session.maxAttempt,remainingLives: session.attemptLeft)
+                else 
+                  const SizedBox.shrink()
+                
+              ],
+            ),
+
+            const SizedBox(height: 5),
+            
+            if (!isDiscovertMode) TimerBar(maxTime: session.timeLimit,),
+
+            Expanded(
+              child: Gamepanel(
+                currentText: _currentInput,
+                isGauge: _showGauge,
+                state: widget.state,
               ),
             ),
-          ),
 
-          const SizedBox(height: 24),
+            const SizedBox(height: 12),
 
-          GameKeyboard(
-            onKeyTap: _handleKeyTap,
-            onDeleteTap: _handleDelete,
-            onSubmitTap: _handleSubmit,
-          ),
-        ],
+            GameKeyboard(
+              onKeyTap: _handleKeyTap,
+              onDeleteTap: _handleDelete,
+              onSubmitTap: _handleSubmit,
+            ),
+          ],
+        ),
       ),
     );
   }

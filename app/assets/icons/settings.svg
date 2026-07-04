@@ -1,0 +1,12 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- fill-rule="evenodd" : quand un path a 2 sous-tracés imbriqués (ici
+       l'engrenage ET un petit cercle central), evenodd transforme
+       automatiquement la zone de chevauchement en TROU TRANSPARENT.
+       C'est ce qui laisse voir la couleur du bouton derrière, plutôt que
+       de devoir deviner la couleur de fond pour la "boucher". -->
+  <path
+    d="M 40.50,19.89 L 40.50,28.11 L 34.71,30.44 L 38.57,32.76 L 32.76,38.57 L 27.02,36.13 L 28.11,40.50 L 19.89,40.50 L 17.56,34.71 L 15.24,38.57 L 9.43,32.76 L 11.87,27.02 L 7.50,28.11 L 7.50,19.89 L 13.29,17.56 L 9.43,15.24 L 15.24,9.43 L 20.98,11.87 L 19.89,7.50 L 28.11,7.50 L 30.44,13.29 L 32.76,9.43 L 38.57,15.24 L 36.13,20.98 Z
+       M 24,18.5 a 5.5,5.5 0 1,0 0.01,0 Z"
+    fill="#FFFFFF" stroke="#000000" stroke-width="3"
+    stroke-linejoin="round" fill-rule="evenodd"/>
+</svg>

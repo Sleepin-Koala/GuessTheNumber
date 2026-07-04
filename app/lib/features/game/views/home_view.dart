@@ -8,6 +8,8 @@ import '../bloc/game_cubit.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/cartoon_icon_button.dart';
 import '../../../core/widgets/progress_banner.dart';
+import '../../../core/widgets/CartoonIcon.dart';
+import '../../../core/theme/app_icon.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -42,7 +44,7 @@ class HomeView extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // const CartoonIcon(AppIcons.play, size: 32),
+                  const CartoonIcon(assetPath : AppIcons.play, size: 32),
                   const SizedBox(width: 14),
                   Text(
                     "JOUER",
@@ -62,14 +64,14 @@ class HomeView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 CartoonIconButton(
-                  // child: const CartoonIcon(AppIcons.settings, size: 24),
+                  child: const CartoonIcon(assetPath : AppIcons.settings, size: 24),
                   onPressed: () {
                     // TODO: écran Options pas encore construit.
                   },
                 ),
                 const SizedBox(width: 16),
                 CartoonIconButton(
-                  // child: const CartoonIcon(AppIcons.info, size: 24),
+                  child: const CartoonIcon(assetPath: AppIcons.info, size: 24),
                   onPressed: () {
                     // TODO: écran Crédits pas encore construit.
                   },
@@ -78,7 +80,7 @@ class HomeView extends StatelessWidget {
                 CartoonIconButton(
                   color: AppColors.danger,
                   shadowColor: const Color.fromARGB(255, 210, 41, 75),
-                  // child: const CartoonIcon(AppIcons.logout, size: 24),
+                  child: const CartoonIcon(assetPath : AppIcons.logout, size: 24),
                   onPressed: () {
                     SystemNavigator.pop();
                   },

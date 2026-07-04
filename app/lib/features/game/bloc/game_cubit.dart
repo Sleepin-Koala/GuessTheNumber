@@ -14,35 +14,32 @@ class GameCubit extends Cubit<GameState> {
   late int _currentLevel;
   late Player? _currentPlayer;
 
-  GameCubit({required GameRepository gameRepository, required UserRepository userRepository})
-    : _gameRepository = gameRepository, _userRepository = userRepository,
-      super(GameInitial(player: null));
+  GameCubit({
+    required GameRepository gameRepository,
+    required UserRepository userRepository,
+  }) : _gameRepository = gameRepository,
+       _userRepository = userRepository,
+       super(GameInitial(player: null));
 
-
-  void onMenu(){
+  void onMenu() {
     if (_currentPlayer == null) {
       emit(const GameError(errorMessage: "Profil joueur non initialisé."));
       return;
-    }
-    else {
+    } else {
       emit(GameMenu(player: _currentPlayer!));
     }
   }
 
-  void onLevelSelection(){
+  void onLevelSelection() {
     if (_currentPlayer == null) {
       emit(const GameError(errorMessage: "Profil joueur non initialisé."));
       return;
-    }
-    else {
+    } else {
       emit(GameSelection(player: _currentPlayer!));
     }
   }
 
-  Future<void> startNewGame({
-    required int level,
-  }) async {
-
+  Future<void> startNewGame({required int level}) async {
     if (_currentPlayer == null) {
       emit(const GameError(errorMessage: "Profil joueur non initialisé."));
       return;
@@ -51,7 +48,6 @@ class GameCubit extends Cubit<GameState> {
     emit(const GameLoading());
 
     _currentLevel = level;
-
 
     try {
       final newSession = await _gameRepository.StartSoloGame(
@@ -64,6 +60,10 @@ class GameCubit extends Cubit<GameState> {
     } catch (e) {
       emit(GameError(errorMessage: e.toString()));
     }
+  }
+
+  void onDiscoveryPage() {
+    emit(GameDiscovery(player: _currentPlayer!));
   }
 
   Future<void> makeGuess(int number) async {
@@ -80,7 +80,8 @@ class GameCubit extends Cubit<GameState> {
       switch (result.outcome) {
         case GuessOutcome.OK:
           // Le joueur a gagné ! On calcule le nombre d'essais utilisés
-          final attemptsUsed = currentState.session.maxAttempt - result.attemptLeft;
+          final attemptsUsed =
+              currentState.session.maxAttempt - result.attemptLeft;
 
           // On notifie le serveur de la victoire pour mettre à jour le profil (XP, Coins)
           final res = await _gameRepository.endGameSession(
@@ -105,7 +106,7 @@ class GameCubit extends Cubit<GameState> {
               levelPlayed: _currentLevel,
             );
             _currentPlayer = res;
-            emit(const GameFailure());
+            emit(const GameFailure(reason: "attemps"));
           } else {
             final updatedSession = GameSession(
               sessionId: currentState.session.sessionId,
@@ -123,7 +124,7 @@ class GameCubit extends Cubit<GameState> {
               GameInProgress(
                 session: updatedSession,
                 feedbackMessage: feedback,
-                lastDistance: result.distance
+                lastDistance: result.distance,
               ),
             );
           }
@@ -137,9 +138,29 @@ class GameCubit extends Cubit<GameState> {
     }
   }
 
-  // void resetToHome() {
-  //   emit(const GameInitial());
-  // }
+  Future<void> startDiscoveryGame({required max_range}) async {
+    if (_currentPlayer == null) {
+      emit(const GameError(errorMessage: "Profil joueur non initialisé."));
+      return;
+    }
+    emit(const GameLoading());
+
+    try {
+      final discovery_session = await _gameRepository.startDiscoveryGame(
+        player_id: _currentPlayer!.id,
+        max_range: max_range,
+      );
+      _sessionId = discovery_session.sessionId;
+
+      emit(GameInProgress(session: discovery_session));
+    } catch (e) {
+      emit(GameError(errorMessage: e.toString()));
+    }
+  }
+
+  void onTimeUp() {
+    emit(const GameFailure(reason: "time"));
+  }
 
   Future<void> initializeApp() async {
     emit(const GameLoading());
@@ -147,7 +168,6 @@ class GameCubit extends Cubit<GameState> {
     try {
       _currentPlayer = await _userRepository.getNewPlayer();
       emit(GameInitial(player: _currentPlayer!));
-      
     } catch (e) {
       emit(GameError(errorMessage: "Impossible de créer votre profil : $e"));
     }

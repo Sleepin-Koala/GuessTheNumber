@@ -24,7 +24,9 @@ class GameInProgress extends GameState {
 
 @immutable
 class GameFailure extends GameState {
-  const GameFailure();
+  final String reason;
+
+  const GameFailure({required this.reason});
 }
 
 @immutable
@@ -59,5 +61,12 @@ class GameSelection extends GameState {
   final Player player;
   const GameSelection({required  this.player});
 }
+
+@immutable
+class GameDiscovery extends GameState {
+  final Player player;
+  const GameDiscovery({required this.player});
+}
+
 
 

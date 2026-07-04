@@ -105,4 +105,27 @@ class GameRepository {
       throw Exception('Erreur réseau lors de la clôture de la partie : $e');
     }
   }
+
+  Future<GameSession> startDiscoveryGame({player_id, max_range}) async {
+    final url = Uri.parse("${Api.baseUrl}/game/discover");
+
+    try {
+      final response = await _httpClient.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({"player_id": player_id, "max_range": max_range}),
+      );
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> json = jsonDecode(response.body);
+        return GameSession.fromJson(json);
+      } else {
+        throw Exception(
+          'Impossible de démarrer le niveau  (Code: ${response.statusCode})',
+        );
+      }
+    } catch (e) {
+      throw Exception('Erreur réseau lors du démarrage de la partie : $e');
+    }
+  }
 }

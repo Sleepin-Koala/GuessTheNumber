@@ -1,4 +1,5 @@
 import 'package:app/features/game/bloc/game_cubit.dart';
+import 'package:app/features/game/bloc/game_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import "../../../core/theme/app_colors.dart";
@@ -8,8 +9,9 @@ import "../../../core/widgets/CartoonButton.dart";
 
 class ResultView extends StatelessWidget {
   final bool isWin;
+  final String? reason; 
   final int? attempts;
-  const ResultView({super.key, required this.isWin, this.attempts});
+  const ResultView({super.key, required this.isWin, this.attempts , this.reason});
 
   @override
   Widget build(BuildContext context) {
@@ -77,9 +79,9 @@ class ResultView extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  isWin
-                      ? "Tu as trouvé le nombre secret !"
-                      : "Tu as épuisé toutes tes tentatives...",
+                  isWin ? "Tu as trouvé le nombre secret !"
+                      : reason == "time" ? "le temps s'est ecoulé": 
+                      "Tu as épuisé toutes tes tentatives...",
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 18, color: Colors.white70),
                 ),
@@ -113,7 +115,7 @@ class ResultView extends StatelessWidget {
 
           CartoonButton(
             onPressed: () {
-              // context.read<GameCubit>().resetToHome();
+              context.read<GameCubit>().onLevelSelection();
             },
             color: AppColors.primary,
             shadowColor: AppColors.secondary,

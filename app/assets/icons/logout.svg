@@ -1,0 +1,16 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Technique du "double tracé" : on dessine deux fois le même trait,
+       un noir épais en dessous (sert de contour) puis un blanc plus fin
+       par-dessus (sert de remplissage visible). Ça donne un glyphe blanc
+       à contour noir, cohérent avec les icônes "pleines" (play, settings). -->
+  <g fill="none" stroke="#000000" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M 22,8 L 10,8 L 10,40 L 22,40"/>
+    <line x1="18" y1="24" x2="38" y2="24"/>
+    <polyline points="30,15 39,24 30,33"/>
+  </g>
+  <g fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M 22,8 L 10,8 L 10,40 L 22,40"/>
+    <line x1="18" y1="24" x2="38" y2="24"/>
+    <polyline points="30,15 39,24 30,33"/>
+  </g>
+</svg>
