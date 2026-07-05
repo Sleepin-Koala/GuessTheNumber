@@ -31,3 +31,12 @@ app.include_router(game_router)
 app.include_router(multi_router)
 app.include_router(shop_router)
 
+
+@app.get('/health')
+def getHealth():
+    return "En Bonne Sante"
+
+@app.get('/whatsup')
+def getStatus():
+    return "caleuuuuu"
+
