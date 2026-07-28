@@ -2,6 +2,7 @@ class AppIcons {
   AppIcons._();
 
   static const String play = "assets/icons/play.svg";
+  static const String home = "assets/icons/home.svg";
   static const String settings = "assets/icons/settings.svg";
   static const String info = "assets/icons/info.svg";
   static const String logout = "assets/icons/logout.svg";
@@ -11,4 +12,5 @@ class AppIcons {
   static const String coin = "assets/icons/coin.svg";
   static const String gem = "assets/icons/gem.svg";
   static const String xp = "assets/icons/star.svg"; 
+  static const String refresh = "assets/icons/refresh.svg"; 
 }

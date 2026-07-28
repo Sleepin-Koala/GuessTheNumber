@@ -5,11 +5,13 @@ class GuessResult {
   final GuessOutcome outcome;
   final int attemptLeft;
   final double distance;
+  final String type;
 
   const GuessResult({
     required this.outcome,
     required this.attemptLeft,
-    required this.distance
+    required this.distance,
+    required this.type
   });
 
   factory GuessResult.fromJson(Map<String, dynamic> json) {
@@ -28,6 +30,7 @@ class GuessResult {
       outcome: parsedOutcome,
       attemptLeft: json['attempt_left'] as int,
       distance: json['distance'] as double,
+      type: json['type'] as String,
     );
   } 
 

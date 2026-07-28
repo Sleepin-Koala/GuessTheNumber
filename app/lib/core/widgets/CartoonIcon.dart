@@ -5,7 +5,7 @@ class CartoonIcon extends StatelessWidget {
   final String assetPath;
   final double size;
 
-  const CartoonIcon({super.key, this.size = 28 , required this.assetPath,});
+  const CartoonIcon(this.assetPath,{super.key, this.size = 28});
 
   @override
   Widget build(BuildContext context) {

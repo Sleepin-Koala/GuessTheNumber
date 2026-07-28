@@ -21,74 +21,67 @@ class HomeView extends StatelessWidget {
     final player = currentState.player; 
 
 
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-
-            PlayerProgressBanner(player: player!),
-
-            const Spacer(flex: 2),
-            const _GameLogo(),
-            const Spacer(flex: 3),
-
-            CartoonButton(
-              height: 76,
-              onPressed: () {
-                context.read<GameCubit>().onMenu();
-              },
-              color: AppColors.primary,
-              shadowColor: AppColors.secondary,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CartoonIcon(assetPath : AppIcons.play, size: 32),
-                  const SizedBox(width: 14),
-                  Text(
-                    "JOUER",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            Row(
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+    
+          PlayerProgressBanner(player: player!),
+    
+          const Spacer(flex: 2),
+          const _GameLogo(),
+          const Spacer(flex: 3),
+    
+          CartoonButton(
+            height: 76,
+            onPressed: () {
+              context.read<GameCubit>().onMenu();
+            },
+            color: AppColors.primary,
+            shadowColor: AppColors.secondary,
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                CartoonIconButton(
-                  child: const CartoonIcon(assetPath : AppIcons.settings, size: 24),
-                  onPressed: () {
-                    // TODO: écran Options pas encore construit.
-                  },
-                ),
-                const SizedBox(width: 16),
-                CartoonIconButton(
-                  child: const CartoonIcon(assetPath: AppIcons.info, size: 24),
-                  onPressed: () {
-                    // TODO: écran Crédits pas encore construit.
-                  },
-                ),
-                const SizedBox(width: 16),
-                CartoonIconButton(
-                  color: AppColors.danger,
-                  shadowColor: const Color.fromARGB(255, 210, 41, 75),
-                  child: const CartoonIcon(assetPath : AppIcons.logout, size: 24),
-                  onPressed: () {
-                    SystemNavigator.pop();
-                  },
+                const CartoonIcon(AppIcons.play, size: 32),
+                const SizedBox(width: 14),
+                Text(
+                  "JOUER",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+    
+          const SizedBox(height: 20),
+    
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CartoonIconButton(
+                child: const CartoonIcon(AppIcons.settings, size: 24),
+                onPressed: () {
+                  context.read<GameCubit>().onGameOptions();
+                },
+              ),
+              const SizedBox(width: 16),                
+              
+              const SizedBox(width: 16),
+              CartoonIconButton(
+                color: AppColors.danger,
+                shadowColor: const Color.fromARGB(255, 210, 41, 75),
+                child: const CartoonIcon(AppIcons.logout, size: 24),
+                onPressed: () {
+                  SystemNavigator.pop();
+                },
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import "../theme/app_colors.dart";
 import "../theme/app_typography.dart";
 
+
 class GameKeyboard extends StatelessWidget {
   final Function(String) onKeyTap;
   final VoidCallback onDeleteTap;
@@ -15,9 +16,9 @@ class GameKeyboard extends StatelessWidget {
   });
 
   static const List<Color> _rowColors = [
-    Color(0xFF4FACFE), // bleu ciel
-    Color(0xFFA78BFA), // violet doux
-    Color(0xFFFB923C), // orange
+    Color(0xFF4FACFE),
+    Color(0xFFA78BFA),
+    Color(0xFFFB923C),
   ];
   static const List<Color> _rowShadows = [
     Color(0xFF1565C0),
@@ -33,79 +34,90 @@ class GameKeyboard extends StatelessWidget {
       ['7', '8', '9'],
     ];
 
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenHeight = MediaQuery.of(context).size.height;
 
-    return Column(
-      children: [
-        ...keys.asMap().entries.map((entry) {
-          final rowIndex = entry.key;
-          final row = entry.value;
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 10.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: row
-                  .map(
-                    (key) => KeyboardButton(
-                      onPressed: () => onKeyTap(key),
-                      color: _rowColors[rowIndex],
-                      shadowColor: _rowShadows[rowIndex],
-                      child: Text(
-                        key,
-                        style: AppTypography.display(
-                          color: Colors.white,
-                          fontSize: 26,
-                        ),
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
-          );
-        }),
+        // Taille de bouton dérivée de la largeur ET bornée par la hauteur d'écran
+        double buttonSize = constraints.maxWidth / 3.6;
+        if (screenHeight < 700) {
+          buttonSize = buttonSize.clamp(48.0, 68.0);
+        } else if (screenHeight < 800) {
+          buttonSize = buttonSize.clamp(56.0, 78.0);
+        } else {
+          buttonSize = buttonSize.clamp(64.0, 90.0);
+        }
 
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        final rowSpacing = buttonSize * 0.11;
+        final fontSize = buttonSize * 0.29;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: KeyboardButton(
-                onPressed: onDeleteTap,
-                color: AppColors.danger,
-                shadowColor: const Color(0xFFB71C1C),
-                child: const Center(),
-              ),
-            ),
-        
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: KeyboardButton(
-                onPressed: () => onKeyTap("0"),
-                color: _rowColors[0],
-                shadowColor: _rowShadows[0],
-                child: const Text(
-                  '0',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
+            ...keys.asMap().entries.map((entry) {
+              final rowIndex = entry.key;
+              final row = entry.value;
+              return Padding(
+                padding: EdgeInsets.only(bottom: rowSpacing),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: row
+                      .map(
+                        (key) => KeyboardButton(
+                          size: buttonSize,
+                          onPressed: () => onKeyTap(key),
+                          color: _rowColors[rowIndex],
+                          shadowColor: _rowShadows[rowIndex],
+                          child: Text(
+                            key,
+                            style: AppTypography.display(
+                              color: Colors.white,
+                              fontSize: fontSize,
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+              );
+            }),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                KeyboardButton(
+                  size: buttonSize,
+                  onPressed: onDeleteTap,
+                  color: AppColors.danger,
+                  shadowColor: const Color(0xFFB71C1C),
+                  child: const Center(),
+                ),
+                KeyboardButton(
+                  size: buttonSize,
+                  onPressed: () => onKeyTap("0"),
+                  color: _rowColors[0],
+                  shadowColor: _rowShadows[0],
+                  child: Text(
+                    '0',
+                    style: TextStyle(
+                      fontSize: fontSize,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: KeyboardButton(
-                onPressed: onSubmitTap,
-                color: AppColors.success,
-                shadowColor: const Color(0xFF1B5E20),
-                child: const Center(),
-              ),
+                KeyboardButton(
+                  size: buttonSize,
+                  onPressed: onSubmitTap,
+                  color: AppColors.success,
+                  shadowColor: const Color(0xFF1B5E20),
+                  child: const Center(),
+                ),
+              ],
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
-
   }
 }
 
@@ -114,6 +126,7 @@ class KeyboardButton extends StatefulWidget {
   final Color color;
   final Color shadowColor;
   final VoidCallback onPressed;
+  final double size;
 
   const KeyboardButton({
     super.key,
@@ -121,6 +134,7 @@ class KeyboardButton extends StatefulWidget {
     required this.onPressed,
     required this.color,
     required this.shadowColor,
+    required this.size,
   });
 
   @override
@@ -133,7 +147,7 @@ class KeyboardButtonState extends State<KeyboardButton> {
 
   @override
   Widget build(BuildContext context) {
-    const double shadowHeight = 5;
+    final double shadowHeight = widget.size * 0.055;
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
@@ -154,8 +168,8 @@ class KeyboardButtonState extends State<KeyboardButton> {
           return Transform.scale(scale: scale, child: child);
         },
         child: AnimatedContainer(
-          height: 90,
-          width: 90,
+          height: widget.size,
+          width: widget.size,
           duration: const Duration(milliseconds: 50),
           margin: EdgeInsets.only(top: _isPressed ? shadowHeight : 0),
           decoration: BoxDecoration(
@@ -167,7 +181,7 @@ class KeyboardButtonState extends State<KeyboardButton> {
                 : [
                     BoxShadow(
                       color: widget.shadowColor,
-                      offset: const Offset(0, shadowHeight),
+                      offset: Offset(0, shadowHeight),
                       blurRadius: 0,
                     ),
                   ],

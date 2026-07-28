@@ -8,10 +8,12 @@ import '../widgets/shaking_text.dart';
 class Gamepanel extends StatelessWidget {
   final String currentText;
   final bool isGauge;
-  final GameInProgress state;
+  final int max_range;
+  final String? feedbackMessage;
+  final double? lastDistance;
 
 
-  const Gamepanel({super.key, required this.currentText , required this.isGauge , required this.state});
+  const Gamepanel({super.key, required this.currentText , required this.isGauge , required this.max_range ,this.feedbackMessage,this.lastDistance});
 
     double _computeProximity(double? distance, int maxRange) {
     if (distance == null || maxRange <= 0) return 0.0;
@@ -22,7 +24,6 @@ class Gamepanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final session = state.session;
     
     return Container(
       decoration: BoxDecoration(
@@ -50,8 +51,8 @@ class Gamepanel extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 32),
                       child: HeatGauge(
                         proximity: _computeProximity(
-                          state.lastDistance,
-                          session.maxRange,
+                          lastDistance,
+                          max_range,
                         ),
                       ),
                     ),
@@ -59,8 +60,8 @@ class Gamepanel extends StatelessWidget {
                   ],
                   ShakingText(
                     text:
-                        state.feedbackMessage ??
-                        "Devine le nombre entre 1 et ${session.maxRange} !",
+                        feedbackMessage ??
+                        "Devine le nombre entre 1 et ${max_range} !",
                   ),
         ],
       ),

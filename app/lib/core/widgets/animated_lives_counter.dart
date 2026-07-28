@@ -1,7 +1,9 @@
+import 'dart:async';
+
 import 'package:app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../../../../core/services/haptic_service.dart';
+import '../services/haptic_service.dart';
 
 class AnimatedLivesCounter extends StatefulWidget {
   final int remainingLives;
@@ -20,11 +22,14 @@ class _AnimatedLivesCounterState extends State<AnimatedLivesCounter> {
   double _scale = 1.0;
   Color _borderColor = Colors.black;
   Color _iconColor = AppColors.danger;
+  Timer? _resetTimer;
 
 
   @override
   void didUpdateWidget(covariant AnimatedLivesCounter oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    _resetTimer?.cancel();
 
     if (widget.remainingLives < oldWidget.remainingLives) {
       HapticService.triggerErrorImpact();
@@ -36,14 +41,26 @@ class _AnimatedLivesCounterState extends State<AnimatedLivesCounter> {
     }
 
     if (mounted) {
-      Future.delayed(const Duration(milliseconds: 200), () {
-        setState(() {
+      _resetTimer = Timer(const Duration(milliseconds: 200), () {
+        if (mounted) {
+          setState(() {
           _scale = 1.0;
           _borderColor = Colors.black;
           _iconColor = AppColors.danger;
         });
-      });
+
+        }
+
+      },
+      );
+      
     }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _resetTimer?.cancel();
   }
 
   @override

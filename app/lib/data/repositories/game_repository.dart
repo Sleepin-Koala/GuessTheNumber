@@ -1,41 +1,28 @@
 import 'dart:convert';
-import "../models/GameSession.dart";
+import "package:app/data/models/discovery_mode_session.dart";
+
+import "../models/solo_mode.dart";
+import "../models/endless_mode.dart";
 import "../models/GuessOutCome.dart";
 import "../models/player.dart";
+
 import "../../core/network/api.dart";
 import "package:http/http.dart" as http;
 
 class GameRepository {
   final http.Client _httpClient;
+  late EndlessModeRepo endlessMode;
+  late DiscoveryModeRepo discoveryMode;
+  late SoloModeRepo soloMode;
 
   GameRepository({http.Client? httpClient})
-    : _httpClient = httpClient ?? http.Client();
-
-  Future<GameSession> StartSoloGame({
-    required String playerId,
-    required int level,
-  }) async {
-    final url = Uri.parse("${Api.baseUrl}/game/level");
-
-    try {
-      final response = await _httpClient.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({"player_id": playerId, "level": level}),
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> json = jsonDecode(response.body);
-        return GameSession.fromJson(json);
-      } else {
-        throw Exception(
-          'Impossible de démarrer le niveau $level (Code: ${response.statusCode})',
-        );
-      }
-    } catch (e) {
-      throw Exception('Erreur réseau lors du démarrage de la partie : $e');
-    }
+    : _httpClient = httpClient ?? http.Client() {
+    endlessMode = EndlessModeRepo(_httpClient);
+    discoveryMode = DiscoveryModeRepo(_httpClient);
+    soloMode = SoloModeRepo(_httpClient);
   }
+
+  //solo
 
   /// POST /game/guess
   Future<GuessResult> makeGuess({
@@ -69,12 +56,11 @@ class GameRepository {
     }
   }
 
-  /// POST /game/endlevel
   Future<Player> endGameSession({
     required String sessionId,
     required String playerId,
     required String status, // 'win' | 'lose' | 'abandoned'
-    required int levelPlayed,
+    required int? levelPlayed,
   }) async {
     final url = Uri.parse('${Api.baseUrl}/game/endlevel');
 
@@ -105,12 +91,113 @@ class GameRepository {
       throw Exception('Erreur réseau lors de la clôture de la partie : $e');
     }
   }
+}
 
-  Future<GameSession> startDiscoveryGame({player_id, max_range}) async {
-    final url = Uri.parse("${Api.baseUrl}/game/discover");
+class EndlessModeRepo {
+  final http.Client _httpclient;
+
+  EndlessModeRepo(this._httpclient);
+
+  Future<Player> endGameSession({
+    required String sessionId,
+    required String playerId,
+    required String status, // 'win' | 'lose' | 'abandoned'
+  }) async {
+    final url = Uri.parse('${Api.baseUrl}/game/endless/end_session');
 
     try {
-      final response = await _httpClient.post(
+      final response = await _httpclient.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'session_id': sessionId,
+          'player_id': playerId,
+          'status': status,
+          'ended':
+              DateTime.now().millisecondsSinceEpoch /
+              1000, // Timestamp secondes
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> json = jsonDecode(response.body);
+        return Player.fromJson(json);
+      } else {
+        throw Exception(
+          'Impossible de clôturer la partie (Code: ${response.statusCode})',
+        );
+      }
+    } catch (e) {
+      throw Exception('Erreur réseau lors de la clôture de la partie : $e');
+    }
+  }
+
+  Future<EndlessModeSession> start({player_id, bet}) async {
+    final url = Uri.parse("${Api.baseUrl}/game/endless/start");
+
+    try {
+      final response = await _httpclient.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({"player_id": player_id, "bet": bet}),
+      );
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> json = jsonDecode(response.body);
+        return EndlessModeSession.fromJson(json);
+      } else {
+        throw Exception(
+          'Impossible de démarrer le niveau  (Code: ${response.statusCode})',
+        );
+      }
+    } catch (e) {
+      throw Exception('Erreur réseau lors du démarrage de la partie : $e');
+    }
+  }
+}
+
+class DiscoveryModeRepo {
+  final http.Client _httpclient;
+
+  DiscoveryModeRepo(this._httpclient);
+
+  Future<int> endGameSession({
+    required String sessionId,
+    required String playerId,
+  }) async {
+    final url = Uri.parse('${Api.baseUrl}/game/discovery/end_session');
+
+    try {
+      final response = await _httpclient.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'session_id': sessionId,
+          'player_id': playerId,
+          'ended':
+              DateTime.now().millisecondsSinceEpoch /
+              1000, // Timestamp secondes
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final int res = jsonDecode(response.body);
+        return res;
+      } else {
+        throw Exception(
+          'Impossible de clôturer la partie (Code: ${response.statusCode})',
+        );
+      }
+    } catch (e) {
+      throw Exception('Erreur réseau lors de la clôture de la partie : $e');
+    }
+  }
+
+  Future<DiscoveryModeSession> start({player_id, max_range}) async {
+    final url = Uri.parse("${Api.baseUrl}/game/discovery/start");
+
+    try {
+      final response = await _httpclient.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({"player_id": player_id, "max_range": max_range}),
@@ -118,10 +205,78 @@ class GameRepository {
 
       if (response.statusCode == 200) {
         Map<String, dynamic> json = jsonDecode(response.body);
-        return GameSession.fromJson(json);
+        return DiscoveryModeSession.fromJson(json);
       } else {
         throw Exception(
           'Impossible de démarrer le niveau  (Code: ${response.statusCode})',
+        );
+      }
+    } catch (e) {
+      throw Exception('Erreur réseau lors du démarrage de la partie : $e');
+    }
+  }
+}
+
+class SoloModeRepo {
+  final http.Client _httpclient;
+
+  SoloModeRepo(this._httpclient);
+
+  Future<Player> endlevel({
+    required String sessionId,
+    required String playerId,
+    required String status,
+    required int levelPlayed,
+  }) async {
+    final url = Uri.parse('${Api.baseUrl}/game/classic/end_level');
+
+    try {
+      final response = await _httpclient.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'session_id': sessionId,
+          'player_id': playerId,
+          'status': status,
+          'level_played': levelPlayed,
+          'ended':
+              DateTime.now().millisecondsSinceEpoch /
+              1000, // Timestamp secondes
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String , dynamic> json = jsonDecode(response.body);
+        return Player.fromJson(json);
+      } else {
+        throw Exception(
+          'Impossible de clôturer la partie (Code: ${response.statusCode})',
+        );
+      }
+    } catch (e) {
+      throw Exception('Erreur réseau lors de la clôture de la partie : $e');
+    }
+  }
+
+  Future<SoloModeSession> start({
+    required String playerId,
+    required int level,
+  }) async {
+    final url = Uri.parse("${Api.baseUrl}/game/classic/level");
+
+    try {
+      final response = await _httpclient.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({"player_id": playerId, "level": level}),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> json = jsonDecode(response.body);
+        return SoloModeSession.fromJson(json);
+      } else {
+        throw Exception(
+          'Impossible de démarrer le niveau $level (Code: ${response.statusCode})',
         );
       }
     } catch (e) {

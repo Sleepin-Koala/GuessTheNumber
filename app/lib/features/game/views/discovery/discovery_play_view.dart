@@ -1,24 +1,22 @@
 import 'dart:async';
+import 'package:app/core/services/haptic_service.dart';
+import 'package:app/core/widgets/GameKeyboard.dart';
+import 'package:app/core/widgets/Gamepanel.dart';
+import 'package:app/features/game/bloc/game_cubit.dart';
+import 'package:app/features/game/bloc/game_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/game_cubit.dart';
-import '../bloc/game_state.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../../../core/widgets/GameKeyboard.dart';
-import "./widgets/animated_lives_counter.dart";
-import '../../../core/services/haptic_service.dart';
-import '../../../core/widgets/Gamepanel.dart';
-import '../../../core/widgets/TimerBar.dart';
 
-class PlayingView extends StatefulWidget {
-  final GameInProgress state;
-  const PlayingView({super.key, required this.state});
+class DiscoveryPlayView extends StatefulWidget {
+  final GameDiscoveryStart state;
+  const DiscoveryPlayView({super.key, required this.state});
 
   @override
-  State<PlayingView> createState() => _PlayingViewState();
+  State<DiscoveryPlayView> createState() => _DiscoveryPlayViewState();
 }
 
-class _PlayingViewState extends State<PlayingView> {
+class _DiscoveryPlayViewState extends State<DiscoveryPlayView> {
   String _currentInput = "";
   bool _showGauge = false;
   Timer? _gaugeTimer;
@@ -51,7 +49,7 @@ class _PlayingViewState extends State<PlayingView> {
   }
 
   @override
-  void didUpdateWidget(covariant PlayingView oldWidget) {
+  void didUpdateWidget(covariant DiscoveryPlayView oldWidget) {
     super.didUpdateWidget(oldWidget);
     final oldDistance = oldWidget.state.lastDistance;
     final newDistance = widget.state.lastDistance;
@@ -81,7 +79,6 @@ class _PlayingViewState extends State<PlayingView> {
   @override
   Widget build(BuildContext context) {
     final session = widget.state.session;
-    final isDiscovertMode = (session.maxAttempt == -1);
 
     return SafeArea(
       child: Padding(
@@ -98,28 +95,20 @@ class _PlayingViewState extends State<PlayingView> {
                     color: Colors.white,
                     size: 28,
                   ),
-                  onPressed: () => {
-                    isDiscovertMode ?  context.read<GameCubit>().onDiscoveryPage() : context.read<GameCubit>().onLevelSelection(),
-                  },
+                  onPressed: () => {context.read<GameCubit>().onDiscoveryPage()},
                 ),
-
-                if (!isDiscovertMode) 
-                  AnimatedLivesCounter(maxLives: session.maxAttempt,remainingLives: session.attemptLeft)
-                else 
-                  const SizedBox.shrink()
                 
               ],
             ),
 
             const SizedBox(height: 5),
             
-            if (!isDiscovertMode) TimerBar(maxTime: session.timeLimit,),
 
             Expanded(
               child: Gamepanel(
                 currentText: _currentInput,
                 isGauge: _showGauge,
-                state: widget.state,
+                max_range: session.maxRange, lastDistance: widget.state.lastDistance,
               ),
             ),
 

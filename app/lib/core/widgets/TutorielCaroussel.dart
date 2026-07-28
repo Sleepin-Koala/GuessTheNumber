@@ -89,7 +89,7 @@ class TutorialCarouselState extends State<TutorialCarousel> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             CartoonIconButton(
-              child: CartoonIcon(assetPath: AppIcons.close),
+              child: CartoonIcon(AppIcons.close),
               onPressed: () => context.read<GameCubit>().onMenu(),
             ),
             TextButton(

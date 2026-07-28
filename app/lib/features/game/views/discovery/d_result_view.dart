@@ -1,25 +1,22 @@
 import 'package:app/features/game/bloc/game_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import "../../../core/theme/app_colors.dart";
+import "../../../../core/theme/app_colors.dart";
 import 'package:lucide_icons/lucide_icons.dart';
-import "../../../core/widgets/CartoonButton.dart";
+import "../../../../core/widgets/CartoonButton.dart";
 
 
-class ResultView extends StatelessWidget {
-  final bool isWin;
-  final String? reason; 
-  final int? attempts;
-  const ResultView({super.key, required this.isWin, this.attempts , this.reason });
+class DiscoverModeWinView extends StatelessWidget {
+  final int attempts;
+  const DiscoverModeWinView({super.key, required this.attempts});
 
   @override
   Widget build(BuildContext context) {
-    final Color headerColor = isWin ? AppColors.success : AppColors.danger;
-    final Color shadowHeaderColor = isWin
-        ? const Color(0xFF1B5E20)
-        : const Color(0xFFB71C1C);
-    final String title = isWin ? 'VICTOIRE !' : 'DÉFAITE...';
-    final IconData icon = isWin ? LucideIcons.trophy : LucideIcons.frown;
+    final Color headerColor =  AppColors.success ;
+    final Color shadowHeaderColor = const Color(0xFF1B5E20);
+      
+    final String title = 'VICTOIRE !';
+    final IconData icon = LucideIcons.trophy;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
@@ -77,35 +74,32 @@ class ResultView extends StatelessWidget {
 
             child: Column(
               children: [
-                Text(
-                  isWin ? "Tu as trouvé le nombre secret !"
-                      : reason == "time" ? "le temps s'est ecoulé": 
-                      "Tu as épuisé toutes tes tentatives...",
+                Text("Tu as trouvé le nombre secret !",
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 18, color: Colors.white70),
                 ),
-                if (isWin && attempts != null) ...[
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        LucideIcons.zap,
+                ...[
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      LucideIcons.zap,
+                      color: AppColors.primary,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Essais utilisés : $attempts',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
                         color: AppColors.primary,
-                        size: 24,
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Essais utilisés : $attempts',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
+              ],
               ],
             ),
           ),
@@ -114,7 +108,27 @@ class ResultView extends StatelessWidget {
 
           CartoonButton(
             onPressed: () {
-              context.read<GameCubit>().onLevelSelection();
+              context.read<GameCubit>().onDiscoveryPage();
+            },
+            color: AppColors.primary,
+            shadowColor: AppColors.secondary,
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(LucideIcons.repeat, color: Colors.white),
+                SizedBox(width: 12),
+                Text(
+                  'REJOUER',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+                ),
+              ],
+            ),
+          ),
+        
+          const SizedBox(height: 40),
+          CartoonButton(
+            onPressed: () {
+              context.read<GameCubit>().onMenu();
             },
             color: AppColors.primary,
             shadowColor: AppColors.secondary,
@@ -124,12 +138,13 @@ class ResultView extends StatelessWidget {
                 Icon(LucideIcons.home, color: Colors.white),
                 SizedBox(width: 12),
                 Text(
-                  'RETOUR À L\'ACCUEIL',
+                  'RETOUR A L\'ACCEUIL',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
                 ),
               ],
             ),
           )
+
         ],
       ),
     );

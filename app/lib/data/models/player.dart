@@ -25,4 +25,22 @@ class Player {
       level: json["level"] as int,
     ));
   }
+
+  Player copyWith({
+    String? id,
+    String? name,
+    int? xp,
+    int? gems,
+    int? coins,
+    int? level,
+  }) {
+    return Player(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      xp: xp ?? this.xp,
+      gems: gems ?? this.gems,
+      coins: coins ?? this.coins,
+      level: level ?? this.level,
+    );
+  }
 }

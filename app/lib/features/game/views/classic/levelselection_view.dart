@@ -2,10 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/CartoonButton.dart';
-import '../bloc/game_cubit.dart';
-import '../bloc/game_state.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/CartoonButton.dart';
+import '../../bloc/game_cubit.dart';
+import '../../bloc/game_state.dart';
 
 class LevelSelectionView extends StatefulWidget {
 
@@ -26,7 +26,7 @@ class _LevelSelectionViewState extends State<LevelSelectionView> {
     super.initState();
     final cubitState = context.read<GameCubit>().state;
     
-    if (cubitState is GameSelection) {
+    if (cubitState is LevelSelectionState) {
       playerProgress = cubitState.player.level;
     }
     _currentPage = (playerProgress - 1) ~/ _levelsPerPage;
@@ -63,7 +63,6 @@ class _LevelSelectionViewState extends State<LevelSelectionView> {
           ),
           const SizedBox(height: 24),
 
-          // Grille des niveaux
           Expanded(
             child: PageView.builder(
             controller: _pageController,
@@ -134,12 +133,9 @@ class _LevelSelectionViewState extends State<LevelSelectionView> {
       );
     }
 
-
-
-    // Rendu d'un niveau DÉBLOQUÉ (Utilise notre bouton 3D Cartoon)
     return CartoonButton(
       onPressed: () {
-        context.read<GameCubit>().startNewGame(level: level);
+        context.read<GameCubit>().startClassicSession(level: level);
       },
       color: AppColors.cardBg,
       shadowColor: Colors.black,
@@ -171,16 +167,6 @@ class _LevelSelectionViewState extends State<LevelSelectionView> {
         final currentLevelInGrid =  StartLevel + index;  
 
         return _buildLevelCard(context, currentLevelInGrid, playerProgress >= currentLevelInGrid);
-
-        // return CartoonButton(
-        //   child: Column(
-        //     mainAxisAlignment: MainAxisAlignment.center,
-        //     children: [
-        //       Text('$currentLevelInGrid' , style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0) , fontSize: 20 , fontWeight: FontWeight.w900),),
-        //     ],
-        //   ),
-        //   onPressed: (){context.read<GameCubit>().startNewGame(level: currentLevelInGrid);});
-      
       });
 
   }

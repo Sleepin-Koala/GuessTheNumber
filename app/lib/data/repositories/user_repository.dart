@@ -12,7 +12,7 @@ class UserRepository {
 
   Future<Player> getNewPlayer() async {
     final url = Uri.parse("${Api.baseUrl}/user/new_player");
-    
+
     try {
       final response = await _httpClient.get(url);
 
@@ -22,6 +22,25 @@ class UserRepository {
       } else {
         throw Exception(
           'Impossible de cree le joueur (Code: ${response.statusCode})',
+        );
+      }
+    } catch (e) {
+      throw Exception('Erreur réseau lors du démarrage de la partie : $e');
+    }
+  }
+
+  Future<Player> getActualPlayer(String PlayerId) async {
+    final uri = Uri.parse('${Api.baseUrl}/user/$PlayerId');
+
+    try {
+      final response = await _httpClient.get(uri);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> json = jsonDecode(response.body);
+        return Player.fromJson(json);
+      } else {
+        throw Exception(
+          'Impossible de cherger le joueur (Code: ${response.statusCode})',
         );
       }
     } catch (e) {

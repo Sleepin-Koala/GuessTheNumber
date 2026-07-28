@@ -1,39 +1,96 @@
-import 'package:app/features/game/bloc/game_state.dart';
 import 'package:flutter/material.dart';
+import 'package:app/features/game/bloc/game_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/theme/app_icon.dart';
-import '../../../core/widgets/cartoonIcon.dart';
-import '../../../core/widgets/cartoonButton.dart';
-import '../../../data/models/player.dart';
-import '../bloc/game_cubit.dart';
-import '../../../core/widgets/TutorielCaroussel.dart';
 
-class DiscoveryView extends StatefulWidget {
-  const DiscoveryView({super.key});
+import '../../bloc/game_cubit.dart';
+import '../../../../data/models/player.dart';
+
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/app_icon.dart';
+import '../../../../core/widgets/cartoonIcon.dart';
+import '../../../../core/widgets/cartoonButton.dart';
+
+import '../../../../core/widgets/progress_banner.dart';
+
+class EndlessStartView extends StatefulWidget {
+  const EndlessStartView({super.key});
 
   @override
-  State<DiscoveryView> createState() => _DiscoveryViewState();
+  State<EndlessStartView> createState() => _EndlessStartViewState();
 }
 
-class _DiscoveryViewState extends State<DiscoveryView> {
-  bool _showingTutorial = true;
-
+class _EndlessStartViewState extends State<EndlessStartView> {
   @override
   Widget build(BuildContext context) {
     GameState state = context.read<GameCubit>().state;
-    if (state is GameDiscovery) Player player = state.player;
+    if (state is! GameEndlessStart) return const SizedBox.shrink();
+    Player player = state.player;
 
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: _showingTutorial
-            ? TutorialCarousel(
-                onDone: () => setState(() =>_showingTutorial = false),
-              )
-            : const _RangePicker(),
+        child: Column(
+          children: [
+            PlayerProgressBanner(player: player),
+            BettingCard(),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class BettingCard extends StatefulWidget {
+  const BettingCard({super.key});
+
+  @override
+  State<BettingCard> createState() => _BettingCardState();
+}
+
+class _BettingCardState extends State<BettingCard> {
+  final TextEditingController _controller = TextEditingController();
+  
+
+  void _handlePlay(){
+    int? bet = int.tryParse(_controller.text);
+
+    if (bet is int){
+      context.read<GameCubit>().startEndlessGame(bet);
+    }
+    
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text("FAIT TA MISE", style: AppTypography.display(fontSize: 28),),
+        TextField(
+          controller: _controller,
+          keyboardType: TextInputType.number,
+          style: AppTypography.display(),
+        ), 
+        CartoonButton(
+          onPressed: _handlePlay,
+          color: AppColors.primary,
+          shadowColor: AppColors.secondary,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CartoonIcon(AppIcons.play, size: 26),
+              const SizedBox(width: 10),
+              const Text(
+                "JOUER",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+
+        
+      ],
     );
   }
 }
@@ -141,7 +198,7 @@ class _RangePickerState extends State<_RangePicker> {
 
         if (_isCustom) ...[
           const SizedBox(height: 24),
-          
+
           Row(
             children: [
               Text(
@@ -151,7 +208,7 @@ class _RangePickerState extends State<_RangePicker> {
                   color: Colors.white54,
                 ),
               ),
-              
+
               Expanded(
                 child: TextField(
                   controller: _customController,
@@ -213,7 +270,7 @@ class _RangePickerState extends State<_RangePicker> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CartoonIcon(assetPath: AppIcons.play, size: 26),
+              const CartoonIcon(AppIcons.play, size: 26),
               const SizedBox(width: 10),
               const Text(
                 "JOUER",

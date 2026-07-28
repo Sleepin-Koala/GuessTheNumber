@@ -38,7 +38,16 @@ class MenuView extends StatelessWidget {
       color: Color(0xFFFB923C),
       gradientEnd: Color(0xFFEA580C),
       shadowColor: Color(0xFF9A3412),
-    )
+    ),
+    GameMode(
+      id: 'endless',
+      title: 'MODE INFINI',
+      description: 'joues en continu, la difficulté augmente progressivement et augmentes tes recompenses...',
+      icon: LucideIcons.flame,
+      color: Color(0xFFEF4444),
+      gradientEnd: Color(0xFFB91C1C),
+      shadowColor: Color(0xFF7F1D1D),
+    ),
   ];
 
   @override
@@ -64,6 +73,7 @@ class MenuView extends StatelessWidget {
                 "classic" => context.read<GameCubit>().onLevelSelection(),
                 "discovery" => context.read<GameCubit>().onDiscoveryPage(),
                 "duel" => (){},
+                "endless" => context.read<GameCubit>().onEndlessMode(),
                 String() => throw UnimplementedError(),
               }
             },
