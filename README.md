@@ -1,4 +1,4 @@
-# Readme GENERE
+# Readme Generé par IA
 
 
 # 🎯 Plus-Minus — Guess the Number Game Suite
