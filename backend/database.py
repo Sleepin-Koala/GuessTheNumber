@@ -37,6 +37,7 @@ class GameSession(Base):
     type = Column(String)
     player = relationship("Player")
     time_limit = Column(Integer)
+    stage = Column(Integer , nullable=True)
     result = Column(String , nullable=False)
 
 class UserTries(Base):
@@ -72,7 +73,7 @@ class PlayerItems(Base):
     itemId = Column(Integer , ForeignKey("items.id"))
     amount = Column(Integer , default=0)
 
-    
+
 
 
 

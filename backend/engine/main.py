@@ -1,7 +1,19 @@
 import random as rd
 import math
 
-class SoloMode:
+
+class GameMode:
+
+    @property
+    def WIN(cls):
+        return "win"
+
+    @property
+    def LOSE(cls):
+        return "lose"
+
+
+class SoloMode(GameMode):
     AVERAGE_SECOND_PER_RESPONSE = 5 
     poids_essais = 0.6
     poids_precision = 0.3
@@ -86,7 +98,7 @@ class Multi:
     def getNumber(cls):
         return rd.randint(1 , 500)  
 
-class DiscoverMode:
+class DiscoverMode(GameMode):
 
     @classmethod
     def number(cls):
@@ -95,6 +107,20 @@ class DiscoverMode:
     @classmethod
     def get_random(cls , max):
         return rd.randint(0 , max)
+
+class EndlessMode(GameMode):
+
+    @property
+    def MODE(cls):
+        return "endless"
+
+    @property
+    def STAGEPASSED(cls):
+        return "won"
+    
+    @staticmethod
+    def newSession(stage: int):
+        return rd.randint(1 , stage * 10)
 
 
 def checkResult(real_number , nb_user):

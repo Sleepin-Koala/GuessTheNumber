@@ -1,8 +1,16 @@
 from database import *
 from uuid import uuid4
-import time
 from sqlalchemy.orm import sessionmaker
-from DataModels import *
+from models import *
+import time
+
+GIVEN_UP = "abandoned"
+LOSE_STATE = "lose"
+WIN_STATE = "win"
+
+SOLO_MODE = "solo"
+ENDLESS_MODE = "endless"
+
 
 db = make_db()
 session_ = sessionmaker(bind=db)
