@@ -1,27 +1,34 @@
 import 'dart:async';
 import 'package:app/core/services/haptic_service.dart';
+import 'package:app/core/theme/app_typography.dart';
+import 'package:app/core/theme/app_icon.dart';
+import 'package:app/core/theme/app_colors.dart';
+
 import 'package:app/core/widgets/GameKeyboard.dart';
 import 'package:app/core/widgets/Gamepanel.dart';
+import 'package:app/core/widgets/animated_lives_counter.dart';
+
 import 'package:app/features/game/bloc/game_cubit.dart';
 import 'package:app/features/game/bloc/game_state.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-class DiscoveryPlayView extends StatefulWidget {
-  final GameDiscoveryStart state;
-  const DiscoveryPlayView({super.key, required this.state});
+import './_stateChip.dart';
+
+class EndlessPlayView extends StatefulWidget {
+  final GameEndlessRun state;
+  const EndlessPlayView({super.key, required this.state});
 
   @override
-  State<DiscoveryPlayView> createState() => _DiscoveryPlayViewState();
+  State<EndlessPlayView> createState() => _EndlessPlayViewState();
 }
 
-class _DiscoveryPlayViewState extends State<DiscoveryPlayView> {
+class _EndlessPlayViewState extends State<EndlessPlayView> {
   String _currentInput = "";
   bool _showGauge = false;
   Timer? _gaugeTimer;
-  
-
 
   void _handleKeyTap(String key) {
     HapticService.triggerKeyTap();
@@ -49,7 +56,7 @@ class _DiscoveryPlayViewState extends State<DiscoveryPlayView> {
   }
 
   @override
-  void didUpdateWidget(covariant DiscoveryPlayView oldWidget) {
+  void didUpdateWidget(covariant EndlessPlayView oldWidget) {
     super.didUpdateWidget(oldWidget);
     final oldDistance = oldWidget.state.lastDistance;
     final newDistance = widget.state.lastDistance;
@@ -95,20 +102,53 @@ class _DiscoveryPlayViewState extends State<DiscoveryPlayView> {
                     color: Colors.white,
                     size: 28,
                   ),
-                  onPressed: () => {context.read<GameCubit>().onDiscoveryPage()},
+                  onPressed: () => {
+                    context.read<GameCubit>().onDiscoveryPage(),
+                  },
                 ),
-                
+                Expanded(
+                  child: Column(
+                    children: [
+                      Text(
+                        "MANCHE ${(session.maxRange / 10).round()}",
+                        style: AppTypography.display(fontSize: 22),
+                      ),
+                      Text(
+                        "Cherche entre 1 et ${session.maxRange}",
+                        style: AppTypography.body(
+                          fontSize: 13,
+                          color: Colors.white54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
 
             const SizedBox(height: 5),
-            
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+              children: [
+                StatChip(
+                  icon: AppIcons.coin,
+                  label: "EN JEU",
+                  value: "${session.bet}",
+                  color: AppColors.primary,
+                ),
+                AnimatedLivesCounter(
+                  maxLives: session.maxAttempt,
+                  remainingLives: session.attemptLeft,
+                ),
+              ],
+            ),
 
             Expanded(
               child: Gamepanel(
                 currentText: _currentInput,
                 isGauge: _showGauge,
-                max_range: session.maxRange, 
+                max_range: session.maxRange,
                 lastDistance: widget.state.lastDistance,
                 feedbackMessage: widget.state.feedbackMessage,
               ),

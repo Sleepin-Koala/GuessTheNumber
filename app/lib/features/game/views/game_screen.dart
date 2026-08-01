@@ -1,5 +1,8 @@
 import 'package:app/features/game/bloc/game_cubit.dart';
 import 'package:app/features/game/views/classic/classic_play_view.dart';
+import 'package:app/features/game/views/duel/duel_lobby_view.dart';
+import 'package:app/features/game/views/duel/duel_room_view.dart';
+import 'package:app/features/game/views/duel/duel_variant_select_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,7 +17,7 @@ import './options_view.dart';
 import 'classic/levelselection_view.dart';
 
 //endless
-import './endless/endless_view.dart';
+import 'endless/endless_play_view.dart';
 import './endless/endless_start_view.dart';
 import 'endless/endless_lose_view.dart';
 import 'endless/endless_win_view.dart';
@@ -24,12 +27,7 @@ import './discovery/d_result_view.dart';
 import 'discovery/discovery_view.dart';
 import './discovery/discovery_play_view.dart';
 
-
-
-
-
 import "../../../core/widgets/animated_background.dart";
-
 
 class GameScreen extends StatelessWidget {
   const GameScreen({super.key});
@@ -39,10 +37,10 @@ class GameScreen extends StatelessWidget {
 
     switch (state) {
       case GameInitial():
-        return true; 
+        return true;
 
       case GameLoading():
-        return false; 
+        return false;
 
       case GameMenu():
         cubit.resetToHome();
@@ -57,17 +55,17 @@ class GameScreen extends StatelessWidget {
         cubit.resetToHome();
         return false;
 
-      case LevelSelectionState():
-        cubit.abandonGame();
-        return false;
-
       case GameSuccess():
       case GameFailure():
-        cubit.resetToHome();
+        cubit.onMenu();
+        return false;
+
+      case GameEndlessStart():
+        cubit.onMenu();
         return false;
 
       case GameError():
-        return true; 
+        return true;
 
       default:
         return true;
@@ -99,11 +97,10 @@ class GameScreen extends StatelessWidget {
                   child: switch (state) {
                     GameInitial() => const HomeView(),
                     GameMenu() => const MenuView(),
-                    
+
                     //discovery
                     GameDiscovery() => DiscoveryView(),
                     GameDiscoveryStart() => DiscoveryPlayView(state: state),
-
 
                     GameOptions() => OptionsView(),
                     GameSuccess() => ResultView(
@@ -128,19 +125,20 @@ class GameScreen extends StatelessWidget {
 
                     // endless state
                     GameEndlessStart() => EndlessStartView(),
-                    GameEndlessRun() => EndlessPlayView(),
+                    GameEndlessRun() => EndlessPlayView(state: state,),
                     GameEndlessLose() => EndlessBustView(),
                     GameEndlessWin() => EndlessWinView(),
 
                     //solo
                     LevelSelectionState() => LevelSelectionView(),
-                    GameClassicStart() => ClassicPlayView(state: state,),
-                    
+                    GameClassicStart() => ClassicPlayView(state: state),
 
-
+                    //duel
+                    GameDuelSelectVariant() => DuelVariantSelectView(),
+                    GameDuelLobby() => DuelLobbyView(),
+                    GameDuelRoom() => DuelRoomView(),
 
                     GameLoading() => const LoadingView(),
-
 
                     GameState() => throw UnimplementedError(),
                   },

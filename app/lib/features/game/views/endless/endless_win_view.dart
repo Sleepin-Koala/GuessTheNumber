@@ -79,7 +79,7 @@ class _EndlessWinViewState extends State<EndlessWinView> {
           CartoonButton(
             color: const Color(0xFFFB923C),
             shadowColor: const Color(0xFF9A3412),
-            onPressed: () => {context.read<GameCubit>().startEndlessGame(1000)},
+            onPressed: () => {context.read<GameCubit>().startEndlessGame(1000, false)},
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

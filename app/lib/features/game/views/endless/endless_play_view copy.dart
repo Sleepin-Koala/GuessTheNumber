@@ -1,3 +1,4 @@
+import 'package:app/core/widgets/Gamepanel.dart';
 import 'package:app/features/game/bloc/game_cubit.dart';
 import 'package:app/features/game/bloc/game_state.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +7,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/GameKeyboard.dart';
 import '../../../../core/widgets/CartoonIcon.dart';
 import '../../../../core/widgets/animated_lives_counter.dart';
-import '../../../../core/widgets/game_card.dart';
 
 import '../../../../core/theme/app_icon.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -109,10 +109,12 @@ class _EndlessPlayViewState extends State<EndlessPlayView> {
           ),
           const SizedBox(height: 12),
 
-          GameCard(
-            currentInput: _currentInput,
+          Gamepanel(
+            currentText: _currentInput,
             lastDistance: currentState.lastDistance,
-            range: currentSession.maxRange,
+            max_range: currentSession.maxRange, 
+            isGauge: false,
+            feedbackMessage: currentState.feedbackMessage,
           ),
           const SizedBox(height: 12),
 

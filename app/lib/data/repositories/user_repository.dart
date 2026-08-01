@@ -29,8 +29,8 @@ class UserRepository {
     }
   }
 
-  Future<Player> getActualPlayer(String PlayerId) async {
-    final uri = Uri.parse('${Api.baseUrl}/user/$PlayerId');
+  Future<Player> getActualPlayer(String playerId) async {
+    final uri = Uri.parse('${Api.baseUrl}/user/$playerId');
 
     try {
       final response = await _httpClient.get(uri);
@@ -40,7 +40,7 @@ class UserRepository {
         return Player.fromJson(json);
       } else {
         throw Exception(
-          'Impossible de cherger le joueur (Code: ${response.statusCode})',
+          'Impossible de charger le joueur (Code: ${response.statusCode})',
         );
       }
     } catch (e) {

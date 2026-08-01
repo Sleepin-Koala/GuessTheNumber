@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:app/data/models/duel_room.dart';
 import 'package:app/data/models/endless_mode.dart';
 import 'package:app/data/models/discovery_mode_session.dart';
 import 'package:app/data/repositories/game_repository.dart';
@@ -30,6 +33,8 @@ class GameCubit extends Cubit<GameState> {
   String? _sessionId;
   late int _currentLevel;
   late Player? _currentPlayer;
+  late Timer? _timerPolling;
+  late DuelRoom? _currentRoom;
   GameData _gamedata = GameData();
 
   GameCubit({
@@ -38,10 +43,6 @@ class GameCubit extends Cubit<GameState> {
   }) : _gameRepository = gameRepository,
        _userRepository = userRepository,
        super(GameInitial(player: null));
-
-  void resetToHome() {
-    emit(GameInitial(player: _currentPlayer));
-  }
 
   Future<void> makeGuess(int number) async {
     final currentState = state;
@@ -90,13 +91,14 @@ class GameCubit extends Cubit<GameState> {
         _currentPlayer = await _userRepository.getNewPlayer();
         SettingsService.setData(_currentPlayer!.id);
       } else {
-        _currentPlayer = await _userRepository.getActualPlayer(
-          SettingsService.playerId);
-        // _currentPlayer = await _userRepository.getNewPlayer();
-        // SettingsService.setData(_currentPlayer!.id);
+        // _currentPlayer = await _userRepository.getActualPlayer(SettingsService.playerId);
+
+        _currentPlayer = await _userRepository.getNewPlayer();
+        SettingsService.setData(_currentPlayer!.id);
       }
 
-      emit(GameInitial(player: _currentPlayer!));
+      // emit(GameInitial(player: _currentPlayer!));
+      emit(GameDuelSelectVariant());
     } catch (e) {
       emit(GameError(errorMessage: "Impossible de créer votre profil : $e"));
     }
@@ -155,9 +157,17 @@ class GameCubit extends Cubit<GameState> {
     }
   }
 
+  void onDuelMode() {
+    emit(GameDuelSelectVariant());
+  }
+
+  void resetToHome() {
+    emit(GameInitial(player: _currentPlayer));
+  }
+
   // ENDLESS
 
-  Future<void> startEndlessGame(bet) async {
+  Future<void> startEndlessGame(int bet, bool newSession) async {
     if (_currentPlayer == null) {
       emit(const GameError(errorMessage: "Profil joueur non initialisé."));
       return;
@@ -169,6 +179,7 @@ class GameCubit extends Cubit<GameState> {
       final endlessSession = await _gameRepository.endlessMode.start(
         player_id: _currentPlayer!.id,
         bet: bet,
+        new_session: newSession,
       );
       _sessionId = endlessSession.sessionId;
       emit(
@@ -367,8 +378,94 @@ class GameCubit extends Cubit<GameState> {
         );
     }
   }
-}
 
-class DiscoveryWrapper {
-  const DiscoveryWrapper();
+  // DUEL
+
+  Future<void> startDuelMode() async {
+    try {
+      final allRooms = await _gameRepository.duelMode.fetchDuelRooms();
+      print(allRooms.length);
+      emit(GameDuelLobby(player: _currentPlayer!, rooms: allRooms));
+    } catch (e) {
+      emit(GameError(errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> createDuelRoom(String name, int amount, int maxRange) async {
+    try {
+      final room = await _gameRepository.duelMode.createDuelRoom(
+        _currentPlayer!.id,name , amount ,maxRange
+      );
+      _currentRoom = room;
+      emit(GameDuelRoom(room: room, player: _currentPlayer!));
+      startDuelRoomPolling();
+    } catch (e) {
+      emit(GameError(errorMessage: e.toString()));
+    }
+  }
+
+  void startDuelRoomPolling() {
+    _timerPolling = Timer.periodic(Duration(milliseconds: 1500), (_) async {
+      try {
+        final room = await _gameRepository.duelMode.checkRoomStatus(
+          _currentRoom!.room_id,
+        );
+        emit(GameDuelRoom(room: room, player: _currentPlayer!));
+        if (room.status == DuelStatus.finished) {
+          _timerPolling!.cancel();
+        }
+      } catch (e) {
+        emit(GameError(errorMessage: e.toString()));
+      }
+    });
+  }
+
+  void joinDuelRoom(roomId) async {
+    try {
+      final room = await _gameRepository.duelMode.joinDuelRoom(
+        roomId,
+        _currentPlayer!.id,
+      );
+      _currentRoom = room;
+      emit(GameDuelRoom(room: room, player: _currentPlayer!));
+      startDuelRoomPolling();
+    } catch (e) {
+      emit(GameError(errorMessage: e.toString()));
+    }
+  }
+
+  void submitHiddenNumber(int nb) async {
+    try {
+      final room = await _gameRepository.duelMode.submitHiddenNumber(
+        roomId: _currentRoom!.room_id,
+        playerId: _currentPlayer!.id,
+        secretNumber: nb,
+      );
+      emit(GameDuelRoom(player: _currentPlayer!, room: room));
+    } catch (e) {
+      emit(GameError(errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> submitDuelGuess(int number) async {
+    try {
+      final room = await _gameRepository.duelMode.submitDuelGuess(
+        roomId: _currentRoom!.room_id,
+        playerId: _currentPlayer!.id,
+        number: number,
+      );
+      emit(GameDuelRoom(player: _currentPlayer!, room: room));
+      if (room.status == DuelStatus.finished) {
+        _timerPolling?.cancel();
+      }
+    } catch (e) {
+      emit(GameError(errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> leaveDuelRoom() async {
+    _timerPolling?.cancel();
+    _currentRoom = null;
+    emit(GameInitial(player: _currentPlayer!));
+  }
 }

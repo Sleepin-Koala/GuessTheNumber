@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import "../widgets/heat_gauge.dart";
-import '../../features/game/bloc/game_state.dart';
 import '../widgets/shaking_text.dart';
 
 class Gamepanel extends StatelessWidget {
@@ -61,7 +60,7 @@ class Gamepanel extends StatelessWidget {
                   ShakingText(
                     text:
                         feedbackMessage ??
-                        "Devine le nombre entre 1 et ${max_range} !",
+                        "Devine le nombre entre 1 et $max_range !",
                   ),
         ],
       ),

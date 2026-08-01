@@ -1,3 +1,4 @@
+import "package:app/data/models/duel_room.dart";
 import "package:app/data/models/endless_mode.dart";
 import "package:app/data/models/solo_mode.dart";
 import "package:app/data/models/discovery_mode_session.dart";
@@ -15,8 +16,6 @@ class GameInitial extends GameState {
   final Player? player;
   const GameInitial({required this.player});
 }
-
-
 
 @immutable
 class GameFailure extends GameState {
@@ -50,8 +49,6 @@ class GameMenu extends GameState {
   const GameMenu({required this.player});
 }
 
-
-
 @immutable
 class GameDiscovery extends GameState {
   final Player player;
@@ -62,6 +59,8 @@ class GameDiscovery extends GameState {
 class GameOptions extends GameState {
   const GameOptions();
 }
+
+
 
 //solo
 class ClassicState extends GameState {
@@ -109,6 +108,8 @@ class ResultDiscovery extends DiscoverState {
   const ResultDiscovery({required this.attempts});
 }
 
+
+
 // endless
 
 @immutable
@@ -145,4 +146,38 @@ class GameEndlessLose extends EndlessState {
 class GameEndlessWin extends EndlessState {
   final int currentStage;
   const GameEndlessWin({required this.currentStage});
+}
+
+
+
+// MultiplayerState
+
+@immutable
+class GameDuel extends GameState {
+  const GameDuel();
+}
+
+@immutable
+class GameDuelSelectVariant extends GameDuel{
+  const GameDuelSelectVariant();
+}
+
+@immutable
+class GameDuelLobby extends GameDuel {
+  final Player player;
+  final List<DuelRoom> rooms;
+  const GameDuelLobby({required this.player , required this.rooms});
+}
+
+@immutable
+class GameDuelRoom extends GameDuel {
+  final DuelRoom room;
+  final Player player;
+  const GameDuelRoom({required this.room , required this.player});
+}
+
+
+@immutable
+class GameDuelStartRun extends GameDuel{
+  const GameDuelStartRun();
 }

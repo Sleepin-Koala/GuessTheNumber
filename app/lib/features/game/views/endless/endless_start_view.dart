@@ -56,7 +56,7 @@ class _BettingCardState extends State<BettingCard> {
     int? bet = int.tryParse(_controller.text);
 
     if (bet is int){
-      context.read<GameCubit>().startEndlessGame(bet);
+      context.read<GameCubit>().startEndlessGame(bet , true);
     }
     
   }

@@ -72,7 +72,7 @@ class MenuView extends StatelessWidget {
               switch (mode.id) {
                 "classic" => context.read<GameCubit>().onLevelSelection(),
                 "discovery" => context.read<GameCubit>().onDiscoveryPage(),
-                "duel" => (){},
+                "duel" => context.read<GameCubit>().onDuelMode(),
                 "endless" => context.read<GameCubit>().onEndlessMode(),
                 String() => throw UnimplementedError(),
               }
