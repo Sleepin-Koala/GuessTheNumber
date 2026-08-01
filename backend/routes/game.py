@@ -5,6 +5,7 @@ import engine
 from routes.game_mode.endless_mode import router as endless_mode_router
 from routes.game_mode.discovery_mode import router as discovery_mode_router
 from routes.game_mode.classic_mode import router as classic_mode_router
+from routes.game_mode.duel_mode import router as duel_mode_router
 
 
 types = ["solo","discover"]
@@ -16,6 +17,7 @@ router = APIRouter(prefix="/game")
 router.include_router(endless_mode_router)
 router.include_router(discovery_mode_router)
 router.include_router(classic_mode_router)
+router.include_router(duel_mode_router)
 
 # quand le joueur tente de guess
 @router.post("/guess")
@@ -39,7 +41,6 @@ def guess(guessdata: GuessData):
     result = engine.checkResult(that_session.number , guessdata.number)
 
     if that_session.type in (SOLO_MODE,ENDLESS_MODE) :
-        print("oui oui oui")
         that_session.attempt_left -= 1
 
 

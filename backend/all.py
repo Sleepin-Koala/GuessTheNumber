@@ -3,6 +3,7 @@ from uuid import uuid4
 from sqlalchemy.orm import sessionmaker
 from models import *
 import time
+import engine
 
 GIVEN_UP = "abandoned"
 LOSE_STATE = "lose"

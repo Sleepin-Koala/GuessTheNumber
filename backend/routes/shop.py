@@ -16,34 +16,34 @@ def fillItems():
 if len(session.query(Items).all()) == 0:
     fillItems()
 
-@router.post("/buy")
-def buy(data: BuyData):
-    player = session.query(Player).filter_by(id = data.playerId).first()
-    currentItem = session.query(Items).filter_by(id = data.itemId).first()
+# @router.post("/buy")
+# def buy(data: BuyData):
+#     player = session.query(Player).filter_by(id = data.playerId).first()
+#     currentItem = session.query(Items).filter_by(id = data.itemId).first()
 
-    if not player or not currentItem:
-        return HTTPException(404 , "not found")
+#     if not player or not currentItem:
+#         return HTTPException(404 , "not found")
 
-    if player.coins >= currentItem.price:
-        player.coins -= currentItem.price
+#     if player.coins >= currentItem.price:
+#         player.coins -= currentItem.price
 
-    holding = session.query(PlayerItems).filter_by(playerId = data.playerId , itemId = data.itemId).first()
+#     holding = session.query(PlayerItems).filter_by(playerId = data.playerId , itemId = data.itemId).first()
 
-    holding.amount += 1   
+#     holding.amount += 1   
 
-    session.commit()
+#     session.commit()
 
-    return PlayerData(id= player.id , name=player.name , gems=player.gems , coins = player.coins , xp = player.xp , level=player.level) # type: ignore
+#     return PlayerData(id= player.id , name=player.name , gems=player.gems , coins = player.coins , xp = player.xp , level=player.level) # type: ignore
 
-@router.post("/count")
-def getCount(data: BuyData):
-    player = session.query(Player).filter_by(id = data.playerId).first()
-    currentItem = session.query(Items).filter_by(id = data.itemId).first()
+# @router.post("/count")
+# def getCount(data: BuyData):
+#     player = session.query(Player).filter_by(id = data.playerId).first()
+#     currentItem = session.query(Items).filter_by(id = data.itemId).first()
 
-    if not player or not currentItem:
-        return HTTPException(404 , "not found")
+#     if not player or not currentItem:
+#         return HTTPException(404 , "not found")
 
-    c = session.query(PlayerItems).filter_by(playerId = data.playerId , itemId = data.itemId).all()
+#     c = session.query(PlayerItems).filter_by(playerId = data.playerId , itemId = data.itemId).all()
 
-    return len(c)
+#     return len(c)
     

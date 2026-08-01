@@ -17,22 +17,46 @@ def start_endless(EndlessData: EndlessData):
     if not player :
         raise HTTPException(300)
 
-    currentStage = len(_ThatSession)+1
+    
+    print(EndlessData.new_session)
 
-    new_session = GameSession(
-        id = str(uuid4()),
-        max_attempt = 5,
-        attempt_left= 5,
-        number=engine.EndlessMode.newSession(currentStage),
-        status="continued",
-        started_time = time.time(),
-        end_time = 0,       
-        player_id = EndlessData.player_id,
-        type = "endless",
-        time_limit = -1,
-        result = GIVEN_UP,
-        stage = currentStage
-    )
+    if EndlessData.new_session:
+        currentStage = 1
+        print('ahi mais cest ça ')
+        for s in _ThatSession:
+            s.status = "ended"
+
+        new_session = GameSession(
+                id = str(uuid4()),
+                max_attempt = 5,
+                attempt_left= 5,
+                number=engine.EndlessMode.newSession(1),
+                status="continued",
+                started_time = time.time(),
+                end_time = 0,       
+                player_id = EndlessData.player_id,
+                type = "endless",
+                time_limit = -1,
+                result = GIVEN_UP,
+                stage = 1
+            )
+    else :
+        currentStage = len(_ThatSession)+1
+        new_session = GameSession(
+            id = str(uuid4()),
+            max_attempt = 5,
+            attempt_left= 5,
+            number=engine.EndlessMode.newSession(currentStage),
+            status="continued",
+            started_time = time.time(),
+            end_time = 0,       
+            player_id = EndlessData.player_id,
+            type = "endless",
+            time_limit = -1,
+            result = GIVEN_UP,
+            stage = currentStage
+        )
+        print(currentStage)
 
     session.add(new_session)
     session.commit()

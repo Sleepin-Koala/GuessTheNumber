@@ -1,13 +1,12 @@
 
 from sqlalchemy.orm import declarative_base , relationship
-from sqlalchemy import Column , Integer , String , ForeignKey , create_engine
+from sqlalchemy import Column , Integer , String ,Float, ForeignKey , create_engine
 from typing import Optional
 
 Base = declarative_base()
 
 
 class Player(Base):
-
     __tablename__ = "player"
     id = Column(String , primary_key=True)
     name = Column(String)
@@ -25,7 +24,6 @@ class Player(Base):
 class GameSession(Base):
 
     __tablename__ =  "sessions"
-
     id = Column(String , primary_key=True)
     max_attempt = Column(Integer)
     attempt_left = Column(Integer)
@@ -41,7 +39,6 @@ class GameSession(Base):
     result = Column(String , nullable=False)
 
 class UserTries(Base):
-
     __tablename__ =  "essais"
     id = Column(String , primary_key=True)
     session_id = Column(String , ForeignKey("sessions.id"))
@@ -50,15 +47,28 @@ class UserTries(Base):
     session = relationship("GameSession")
     player = relationship("Player")
 
-class Versus(Base):
-    __tablename__ = "versus"
+
+class Duel(Base):
+    __tablename__ = "duel"
     id = Column(String , primary_key=True)
-    player_1 = Column(String , ForeignKey("player.id"))
-    player_2 = Column(String, ForeignKey("player.id") , default=None)
+    host_id = Column(String , ForeignKey("player.id"))
+    guest_id = Column(String , nullable=True , default=None)
+    room_name = Column(String)
+    bet_amount = Column(Integer)
     status = Column(String)
-    winner = Column(String, nullable=True)
-    player_1_rel = relationship("Player", foreign_keys= player_1)
-    player_2_rel = relationship("Player", foreign_keys= player_2)
+    max_range = Column(Integer)
+    hider_number = Column(Integer , nullable=True , default=None)
+    guesser_number = Column(Integer , nullable=True , default=None)
+    guesser_id = Column(String , nullable=True)   
+    hider_id = Column(String , nullable=True)   
+
+    #mettre dans userTries apres 
+    last_distance = Column(Float, nullable=True , default=None)
+    last_feedback = Column(String, nullable=True , default=None)
+
+    round1_attempts_used = Column(Integer , nullable = True,default=0) 
+    round2_attempts_used  = Column(Integer , nullable = True,default=0) 
+    winner_id = Column(String , nullable = True,default=None) 
 
 class Items(Base):
     __tablename__ = "items"
