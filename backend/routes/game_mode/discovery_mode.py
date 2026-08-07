@@ -12,18 +12,14 @@ def start_discovery(DiscoverData: DiscoverData):
     if not player:
         return 
     
-    new_session = GameSession(
+    new_session = DiscoverSession(
         id=str(uuid4()),
-        max_attempt=-1,
-        attempt_left=-1,
         number=engine.DiscoverMode.get_random(DiscoverData.max_range),
-        status="continued",
+        status="abandoned",
         started_time = time.time(),
-        end_time = 0,
+        ended_time = None,
         player_id = DiscoverData.player_id,
         type = "discover",
-        time_limit = -1,
-        result = GIVEN_UP
     )
     
     session.add(new_session)
@@ -44,9 +40,8 @@ def SessionFinished(DiscoveryEndSessionData :DiscoveryEndSessionData):
     if not user or not that_session or not session:
         return
 
-    that_session.result = "won" 
+    that_session.status = "won" 
     that_session.end_time = DiscoveryEndSessionData.ended
-    that_session.status = "ended"
 
     attempts = len(session.query(UserTries).filter_by(session_id = DiscoveryEndSessionData.session_id).all())
 

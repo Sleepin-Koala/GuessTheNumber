@@ -54,7 +54,7 @@ class EndlessEndSessionData(BaseModel):
 class EndlessData(BaseModel):
     player_id: str
     bet: int
-    new_session : bool
+    stage : int
 
 class RoomData(BaseModel) :
     room_id: str

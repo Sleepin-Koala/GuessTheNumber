@@ -108,6 +108,7 @@ def hideNumber(HideNumberData : HidenGuessNumberData, roomId: str):
 
 @router.post("/rooms/{roomId}/guess")
 def GuessNumber(GuessNumberData : HidenGuessNumberData, roomId: str):
+
     room = session.query(Duel).filter_by(id = roomId).first()
     if not room :
         raise HTTPException(status_code=404, detail="Room introuvable")
@@ -140,13 +141,29 @@ def GuessNumber(GuessNumberData : HidenGuessNumberData, roomId: str):
 
         elif room.status == "round2_guess":    
             if room.round1_attempts_used < room.round2_attempts_used:
-                winner_id = room.host_id            
+                winner_id = room.host_id
+                loser_id = room.guesser_id           
             elif room.round2_attempts_used < room.round1_attempts_used:
-                winner_id = room.guesser_id          
+                winner_id = room.guesser_id  
+                loser_id = room.host_id     
             else:
-                winner_id = room.host_id            
+                winner_id = room.host_id 
+                loser_id = room.guesser_id               
+
 
             room.winner_id = winner_id
+
+            winner = session.query(Player).filter_by(id = winner_id).first()
+            winner.coins += room.bet_amount * 2 if winner else None
+
+            loser = session.query(Player).filter_by(id = loser_id).first()
+            loser.coins -= room.bet_amount  if loser else None
+
+            print(winner_id)
+            print(loser_id)
+
+
+
             room.status = "finished"
 
     session.commit()

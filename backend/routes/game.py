@@ -1,5 +1,5 @@
 # type: ignore
-from fastapi import APIRouter 
+from fastapi import APIRouter , HTTPException
 from all import *
 import engine
 from routes.game_mode.endless_mode import router as endless_mode_router
@@ -8,7 +8,6 @@ from routes.game_mode.classic_mode import router as classic_mode_router
 from routes.game_mode.duel_mode import router as duel_mode_router
 
 
-types = ["solo","discover"]
 
 
 LEVELS = [{"level" : i , "exp" : 1000*i} for i in range(1 , 1000)]
@@ -22,37 +21,36 @@ router.include_router(duel_mode_router)
 # quand le joueur tente de guess
 @router.post("/guess")
 def guess(guessdata: GuessData):
-    
-    that_session = session.query(GameSession).filter_by(id=guessdata.session_id).first()
+
+    that_session = session.query(GameSession).filter_by(id=guessdata.session_id).first() 
     if not that_session:
-        return
-    
+        return HTTPException(status_code=404 , detail="something is missing")
 
-    relation = UserTries(
+
+    instance = UserTries(
         id = str(uuid4()),
-        session_id  = that_session.id,
+        session_id = guessdata.session_id,
         number = guessdata.number,
-        player_id = that_session.player.id
+        player_id = guessdata.player_id,
+        session_type = that_session.type
     )
-    session.add(relation )
-
     
     distance = float(abs(that_session.number-guessdata.number))
     result = engine.checkResult(that_session.number , guessdata.number)
 
-    if that_session.type in (SOLO_MODE,ENDLESS_MODE) :
+    if that_session.type in (ENDLESS_MODE , SOLO_MODE) :
         that_session.attempt_left -= 1
 
-
+    session.add(instance)
     session.commit()
 
-    print(that_session.number)
-    
+
 
 
     return GuessResponse(result=result,
-                         attempt_left=that_session.attempt_left, 
-                         distance = distance,
-                         type = that_session.type)     
-
+                        attempt_left=that_session.attempt_left if that_session.type != engine.DiscoverMode.MODE else -1, 
+                        max_attempt = that_session.max_attempt if that_session.type != engine.DiscoverMode.MODE else -1,
+                        distance = distance,
+                        type = that_session.type
+                        )     
 

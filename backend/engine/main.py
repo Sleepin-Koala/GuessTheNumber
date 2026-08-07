@@ -4,14 +4,8 @@ import math
 
 class GameMode:
 
-    @property
-    def WIN(cls):
-        return "win"
-
-    @property
-    def LOSE(cls):
-        return "lose"
-
+    WIN = "win"
+    LOSE = "lose"
 
 class SoloMode(GameMode):
     AVERAGE_SECOND_PER_RESPONSE = 5 
@@ -23,8 +17,7 @@ class SoloMode(GameMode):
         self.level = level
         self.max_tries = self.get_max_try()
         self.max_time = self.get_max_time()
-        
-    
+         
     def get_max_try(self):
         maxTry = math.ceil(math.log2(self.level * 10))
         return maxTry if self.level < 20 else maxTry+2
@@ -35,8 +28,6 @@ class SoloMode(GameMode):
     def get_number(self):
         return rd.randint(1 , 10*self.level)
     
-
-
     def calcul_precision(self , inputs , TrueNumber):
         precision = 0
         for x in inputs:
@@ -56,10 +47,7 @@ class SoloMode(GameMode):
                     (self.poids_precision * score_precision) + \
                     (self.poids_temps * score_temps)
 
-        print(score_total)
         return score_total
-        # deepseek dit que cest entre O et 1 mais je pense que cest entre 0 et 3 mais je garde ça la au cas ou 
-        # je me dis si 0<a<1 et 0<b<1 et 0<c<1 alors 0<a+b+c<1+1+1=3
 
     def get_min_time(self):
         max_range = self.level * 10
@@ -100,6 +88,8 @@ class Multi:
 
 class DiscoverMode(GameMode):
 
+    MODE = "discover"
+
     @classmethod
     def number(cls):
         return rd.randint(1,50)
@@ -110,17 +100,25 @@ class DiscoverMode(GameMode):
 
 class EndlessMode(GameMode):
 
-    @property
-    def MODE(cls):
-        return "endless"
+    BASE_REWARD = 20
+    GROWTH_RATE = 1.35
 
-    @property
-    def STAGEPASSED(cls):
-        return "won"
+    STAGEPASSED = "won"
+    MODE = "endless"
+
+
     
     @staticmethod
     def newSession(stage: int):
         return rd.randint(1 , stage * 10)
+
+    @staticmethod
+    def getMaxRange(stage: int) -> int:
+        return stage * 10
+
+    @staticmethod
+    def getRoundReward(stage: int) -> int:
+        return int(EndlessMode.BASE_REWARD * (EndlessMode.GROWTH_RATE ** (stage - 1)))
 
 
 def checkResult(real_number , nb_user):
@@ -130,3 +128,7 @@ def checkResult(real_number , nb_user):
         return "PLUS"
     else:
         return "OK"
+
+# cacher des codes dans une page
+# 
+

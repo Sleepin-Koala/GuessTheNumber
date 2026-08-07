@@ -5,7 +5,6 @@ from typing import Optional
 
 Base = declarative_base()
 
-
 class Player(Base):
     __tablename__ = "player"
     id = Column(String , primary_key=True)
@@ -21,22 +20,53 @@ class Player(Base):
     #received_friends = relationship("Friend", foreign_keys="Friend.receiver_id", backref="receiver")
     #session_pl = relationship("session")
 
-class GameSession(Base):
 
+
+
+class GameSession(Base):
     __tablename__ =  "sessions"
+
     id = Column(String , primary_key=True)
-    max_attempt = Column(Integer)
-    attempt_left = Column(Integer)
     number = Column(Integer)
     status = Column(String)
-    started_time = Column(Integer)
-    end_time = Column(Integer)
+    started_time = Column(Float)
+    ended_time = Column(Float , nullable=True)
     player_id = Column(String , ForeignKey("player.id"))
     type = Column(String)
-    player = relationship("Player")
+
+    __mapper_args__ = {
+        'polymorphic_on' : type
+    }
+    
+class EndlessSession(GameSession):
+    __tablename__ = "endless"
+    id = Column(String  , ForeignKey("sessions.id"),primary_key=True)
+    bet = Column(Integer , default=None , nullable=True)
+    stage =  Column(Integer)
+    max_attempt = Column(Integer)
+    attempt_left = Column(Integer)
+
+    __mapper_args__ = {
+        "polymorphic_identity" : "endless"
+    }
+
+class SoloSession(GameSession):
+    __tablename__ = "solo"
+    id = Column(String  , ForeignKey("sessions.id"),primary_key=True)
+    max_attempt = Column(Integer)
+    attempt_left = Column(Integer)
     time_limit = Column(Integer)
-    stage = Column(Integer , nullable=True)
-    result = Column(String , nullable=False)
+
+    __mapper_args__ = {
+            "polymorphic_identity" : "solo"
+        }
+
+class DiscoverSession(GameSession):
+    __tablename__ = "discover"
+    id = Column(String  , ForeignKey("sessions.id"),primary_key=True)
+    __mapper_args__ = {
+                "polymorphic_identity" : "discover"
+            }
 
 class UserTries(Base):
     __tablename__ =  "essais"
@@ -44,15 +74,16 @@ class UserTries(Base):
     session_id = Column(String , ForeignKey("sessions.id"))
     number = Column(Integer)
     player_id = Column(String , ForeignKey("player.id"))
+    session_type = Column(String)
     session = relationship("GameSession")
-    player = relationship("Player")
+
 
 
 class Duel(Base):
     __tablename__ = "duel"
-    id = Column(String , primary_key=True)
+    id = Column(String ,ForeignKey("sessions.id") ,primary_key=True)
     host_id = Column(String , ForeignKey("player.id"))
-    guest_id = Column(String , nullable=True , default=None)
+    guest_id = Column(String ,ForeignKey("player.id"), nullable=True , default=None)
     room_name = Column(String)
     bet_amount = Column(Integer)
     status = Column(String)
@@ -82,6 +113,7 @@ class PlayerItems(Base):
     playerId = Column(String , ForeignKey("player.id"))
     itemId = Column(Integer , ForeignKey("items.id"))
     amount = Column(Integer , default=0)
+
 
 
 

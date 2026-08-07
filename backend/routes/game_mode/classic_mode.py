@@ -1,5 +1,5 @@
 # type: ignore
-from fastapi import APIRouter
+from fastapi import APIRouter , HTTPException
 from all import *
 import engine
 
@@ -7,28 +7,24 @@ router = APIRouter(prefix="/classic")
 
 @router.post("/level")
 def get_level(lvlData: LevelData):
-
     player = session.query(Player).filter_by(id = lvlData.player_id).first()
     if not player:
         return
 
     instance = engine.SoloMode(lvlData.level)
 
-    
     if player.level >= lvlData.level:
-
-        solo_sessson = GameSession(
+        solo_sessson = SoloSession(
             id=str(uuid4()),
-            max_attempt=instance.get_max_try(),
-            attempt_left=instance.get_max_try(),
             number=instance.get_number(),
-            status="continued",
+            status="abandoned",
             started_time = time.time(),
-            end_time = 0,
+            ended_time = None,
             player_id = player.id,
             type = "solo",
             time_limit = instance.get_max_time(),
-            result = GIVEN_UP
+            max_attempt=instance.get_max_try(),
+            attempt_left=instance.get_max_try(),
         )
         session.add(solo_sessson)
         session.commit()
@@ -50,7 +46,7 @@ def SessionFinished(ClassicEndLevelData :ClassicEndLevelData):
     that_session = session.query(GameSession).filter_by(id = ClassicEndLevelData.session_id).first()
     user = session.query(Player).filter_by(id = ClassicEndLevelData.player_id).first()  
     if not user or not that_session or not session:
-        return
+        return HTTPException(status_code = 404 , detail = "Something is missing")
     
     actual_xp = user.xp
     actual_coins = user.coins
@@ -59,7 +55,7 @@ def SessionFinished(ClassicEndLevelData :ClassicEndLevelData):
     if ClassicEndLevelData.status == WIN_STATE: 
         L = engine.SoloMode(ClassicEndLevelData.level_played)
 
-        that_session.result = "won" 
+        that_session.status = "won" 
         inputs = [i.number for i in session.query(UserTries).filter_by(session_id = that_session.id).all()]
 
         actual_xp += L.getXP( inputs , ClassicEndLevelData.ended-that_session.started_time ,that_session.number)
@@ -70,14 +66,13 @@ def SessionFinished(ClassicEndLevelData :ClassicEndLevelData):
             user.level+=1
 
     if ClassicEndLevelData.status == LOSE_STATE:
-        that_session.result = LOSE_STATE
+        that_session.status = LOSE_STATE
 
     user.xp = actual_xp
     user.coins = actual_coins
     user.gems = actual_gems
 
-    that_session.end_time = ClassicEndLevelData.ended
-    that_session.status = "ended"
+    that_session.ended_time = ClassicEndLevelData.ended
         
 
     session.commit()
