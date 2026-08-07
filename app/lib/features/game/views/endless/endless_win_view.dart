@@ -18,7 +18,6 @@ class EndlessWinView extends StatefulWidget {
 }
 
 class _EndlessWinViewState extends State<EndlessWinView> {
-  
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +40,7 @@ class _EndlessWinViewState extends State<EndlessWinView> {
           const CartoonIcon(AppIcons.coin, size: 64),
           const SizedBox(height: 8),
 
-          _CountUpNumber(target: 1000),
+          _CountUpNumber(target: currentState.reward),
           Text(
             "PIÈCES EN JEU",
             style: AppTypography.body(
@@ -57,7 +56,7 @@ class _EndlessWinViewState extends State<EndlessWinView> {
             "Continue et affronte la manche ${currentState.currentStage+1} — mais si tu "
             "rates, tu perds TOUT ce qui est en jeu.",
             textAlign: TextAlign.center,
-            style: AppTypography.body(fontSize: 14, color: Colors.white70),
+            style: AppTypography.body(fontSize: 18, color: Colors.white70),
           ),
 
           const Spacer(),
@@ -65,12 +64,13 @@ class _EndlessWinViewState extends State<EndlessWinView> {
           CartoonButton(
             color: AppColors.success,
             shadowColor: const Color(0xFF1B5E20),
-            onPressed: () => {},
+            onPressed: () => {context.read<GameCubit>().onMenu()},
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 CartoonIcon(AppIcons.check),
                 SizedBox(width: 10),
-                Text("ENCAISSER ${1000} PIÈCES"),
+                Text("ENCAISSER ${currentState.reward} PIÈCES"),
               ],
             ),
           ),
@@ -79,7 +79,7 @@ class _EndlessWinViewState extends State<EndlessWinView> {
           CartoonButton(
             color: const Color(0xFFFB923C),
             shadowColor: const Color(0xFF9A3412),
-            onPressed: () => {context.read<GameCubit>().startEndlessGame(1000, false)},
+            onPressed: () => {context.read<GameCubit>().continueEndlessGame(currentState.reward , currentState.currentStage+1)},
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

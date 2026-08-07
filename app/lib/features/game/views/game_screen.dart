@@ -1,5 +1,6 @@
 import 'package:app/features/game/bloc/game_cubit.dart';
 import 'package:app/features/game/views/classic/classic_play_view.dart';
+import 'package:app/features/game/views/classic/classic_win_view.dart';
 import 'package:app/features/game/views/duel/duel_lobby_view.dart';
 import 'package:app/features/game/views/duel/duel_room_view.dart';
 import 'package:app/features/game/views/duel/duel_variant_select_view.dart';
@@ -23,7 +24,7 @@ import 'endless/endless_lose_view.dart';
 import 'endless/endless_win_view.dart';
 
 //discovery
-import './discovery/d_result_view.dart';
+import 'discovery/discovery_win_view.dart';
 import 'discovery/discovery_view.dart';
 import './discovery/discovery_play_view.dart';
 
@@ -55,7 +56,6 @@ class GameScreen extends StatelessWidget {
         cubit.resetToHome();
         return false;
 
-      case GameSuccess():
       case GameFailure():
         cubit.onMenu();
         return false;
@@ -100,13 +100,11 @@ class GameScreen extends StatelessWidget {
 
                     //discovery
                     GameDiscovery() => DiscoveryView(),
-                    GameDiscoveryStart() => DiscoveryPlayView(state: state),
 
                     GameOptions() => OptionsView(),
-                    GameSuccess() => ResultView(
-                      isWin: true,
-                      attempts: state.finalAttemptsUsed,
-                    ),
+                    // GameClassicStart() => ResultView(
+                    //   attempts: state.finalAttemptsUsed,
+                    // ),
                     GameFailure() => ResultView(
                       isWin: false,
                       reason: state.reason,
@@ -119,9 +117,10 @@ class GameScreen extends StatelessWidget {
                     ),
 
                     // discover state
-                    ResultDiscovery() => DiscoverModeWinView(
-                      attempts: state.attempts,
-                    ),
+                    GameDiscoveryStart() => DiscoveryPlayView(state: state,),
+                    GameDiscoveryWin() => DiscoveryWinView(),
+
+                    
 
                     // endless state
                     GameEndlessStart() => EndlessStartView(),
@@ -132,13 +131,14 @@ class GameScreen extends StatelessWidget {
                     //solo
                     LevelSelectionState() => LevelSelectionView(),
                     GameClassicStart() => ClassicPlayView(state: state),
+                    GameClassicWin() => ClassicWinView(),
 
                     //duel
                     GameDuelSelectVariant() => DuelVariantSelectView(),
                     GameDuelLobby() => DuelLobbyView(),
                     GameDuelRoom() => DuelRoomView(),
 
-                    GameLoading() => const LoadingView(),
+                    GameLoading() => LoadingView(),
 
                     GameState() => throw UnimplementedError(),
                   },

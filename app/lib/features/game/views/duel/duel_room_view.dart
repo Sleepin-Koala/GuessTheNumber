@@ -1,7 +1,5 @@
 
 
-import 'dart:ffi';
-import 'dart:math';
 
 import 'package:app/core/services/haptic_service.dart';
 import 'package:app/core/theme/app_colors.dart';
@@ -118,13 +116,12 @@ class _WaitingForOpponent extends StatelessWidget {
         Text("EN ATTENTE D'UN ADVERSAIRE", textAlign: TextAlign.center, style: AppTypography.display(fontSize: 22)),
         const SizedBox(height: 12),
         Text(
-          "Mise : 122 pièces  •  Plage 1-${2}",
+          "Mise : ${room.betAmount} pièces  •  Plage 1-${room.MaxRange}",
           style: AppTypography.body(color: Colors.white54),
         ),
         const Spacer(),
         CartoonButton(
-          // context.read<GameCubit>().leaveDuelRoom()
-          onPressed: () => {},
+          onPressed: () => {context.read<GameCubit>().leaveDuelRoom()},
           color: AppColors.danger,
           shadowColor: const Color(0xFFB71C1C),
           child: const Text("ANNULER", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),

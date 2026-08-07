@@ -17,7 +17,7 @@ class DuelFinishedView extends StatefulWidget {
   final DuelRoom room;
   final bool iWon;
   final String myId;
-  const DuelFinishedView({required this.room, required this.iWon, required this.myId});
+  const DuelFinishedView({super.key, required this.room, required this.iWon, required this.myId});
 
   @override
   State<DuelFinishedView> createState() => DuelFinishedViewState();
@@ -64,11 +64,11 @@ class DuelFinishedViewState extends State<DuelFinishedView> with SingleTickerPro
             const CartoonIcon(AppIcons.coin, size: 56),
             const SizedBox(height: 8),
             TweenAnimationBuilder<int>(
-              tween: IntTween(begin: 0, end: widget.iWon ? 12 : 0),
+              tween: IntTween(begin: 0, end: widget.iWon ? room.betAmount*2 : 0),
               duration: const Duration(milliseconds: 900),
               curve: Curves.easeOutCubic,
               builder: (context, value, _) => Text(
-                widget.iWon ? "+$value" : "-${1000}",
+                widget.iWon ? "+$value" : "-${room.betAmount}",
                 style: AppTypography.display(fontSize: 40, color: resultColor),
               ),
             ),

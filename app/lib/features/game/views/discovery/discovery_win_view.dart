@@ -1,4 +1,5 @@
 import 'package:app/features/game/bloc/game_cubit.dart';
+import 'package:app/features/game/bloc/game_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import "../../../../core/theme/app_colors.dart";
@@ -6,12 +7,16 @@ import 'package:lucide_icons/lucide_icons.dart';
 import "../../../../core/widgets/CartoonButton.dart";
 
 
-class DiscoverModeWinView extends StatelessWidget {
-  final int attempts;
-  const DiscoverModeWinView({super.key, required this.attempts});
+class DiscoveryWinView extends StatelessWidget {
+  const DiscoveryWinView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final state = context.read<GameCubit>().state;
+    if (state is! GameDiscoveryWin) return SizedBox.shrink();
+
+    
+
     final Color headerColor =  AppColors.success ;
     final Color shadowHeaderColor = const Color(0xFF1B5E20);
       
@@ -90,7 +95,7 @@ class DiscoverModeWinView extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Essais utilisés : $attempts',
+                      'Essais utilisés : ${state.attempts} ',
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w900,

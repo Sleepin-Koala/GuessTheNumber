@@ -25,13 +25,6 @@ class GameFailure extends GameState {
 }
 
 @immutable
-class GameSuccess extends GameState {
-  final int finalAttemptsUsed;
-
-  const GameSuccess({required this.finalAttemptsUsed});
-}
-
-@immutable
 class GameLoading extends GameState {
   const GameLoading();
 }
@@ -85,7 +78,18 @@ class GameClassicStart extends ClassicState {
   });
 }
 
+@immutable
+class GameClassicWin extends ClassicState {
+  final int currentLevel;
+  final int finalAttemptsUsed;
 
+  const GameClassicWin({required this.finalAttemptsUsed , required this.currentLevel});
+}
+
+@immutable
+class GameClassicLose extends ClassicState {
+  const GameClassicLose();
+}
 
 // discovery
 
@@ -103,9 +107,9 @@ class GameDiscoveryStart extends DiscoverState {
 }
 
 @immutable
-class ResultDiscovery extends DiscoverState {
+class GameDiscoveryWin extends DiscoverState {
   final int attempts;
-  const ResultDiscovery({required this.attempts});
+  const GameDiscoveryWin({required this.attempts});
 }
 
 
@@ -139,13 +143,15 @@ class GameEndlessRun extends EndlessState {
 @immutable
 class GameEndlessLose extends EndlessState {
   final int currentStage;
-  const GameEndlessLose({required this.currentStage});
+  final int bet;
+  const GameEndlessLose({required this.currentStage , required this.bet });
 }
 
 @immutable
 class GameEndlessWin extends EndlessState {
   final int currentStage;
-  const GameEndlessWin({required this.currentStage});
+  final int reward;
+  const GameEndlessWin({required this.currentStage , required this.reward});
 }
 
 

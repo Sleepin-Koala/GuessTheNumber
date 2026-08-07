@@ -77,7 +77,6 @@ class DuelLobbyView extends StatelessWidget {
 
             const SizedBox(height: 16),
             CartoonButton(
-              // context.read<GameCubit>().createDuelRoom()
               onPressed: () => {_openCreateDialog(context)},
               color: AppColors.primary,
               shadowColor: AppColors.secondary,

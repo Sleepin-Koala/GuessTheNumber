@@ -12,14 +12,15 @@ class DiscoveryPlayView extends StatefulWidget {
   final GameDiscoveryStart state;
   const DiscoveryPlayView({super.key, required this.state});
 
+
   @override
   State<DiscoveryPlayView> createState() => _DiscoveryPlayViewState();
 }
 
 class _DiscoveryPlayViewState extends State<DiscoveryPlayView> {
   String _currentInput = "";
-  bool _showGauge = false;
   Timer? _gaugeTimer;
+  bool _showGauge = false;
   
 
 
@@ -78,7 +79,9 @@ class _DiscoveryPlayViewState extends State<DiscoveryPlayView> {
 
   @override
   Widget build(BuildContext context) {
-    final session = widget.state.session;
+  final state = context.read<GameCubit>().state;
+  if (state is! GameDiscoveryStart) return SizedBox.shrink();
+
 
     return SafeArea(
       child: Padding(
@@ -108,9 +111,9 @@ class _DiscoveryPlayViewState extends State<DiscoveryPlayView> {
               child: Gamepanel(
                 currentText: _currentInput,
                 isGauge: _showGauge,
-                max_range: session.maxRange, 
-                lastDistance: widget.state.lastDistance,
-                feedbackMessage: widget.state.feedbackMessage,
+                max_range: state.session.maxRange, 
+                lastDistance: state.lastDistance,
+                feedbackMessage: state.feedbackMessage,
               ),
             ),
 

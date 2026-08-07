@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:app/data/models/duel_room.dart';
-import 'package:app/data/models/endless_mode.dart';
 import 'package:app/data/models/discovery_mode_session.dart';
+import 'package:app/data/models/endless_mode.dart';
 import 'package:app/data/repositories/game_repository.dart';
 import 'package:app/data/repositories/user_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -91,16 +91,15 @@ class GameCubit extends Cubit<GameState> {
         _currentPlayer = await _userRepository.getNewPlayer();
         SettingsService.setData(_currentPlayer!.id);
       } else {
-        // _currentPlayer = await _userRepository.getActualPlayer(SettingsService.playerId);
-
-        _currentPlayer = await _userRepository.getNewPlayer();
-        SettingsService.setData(_currentPlayer!.id);
+        _currentPlayer = await _userRepository.getActualPlayer(SettingsService.playerId);
       }
 
-      // emit(GameInitial(player: _currentPlayer!));
-      emit(GameDuelSelectVariant());
+      emit(GameInitial(player: _currentPlayer!));
     } catch (e) {
-      emit(GameError(errorMessage: "Impossible de créer votre profil : $e"));
+      _currentPlayer = await _userRepository.getNewPlayer();
+      SettingsService.setData(_currentPlayer!.id);
+      emit(GameInitial(player: _currentPlayer!));
+      ;
     }
   }
 
@@ -167,7 +166,7 @@ class GameCubit extends Cubit<GameState> {
 
   // ENDLESS
 
-  Future<void> startEndlessGame(int bet, bool newSession) async {
+  Future<void> startEndlessGame(int bet) async {
     if (_currentPlayer == null) {
       emit(const GameError(errorMessage: "Profil joueur non initialisé."));
       return;
@@ -179,9 +178,12 @@ class GameCubit extends Cubit<GameState> {
       final endlessSession = await _gameRepository.endlessMode.start(
         player_id: _currentPlayer!.id,
         bet: bet,
-        new_session: newSession,
+        stage: 1,
       );
       _sessionId = endlessSession.sessionId;
+      _currentPlayer = _currentPlayer!.copyWith(
+        coins: endlessSession.playerCoins,
+      );
       emit(
         GameEndlessRun(
           session: endlessSession,
@@ -203,21 +205,27 @@ class GameCubit extends Cubit<GameState> {
       case GuessOutcome.PLUS:
       case GuessOutcome.MOINS:
         if (result.attemptLeft == 0) {
-          emit(GameEndlessLose(currentStage: currentState.session.stage));
+          emit(
+            GameEndlessLose(
+              currentStage: currentState.session.stage,
+              bet: currentState.session.bet,
+            ),
+          );
         } else {
           _gamedata = _gamedata.copyWith(
             numberDiscoverAttempt: _gamedata.numberDiscoverAttempt + 1,
           );
+
+          print(_gamedata.currentBet);
 
           final updatedSession = EndlessModeSession(
             sessionId: currentState.session.sessionId,
             maxAttempt: currentState.session.maxAttempt,
             attemptLeft: result.attemptLeft,
             maxRange: currentState.session.maxRange,
-            timeLimit: currentState.session.timeLimit,
             bet: _gamedata.currentBet!,
-            winnable: 300,
             stage: currentState.session.stage,
+            playerCoins: currentState.session.playerCoins,
           );
 
           final feedback = result.outcome == GuessOutcome.PLUS
@@ -234,34 +242,70 @@ class GameCubit extends Cubit<GameState> {
         }
 
       case GuessOutcome.OK:
-        await _gameRepository.endlessMode.endGameSession(
-          sessionId: _sessionId!,
-          playerId: _currentPlayer!.id,
-          status: 'win',
+        final int amountWinned = await _gameRepository.endlessMode
+            .endGameSession(
+              sessionId: _sessionId!,
+              playerId: _currentPlayer!.id,
+              status: 'win',
+            );
+        _currentPlayer = _currentPlayer!.copyWith(
+          coins: _currentPlayer!.coins + amountWinned,
         );
 
-        emit(GameEndlessWin(currentStage: currentState.session.stage));
+        emit(
+          GameEndlessWin(
+            currentStage: currentState.session.stage,
+            reward: amountWinned,
+          ),
+        );
     }
   }
 
-  // CLASSIC
-
-  Future<void> startClassicSession({required int level}) async {
+  Future<void> continueEndlessGame(int bet, int stage) async {
     if (_currentPlayer == null) {
       emit(const GameError(errorMessage: "Profil joueur non initialisé."));
       return;
     }
 
     emit(const GameLoading());
+    try {
+      _gamedata = _gamedata.copyWith(currentBet: bet);
 
-    _currentLevel = level;
+      final endlessSession = await _gameRepository.endlessMode.start(
+        player_id: _currentPlayer!.id,
+        bet: bet,
+        stage: stage,
+      );
+      _sessionId = endlessSession.sessionId;
+      _currentPlayer = _currentPlayer!.copyWith(
+        coins: endlessSession.playerCoins,
+      );
+      emit(
+        GameEndlessRun(
+          session: endlessSession,
+          feedbackMessage: null,
+          lastDistance: null,
+        ),
+      );
+    } catch (e) {
+      emit(GameError(errorMessage: e.toString()));
+    }
+  }
 
+  // CLASSIC
+  Future<void> startClassicSession({required int level}) async {
+    if (_currentPlayer == null) {
+      emit(const GameError(errorMessage: "Profil joueur non initialisé."));
+      return;
+    }
+    emit(const GameLoading());
     try {
       final newSession = await _gameRepository.soloMode.start(
         playerId: _currentPlayer!.id,
         level: level,
       );
       _sessionId = newSession.sessionId;
+      _currentLevel = level;
 
       emit(GameClassicStart(session: newSession));
     } catch (e) {
@@ -283,8 +327,12 @@ class GameCubit extends Cubit<GameState> {
           levelPlayed: _currentLevel,
         );
         _currentPlayer = res;
-
-        emit(GameSuccess(finalAttemptsUsed: 999));
+        emit(
+          GameClassicWin(
+            finalAttemptsUsed: result.maxAttempt - result.attemptLeft,
+            currentLevel: _currentLevel,
+          ),
+        );
         break;
       case GuessOutcome.PLUS:
       case GuessOutcome.MOINS:
@@ -356,7 +404,7 @@ class GameCubit extends Cubit<GameState> {
         );
         attemptsUsed = res;
 
-        emit(GameSuccess(finalAttemptsUsed: attemptsUsed));
+        emit(GameDiscoveryWin(attempts: attemptsUsed));
         break;
       case GuessOutcome.PLUS:
       case GuessOutcome.MOINS:
@@ -384,7 +432,6 @@ class GameCubit extends Cubit<GameState> {
   Future<void> startDuelMode() async {
     try {
       final allRooms = await _gameRepository.duelMode.fetchDuelRooms();
-      print(allRooms.length);
       emit(GameDuelLobby(player: _currentPlayer!, rooms: allRooms));
     } catch (e) {
       emit(GameError(errorMessage: e.toString()));
@@ -394,7 +441,10 @@ class GameCubit extends Cubit<GameState> {
   Future<void> createDuelRoom(String name, int amount, int maxRange) async {
     try {
       final room = await _gameRepository.duelMode.createDuelRoom(
-        _currentPlayer!.id,name , amount ,maxRange
+        _currentPlayer!.id,
+        name,
+        amount,
+        maxRange,
       );
       _currentRoom = room;
       emit(GameDuelRoom(room: room, player: _currentPlayer!));
@@ -466,6 +516,7 @@ class GameCubit extends Cubit<GameState> {
   Future<void> leaveDuelRoom() async {
     _timerPolling?.cancel();
     _currentRoom = null;
-    emit(GameInitial(player: _currentPlayer!));
+  
+    onDuelMode();
   }
 }

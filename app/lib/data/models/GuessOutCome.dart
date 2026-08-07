@@ -4,12 +4,14 @@ enum GuessOutcome {PLUS , MOINS , OK}
 class GuessResult {
   final GuessOutcome outcome;
   final int attemptLeft;
+  final int maxAttempt;
   final double distance;
   final String type;
 
   const GuessResult({
     required this.outcome,
     required this.attemptLeft,
+    required this.maxAttempt,
     required this.distance,
     required this.type
   });
@@ -29,6 +31,7 @@ class GuessResult {
     return GuessResult(
       outcome: parsedOutcome,
       attemptLeft: json['attempt_left'] as int,
+      maxAttempt: json["max_attempt"] as int,
       distance: json['distance'] as double,
       type: json['type'] as String,
     );

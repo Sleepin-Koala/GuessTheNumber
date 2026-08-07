@@ -21,10 +21,33 @@ class EndlessStartView extends StatefulWidget {
 }
 
 class _EndlessStartViewState extends State<EndlessStartView> {
+  int? _selectedInput;
+  String? _errorText;
+  late int bet;
+  final List<int> inputs = [100, 300, 500, 800, 1000, 2000, 3000, 5000];
+  final TextEditingController _controller = TextEditingController();
+  bool _isCustom = false;
+
+  void _handlePlay(coins) {
+
+    if (_selectedInput == 0) bet = int.parse(_controller.text);
+
+
+
+    if (coins >= bet) {
+      context.read<GameCubit>().startEndlessGame(bet);
+    } else {
+      setState(() {
+        _errorText = "tu n'as pas assez d'argent";
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     GameState state = context.read<GameCubit>().state;
     if (state is! GameEndlessStart) return const SizedBox.shrink();
+
     Player player = state.player;
 
     return SafeArea(
@@ -33,207 +56,60 @@ class _EndlessStartViewState extends State<EndlessStartView> {
         child: Column(
           children: [
             PlayerProgressBanner(player: player),
-            BettingCard(),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class BettingCard extends StatefulWidget {
-  const BettingCard({super.key});
-
-  @override
-  State<BettingCard> createState() => _BettingCardState();
-}
-
-class _BettingCardState extends State<BettingCard> {
-  final TextEditingController _controller = TextEditingController();
-  
-
-  void _handlePlay(){
-    int? bet = int.tryParse(_controller.text);
-
-    if (bet is int){
-      context.read<GameCubit>().startEndlessGame(bet , true);
-    }
-    
-  }
-
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text("FAIT TA MISE", style: AppTypography.display(fontSize: 28),),
-        TextField(
-          controller: _controller,
-          keyboardType: TextInputType.number,
-          style: AppTypography.display(),
-        ), 
-        CartoonButton(
-          onPressed: _handlePlay,
-          color: AppColors.primary,
-          shadowColor: AppColors.secondary,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CartoonIcon(AppIcons.play, size: 26),
-              const SizedBox(width: 10),
-              const Text(
-                "JOUER",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-        ),
-
-        
-      ],
-    );
-  }
-}
-
-class _RangePreset {
-  final String label;
-  final int max;
-  const _RangePreset(this.label, this.max);
-}
-
-const List<_RangePreset> _presets = [
-  _RangePreset("1 - 10", 10),
-  _RangePreset("1 - 100", 100),
-  _RangePreset("1 - 1000", 1000),
-];
-
-class _RangePicker extends StatefulWidget {
-  const _RangePicker();
-
-  @override
-  State<_RangePicker> createState() => _RangePickerState();
-}
-
-class _RangePickerState extends State<_RangePicker> {
-  int? _selectedPreset;
-  bool _isCustom = false;
-  final TextEditingController _customController = TextEditingController();
-  String? _errorText;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedPreset = 0;
-  }
-
-  @override
-  void dispose() {
-    _customController.dispose();
-    super.dispose();
-  }
-
-  int? get _chosenMax {
-    if (_isCustom) return int.tryParse(_customController.text);
-    if (_selectedPreset != null) return _presets[_selectedPreset!].max;
-    return null;
-  }
-
-  void _handlePlay() {
-    final max = _chosenMax;
-    if (max == null || max < 2) {
-      setState(() => _errorText = "Choisis un nombre entier d'au moins 2.");
-      return;
-    }
-    context.read<GameCubit>().startDiscoveryGame(max_range: max);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          "CHOISIS TA PLAGE",
-          textAlign: TextAlign.center,
-          style: AppTypography.display(fontSize: 28),
-        ),
-
-        const SizedBox(height: 8),
-
-        Text(
-          "Le nombre secret sera tiré entre 1 et ta limite.",
-          textAlign: TextAlign.center,
-          style: AppTypography.body(fontSize: 14, color: Colors.white70),
-        ),
-
-        const SizedBox(height: 32),
-
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            for (int i = 0; i < _presets.length; i++)
-              _buildChip(
-                label: _presets[i].label,
-                isSelected: !_isCustom && _selectedPreset == i,
-                onTap: () => setState(() {
-                  _isCustom = false;
-                  _selectedPreset = i;
-                  _errorText = null;
-                }),
-              ),
-
-            _buildChip(
-              label: "Personnalisé",
-              isSelected: _isCustom,
-              onTap: () => setState(() {
-                _isCustom = true;
-                _selectedPreset = null;
-                _errorText = null;
-              }),
+            const SizedBox(height: 32),
+            Text("FAIT TA MISE", style: AppTypography.display(fontSize: 28)),
+            const SizedBox(height: 16),
+            Text(
+              "apres la mise aucune possibilité d'avoir de la reprendre exepté la victoire.",
+              textAlign: TextAlign.center,
+              style: AppTypography.body(fontSize: 14, color: Colors.white70),
             ),
-          ],
-        ),
 
-        if (_isCustom) ...[
-          const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
-          Row(
-            children: [
-              Text(
-                "1  —  ",
-                style: AppTypography.display(
-                  fontSize: 22,
-                  color: Colors.white54,
+            Wrap(
+              children: inputs.map((item) {
+                return _buildChip(
+                  label: item.toString(),
+                  isSelected: _selectedInput == item,
+                  onTap: () {
+                    setState(() {
+                      _selectedInput = item;
+                      bet = item;
+                      _isCustom = false;
+                      
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+            _buildChip(
+                  label: "personnalisé",
+                  isSelected: _selectedInput == 0,
+                  onTap: () {
+                    setState(() {
+                      _selectedInput = 0;
+                      _isCustom = true;
+                    });
+                  },
                 ),
-              ),
 
-              Expanded(
-                child: TextField(
-                  controller: _customController,
+
+            const SizedBox(height: 32),
+
+            if (_isCustom) ...[
+                TextField(
+                  controller: _controller,
                   keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
                   style: AppTypography.display(fontSize: 22),
                   decoration: InputDecoration(
+                    hintText: "personnalisé...",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide(width: 3, color: Colors.black),
+                    ),
                     filled: true,
                     fillColor: AppColors.cardBg,
-                    hintText: "ex: 500",
-                    hintStyle: AppTypography.body(color: Colors.white24),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(
-                        color: Colors.black,
-                        width: 3,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(
-                        color: Colors.black,
-                        width: 3,
-                      ),
-                    ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide(
@@ -242,71 +118,68 @@ class _RangePickerState extends State<_RangePicker> {
                       ),
                     ),
                   ),
-                  onChanged: (_) => setState(() => _errorText = null),
+                ),
+            ],
+
+            if (_errorText != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                _errorText!,
+                textAlign: TextAlign.center,
+                style: AppTypography.body(
+                  color: AppColors.danger,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
-          ),
-        ],
 
-        if (_errorText != null) ...[
-          const SizedBox(height: 12),
-          Text(
-            _errorText!,
-            textAlign: TextAlign.center,
-            style: AppTypography.body(
-              color: AppColors.danger,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-
-        const Spacer(),
-
-        CartoonButton(
-          onPressed: _handlePlay,
-          color: AppColors.primary,
-          shadowColor: AppColors.secondary,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CartoonIcon(AppIcons.play, size: 26),
-              const SizedBox(width: 10),
-              const Text(
-                "JOUER",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            const Spacer(),
+            CartoonButton(
+              onPressed: () => _handlePlay(player.coins),
+              color: AppColors.primary,
+              shadowColor: AppColors.secondary,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CartoonIcon(AppIcons.play, size: 26),
+                  const SizedBox(width: 10),
+                  const Text(
+                    "JOUER",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildChip({
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.cardBg,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.black, width: 3),
-        ),
-        child: Text(
-          label,
-          style: AppTypography.body(
-            fontSize: 15,
-            fontWeight: FontWeight.w800,
-            color: isSelected ? Colors.black : Colors.white,
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
+}
+
+Widget _buildChip({
+  required String label,
+  required bool isSelected,
+  required VoidCallback onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(
+        color: isSelected ? AppColors.primary : AppColors.cardBg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.black, width: 3),
+      ),
+      child: Text(
+        label,
+        style: AppTypography.body(
+          fontSize: 15,
+          fontWeight: FontWeight.w800,
+          color: isSelected ? Colors.black : Colors.white,
+        ),
+      ),
+    ),
+  );
 }

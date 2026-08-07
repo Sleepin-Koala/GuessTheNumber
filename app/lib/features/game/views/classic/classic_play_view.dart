@@ -22,8 +22,6 @@ class _ClassicPlayViewState extends State<ClassicPlayView> {
   String _currentInput = "";
   bool _showGauge = false;
   Timer? _gaugeTimer;
-  
-
 
   void _handleKeyTap(String key) {
     HapticService.triggerKeyTap();

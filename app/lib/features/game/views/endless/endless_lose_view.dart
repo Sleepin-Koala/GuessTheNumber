@@ -1,5 +1,6 @@
 import "dart:math";
 
+import 'package:app/features/game/bloc/game_state.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/widgets/CartoonButton.dart';
@@ -41,6 +42,9 @@ class _EndlessBustViewState extends State<EndlessBustView>
 
   @override
   Widget build(BuildContext context) {
+    final state = context.read<GameCubit>().state;
+    if (state is! GameEndlessLose ) return SizedBox.shrink();
+
     return AnimatedBuilder(
       animation: _shakeController,
       builder: (context, child) {
@@ -81,7 +85,7 @@ class _EndlessBustViewState extends State<EndlessBustView>
 
                 const SizedBox(height: 16),
                 Text(
-                  "Le nombre secret était",
+                  "MANCHE",
                   textAlign: TextAlign.center,
                   style: AppTypography.body(
                     fontSize: 15,
@@ -90,7 +94,7 @@ class _EndlessBustViewState extends State<EndlessBustView>
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  "${2}",
+                  "${state.currentStage}",
                   textAlign: TextAlign.center,
                   style: AppTypography.display(fontSize: 40),
                 ),
@@ -122,7 +126,7 @@ class _EndlessBustViewState extends State<EndlessBustView>
                           const CartoonIcon(AppIcons.coin, size: 22),
                           const SizedBox(width: 6),
                           Text(
-                            "${300}",
+                            "${state.bet}",
                             style: AppTypography.body(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,

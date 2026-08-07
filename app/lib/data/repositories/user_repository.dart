@@ -44,7 +44,7 @@ class UserRepository {
         );
       }
     } catch (e) {
-      throw Exception('Erreur réseau lors du démarrage de la partie : $e');
+      throw Exception('$e');
     }
   }
 }

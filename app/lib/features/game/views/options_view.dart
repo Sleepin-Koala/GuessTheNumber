@@ -83,7 +83,7 @@ class _OptionsViewState extends State<OptionsView> {
     
           Center(
             child: Text(
-              "Guess The Number — v0.1.0",
+              "Guess The Number — v0.3.0",
               style: AppTypography.body(fontSize: 12, color: Colors.white24),
             ),
           ),

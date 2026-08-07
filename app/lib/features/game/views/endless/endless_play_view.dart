@@ -103,7 +103,7 @@ class _EndlessPlayViewState extends State<EndlessPlayView> {
                     size: 28,
                   ),
                   onPressed: () => {
-                    context.read<GameCubit>().onDiscoveryPage(),
+                    context.read<GameCubit>().onEndlessMode(),
                   },
                 ),
                 Expanded(
