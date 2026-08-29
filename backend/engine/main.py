@@ -1,6 +1,6 @@
 import random as rd
 import math
-
+from typing import List
 
 class GameMode:
 
@@ -28,7 +28,7 @@ class SoloMode(GameMode):
     def get_number(self):
         return rd.randint(1 , 10*self.level)
     
-    def calcul_precision(self , inputs , TrueNumber):
+    def calcul_precision(self , inputs:List[int]  , TrueNumber: int) -> float:
         precision = 0
         for x in inputs:
             if x <= TrueNumber:
@@ -37,7 +37,7 @@ class SoloMode(GameMode):
                 precision += TrueNumber/x
         return precision/len(inputs)
 
-    def calcul_score(self ,inputs,time_s , TrueNumber):
+    def calcul_score(self ,inputs: List[int] ,time_s: float , TrueNumber: int) -> float:
 
         score_essais = (self.max_tries - len(inputs)) / (self.max_tries - 1)
         score_precision = self.calcul_precision(inputs,TrueNumber)
@@ -60,14 +60,17 @@ class SoloMode(GameMode):
         base = 100 + boost_level
         return int(base + (boost_level * self.calcul_score(inputs , time_s,TrueNumber)))
     
-    def getStars(self , inputs , time_s,TrueNumber):
+    def getStars(self , inputs: List[int] , time_s: float ,TrueNumber: int) -> int:
         score = self.calcul_score(inputs , time_s,TrueNumber)
+        print(score)
         if score <= 0.3 :
             return 1
         elif 0.3 < score <= 0.5:
             return 2
         else :
             return 3
+
+
 
     def getXP(self, inputs, time_s , TrueNumber):
         base_xp = self.level * 10
@@ -100,8 +103,7 @@ class DiscoverMode(GameMode):
 
 class EndlessMode(GameMode):
 
-    BASE_REWARD = 20
-    GROWTH_RATE = 1.35
+    GROWTH_RATE = 1.25
 
     STAGEPASSED = "won"
     MODE = "endless"
@@ -110,15 +112,25 @@ class EndlessMode(GameMode):
     
     @staticmethod
     def newSession(stage: int):
-        return rd.randint(1 , stage * 10)
+        return rd.randint(1 , EndlessMode.getMaxRange(stage))
 
     @staticmethod
     def getMaxRange(stage: int) -> int:
         return stage * 10
 
     @staticmethod
-    def getRoundReward(stage: int) -> int:
-        return int(EndlessMode.BASE_REWARD * (EndlessMode.GROWTH_RATE ** (stage - 1)))
+    def getMultiplier(stage: int): 
+        # if stage < 6:
+        #     print(math.log(math.e - 1 + stage + (rd.random())))
+        #     return math.log(math.e - 1 + stage + (rd.random()))
+        # else:
+        return EndlessMode.GROWTH_RATE ** stage
+    
+
+    
+    @staticmethod
+    def getRoundReward(stage: int , bet : int) -> int:
+        return int(bet * EndlessMode.getMultiplier(stage))
 
 
 def checkResult(real_number , nb_user):

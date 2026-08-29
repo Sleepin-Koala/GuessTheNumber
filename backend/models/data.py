@@ -15,6 +15,11 @@ class PlayerData(BaseModel):
     xp: Optional[int]
     level : Optional[int]
 
+class SoloEndGameData(BaseModel):
+    coins: int
+    xp: int
+    stars: int
+
 
 # Discovery
 

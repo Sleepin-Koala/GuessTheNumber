@@ -58,9 +58,10 @@ def SessionFinished(ClassicEndLevelData :ClassicEndLevelData):
         that_session.status = "won" 
         inputs = [i.number for i in session.query(UserTries).filter_by(session_id = that_session.id).all()]
 
-        actual_xp += L.getXP( inputs , ClassicEndLevelData.ended-that_session.started_time ,that_session.number)
+        actual_xp += L.getXP(inputs , ClassicEndLevelData.ended-that_session.started_time ,that_session.number)
         actual_coins += L.getRewardCoin(inputs , ClassicEndLevelData.ended-that_session.started_time ,that_session.number)
         actual_gems += L.getDaimond(inputs , ClassicEndLevelData.ended-that_session.started_time ,that_session.number)
+
 
         if user.level == ClassicEndLevelData.level_played :
             user.level+=1
@@ -73,9 +74,12 @@ def SessionFinished(ClassicEndLevelData :ClassicEndLevelData):
     user.gems = actual_gems
 
     that_session.ended_time = ClassicEndLevelData.ended
+    time_used = ClassicEndLevelData.ended-that_session.started_time
         
 
     session.commit()
 
-    return PlayerData(id = user.id , name = user.name , gems = user.gems , coins = user.coins , xp = user.xp , level = user.level)  # 
-   
+    if ClassicEndLevelData.status == WIN_STATE:
+        return SoloEndGameData(coins=L.getRewardCoin(inputs , time_used ,that_session.number) , xp = L.getXP(inputs , time_used ,that_session.number) ,stars = L.getStars(inputs,time_used , that_session.number )); 
+    else:
+        return SoloEndGameData(coins=0 , xp = 0 ,stars = 0); 

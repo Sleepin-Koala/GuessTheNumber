@@ -34,12 +34,14 @@ class Gamepanel extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            currentText.isEmpty ? "?" : currentText,
-            style: AppTypography.body(
-              fontSize: 64,
-              fontWeight: FontWeight.w900,
-              color: currentText.isEmpty ? Colors.white24 : AppColors.primary,
+          FittedBox(
+            child: Text(
+              currentText.isEmpty ? "?" : currentText,
+              style: AppTypography.body(
+                fontSize: 64,
+                fontWeight: FontWeight.w900,
+                color: currentText.isEmpty ? Colors.white24 : AppColors.primary,
+              ),
             ),
           ),
 
@@ -55,7 +57,7 @@ class Gamepanel extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                   ],
                   ShakingText(
                     text:

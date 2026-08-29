@@ -99,7 +99,6 @@ class GameCubit extends Cubit<GameState> {
       _currentPlayer = await _userRepository.getNewPlayer();
       SettingsService.setData(_currentPlayer!.id);
       emit(GameInitial(player: _currentPlayer!));
-      ;
     }
   }
 
@@ -326,11 +325,14 @@ class GameCubit extends Cubit<GameState> {
           status: 'win',
           levelPlayed: _currentLevel,
         );
-        _currentPlayer = res;
+        _currentPlayer = await _userRepository.getActualPlayer(SettingsService.playerId);
         emit(
           GameClassicWin(
             finalAttemptsUsed: result.maxAttempt - result.attemptLeft,
             currentLevel: _currentLevel,
+            coinsEarned: res.coins,
+            xpWinned: res.xp,
+            starsWinned: res.stars
           ),
         );
         break;
@@ -343,7 +345,7 @@ class GameCubit extends Cubit<GameState> {
             status: 'lose',
             levelPlayed: _currentLevel,
           );
-          _currentPlayer = res;
+          _currentPlayer = await _userRepository.getActualPlayer(SettingsService.playerId);
           emit(const GameFailure(reason: "attemps"));
         } else {
           final updatedSession = SoloModeSession(

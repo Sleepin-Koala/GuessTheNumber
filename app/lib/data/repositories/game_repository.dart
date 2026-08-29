@@ -142,11 +142,7 @@ class EndlessModeRepo {
       final response = await _httpclient.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          "player_id": player_id,
-          "bet": bet,
-          "stage": stage,
-        }),
+        body: jsonEncode({"player_id": player_id, "bet": bet, "stage": stage}),
       );
 
       if (response.statusCode == 200) {
@@ -163,28 +159,27 @@ class EndlessModeRepo {
   }
 
   Future<Player> collect({playerId}) async {
-
     final url = Uri.parse('${Api.baseUrl}/game/endless/collect');
 
     try {
-      final response = await _httpclient.post(url , body: jsonEncode({"player_id": playerId}));
+      final response = await _httpclient.post(
+        url,
+        body: jsonEncode({"player_id": playerId}),
+      );
 
       if (response.statusCode == 200) {
         return Player.fromJson(jsonDecode(response.body));
-      }
-      else {
+      } else {
         throw Exception(
           'Impossible de clôturer la partie (Code: ${response.statusCode})',
         );
       }
-    }
-    catch (e){
+    } catch (e) {
       throw Exception('Erreur réseau lors de la clôture de la partie : $e');
     }
-
   }
 
-  Future<Player> guess({sessionId, playerId , number}) async {
+  Future<Player> guess({sessionId, playerId, number}) async {
     final url = Uri.parse('${Api.baseUrl}/game/endless/guess');
 
     try {
@@ -212,8 +207,7 @@ class EndlessModeRepo {
     } catch (e) {
       throw Exception('Erreur réseau lors de la clôture de la partie : $e');
     }
-
-  } 
+  }
 }
 
 class DiscoveryModeRepo {
@@ -282,7 +276,7 @@ class SoloModeRepo {
 
   SoloModeRepo(this._httpclient);
 
-  Future<Player> endlevel({
+  Future<EndSessionSoloMode> endlevel({
     required String sessionId,
     required String playerId,
     required String status,
@@ -307,7 +301,7 @@ class SoloModeRepo {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> json = jsonDecode(response.body);
-        return Player.fromJson(json);
+        return EndSessionSoloMode.fromJson(json);
       } else {
         throw Exception(
           'Impossible de clôturer la partie (Code: ${response.statusCode})',
@@ -368,13 +362,18 @@ class DuelModeRepo {
     }
   }
 
-  Future<DuelRoom> createDuelRoom(playerId, roomName , amount,maxRange) async {
+  Future<DuelRoom> createDuelRoom(playerId, roomName, amount, maxRange) async {
     final url = Uri.parse('${Api.baseUrl}/game/duel/host');
     try {
       final response = await _httpclient.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'host_id': playerId, 'name': roomName , 'amount' :amount ,"max_range" : maxRange}),
+        body: jsonEncode({
+          'host_id': playerId,
+          'name': roomName,
+          'amount': amount,
+          "max_range": maxRange,
+        }),
       );
 
       if (response.statusCode == 200) {
@@ -404,14 +403,14 @@ class DuelModeRepo {
     }
   }
 
-  Future<DuelRoom> joinDuelRoom(roomId , playerId) async {
+  Future<DuelRoom> joinDuelRoom(roomId, playerId) async {
     final url = Uri.parse('${Api.baseUrl}/game/duel/join');
 
     try {
       final response = await _httpclient.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({"room_id": roomId , "player_id": playerId}),
+        body: jsonEncode({"room_id": roomId, "player_id": playerId}),
       );
       return DuelRoom.fromjson(jsonDecode(response.body));
     } catch (e) {
@@ -434,7 +433,9 @@ class DuelModeRepo {
       if (response.statusCode == 200) {
         return DuelRoom.fromjson(jsonDecode(response.body));
       }
-      throw Exception('Impossible de cacher le nombre (Code: ${response.statusCode})');
+      throw Exception(
+        'Impossible de cacher le nombre (Code: ${response.statusCode})',
+      );
     } catch (e) {
       throw Exception('Erreur réseau : $e');
     }
@@ -461,7 +462,10 @@ class DuelModeRepo {
     }
   }
 
-  Future<void> leaveDuelRoom({required String roomId, required String playerId}) async {
+  Future<void> leaveDuelRoom({
+    required String roomId,
+    required String playerId,
+  }) async {
     final url = Uri.parse('${Api.baseUrl}/duel/rooms/$roomId/leave');
     try {
       await _httpclient.post(
@@ -469,10 +473,6 @@ class DuelModeRepo {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({"player_id": playerId}),
       );
-    } catch (_) {
-    }
+    } catch (_) {}
   }
-
 }
-
-

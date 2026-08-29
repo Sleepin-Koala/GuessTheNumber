@@ -60,7 +60,7 @@ def SessionFinished(EndlessEndSessionData :EndlessEndSessionData):
         that_session.status = engine.EndlessMode.STAGEPASSED
 
 
-    f = that_session.bet + engine.EndlessMode.getRoundReward(int(that_session.stage))
+    f = engine.EndlessMode.getRoundReward(int(that_session.stage) , that_session.bet)
     
     user.coins += f
 

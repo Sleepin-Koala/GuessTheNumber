@@ -1,4 +1,3 @@
-
 class SoloModeSession {
   final String sessionId;
   final int maxAttempt;
@@ -21,6 +20,22 @@ class SoloModeSession {
       attemptLeft: json['attempt_left'] as int,
       maxRange: json['max_range'] as int,
       timeLimit: json['time_limit'] as int,
+    );
+  }
+}
+
+class EndSessionSoloMode {
+  final int coins;
+  final int xp;
+  final int stars;
+
+  const EndSessionSoloMode({required this.coins, required this.xp , required this.stars});
+
+  factory EndSessionSoloMode.fromJson(Map<String, dynamic> json) {
+    return EndSessionSoloMode(
+      coins: json['coins'] as int,
+      xp: json['xp'] as int,
+      stars: json['stars'] as int,
     );
   }
 }

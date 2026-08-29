@@ -1,3 +1,4 @@
+import 'package:app/core/widgets/cartoonButton.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_colors.dart';
@@ -20,6 +21,10 @@ class _OptionsViewState extends State<OptionsView> {
   late bool _sound = SettingsService.soundEnabled;
   late bool _music = SettingsService.musicEnabled;
 
+  void __renameDialog(BuildContext context) {
+    showDialog(context: context, builder: (_) => _RenameWidget());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -39,7 +44,15 @@ class _OptionsViewState extends State<OptionsView> {
             ],
           ),
           const SizedBox(height: 28),
-    
+
+          _SectionLabel("INFO"),
+          CartoonButton(
+            child: Text("CHANGER DE NOM", style: AppTypography.body()),
+            onPressed: () => __renameDialog(context),
+          ),
+
+          const SizedBox(height: 12),
+
           _SectionLabel("GAMEPLAY"),
           _SettingSwitchTile(
             title: "Vibrations",
@@ -50,7 +63,7 @@ class _OptionsViewState extends State<OptionsView> {
               SettingsService.setHapticsEnabled(v);
             },
           ),
-    
+
           const SizedBox(height: 12),
           _SectionLabel("AUDIO"),
           _SettingSwitchTile(
@@ -71,19 +84,19 @@ class _OptionsViewState extends State<OptionsView> {
               SettingsService.setMusicEnabled(v);
             },
           ),
-    
+
           const SizedBox(height: 12),
           _SectionLabel("DONNÉES"),
           _DangerActionTile(
             title: "Réinitialiser ma progression",
             onTap: () {},
           ),
-    
+
           const Spacer(),
-    
+
           Center(
             child: Text(
-              "Guess The Number — v0.3.0",
+              "Guess The Number — v0.5.0",
               style: AppTypography.body(fontSize: 12, color: Colors.white24),
             ),
           ),
@@ -143,9 +156,21 @@ class _SettingSwitchTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: AppTypography.body(fontSize: 16, fontWeight: FontWeight.w800)),
+                Text(
+                  title,
+                  style: AppTypography.body(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text(subtitle, style: AppTypography.body(fontSize: 12, color: Colors.white54)),
+                Text(
+                  subtitle,
+                  style: AppTypography.body(
+                    fontSize: 12,
+                    color: Colors.white54,
+                  ),
+                ),
               ],
             ),
           ),
@@ -191,6 +216,54 @@ class _DangerActionTile extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _RenameWidget extends StatefulWidget {
+  const _RenameWidget();
+
+  @override
+  State<_RenameWidget> createState() => _RenameWidgetState();
+}
+
+class _RenameWidgetState extends State<_RenameWidget> {
+  final textcontroller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppColors.cardBg,
+      title: Text("NOM", style: AppTypography.body(color: AppColors.primary)),
+      content: Row(
+        children: [
+          TextField(
+            decoration: InputDecoration(
+              hintText: "ton nom ...",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                gapPadding: 10,
+                borderSide: BorderSide(
+                  color: const Color.fromARGB(255, 255, 0, 0),
+                  
+                ),
+              ),
+            ),
+            style: AppTypography.body(),
+            controller: textcontroller,
+            onChanged: (text) {
+              setState(() {
+                textcontroller.text = text;
+              });
+            },
+          ),
+        ],
       ),
     );
   }

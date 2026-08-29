@@ -53,8 +53,6 @@ class GameOptions extends GameState {
   const GameOptions();
 }
 
-
-
 //solo
 class ClassicState extends GameState {
   const ClassicState();
@@ -82,8 +80,17 @@ class GameClassicStart extends ClassicState {
 class GameClassicWin extends ClassicState {
   final int currentLevel;
   final int finalAttemptsUsed;
+  final int coinsEarned;
+  final int xpWinned;
+  final int starsWinned;
 
-  const GameClassicWin({required this.finalAttemptsUsed , required this.currentLevel});
+  const GameClassicWin({
+    required this.finalAttemptsUsed,
+    required this.currentLevel,
+    required this.coinsEarned,
+    required this.xpWinned,
+    required this.starsWinned,
+  });
 }
 
 @immutable
@@ -103,7 +110,11 @@ class GameDiscoveryStart extends DiscoverState {
   final DiscoveryModeSession session;
   final String? feedbackMessage;
   final double? lastDistance;
-  const GameDiscoveryStart({required this.session , this.feedbackMessage , this.lastDistance});
+  const GameDiscoveryStart({
+    required this.session,
+    this.feedbackMessage,
+    this.lastDistance,
+  });
 }
 
 @immutable
@@ -112,15 +123,12 @@ class GameDiscoveryWin extends DiscoverState {
   const GameDiscoveryWin({required this.attempts});
 }
 
-
-
 // endless
 
 @immutable
 class EndlessState extends GameState {
   const EndlessState();
 }
-
 
 @immutable
 class GameEndlessStart extends EndlessState {
@@ -144,17 +152,15 @@ class GameEndlessRun extends EndlessState {
 class GameEndlessLose extends EndlessState {
   final int currentStage;
   final int bet;
-  const GameEndlessLose({required this.currentStage , required this.bet });
+  const GameEndlessLose({required this.currentStage, required this.bet});
 }
 
 @immutable
 class GameEndlessWin extends EndlessState {
   final int currentStage;
   final int reward;
-  const GameEndlessWin({required this.currentStage , required this.reward});
+  const GameEndlessWin({required this.currentStage, required this.reward});
 }
-
-
 
 // MultiplayerState
 
@@ -164,7 +170,7 @@ class GameDuel extends GameState {
 }
 
 @immutable
-class GameDuelSelectVariant extends GameDuel{
+class GameDuelSelectVariant extends GameDuel {
   const GameDuelSelectVariant();
 }
 
@@ -172,18 +178,17 @@ class GameDuelSelectVariant extends GameDuel{
 class GameDuelLobby extends GameDuel {
   final Player player;
   final List<DuelRoom> rooms;
-  const GameDuelLobby({required this.player , required this.rooms});
+  const GameDuelLobby({required this.player, required this.rooms});
 }
 
 @immutable
 class GameDuelRoom extends GameDuel {
   final DuelRoom room;
   final Player player;
-  const GameDuelRoom({required this.room , required this.player});
+  const GameDuelRoom({required this.room, required this.player});
 }
 
-
 @immutable
-class GameDuelStartRun extends GameDuel{
+class GameDuelStartRun extends GameDuel {
   const GameDuelStartRun();
 }

@@ -117,14 +117,12 @@ class GameScreen extends StatelessWidget {
                     ),
 
                     // discover state
-                    GameDiscoveryStart() => DiscoveryPlayView(state: state,),
+                    GameDiscoveryStart() => DiscoveryPlayView(state: state),
                     GameDiscoveryWin() => DiscoveryWinView(),
-
-                    
 
                     // endless state
                     GameEndlessStart() => EndlessStartView(),
-                    GameEndlessRun() => EndlessPlayView(state: state,),
+                    GameEndlessRun() => EndlessPlayView(state: state),
                     GameEndlessLose() => EndlessBustView(),
                     GameEndlessWin() => EndlessWinView(),
 
