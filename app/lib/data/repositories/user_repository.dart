@@ -1,8 +1,10 @@
+import "dart:async";
 import "dart:convert";
 
 import "package:app/core/network/api.dart";
 import "package:app/data/models/player.dart";
 import "package:http/http.dart" as http;
+import "package:retry/retry.dart";
 
 class UserRepository {
   final http.Client _httpClient;
@@ -14,7 +16,7 @@ class UserRepository {
     final url = Uri.parse("${Api.baseUrl}/user/new_player");
 
     try {
-      final response = await _httpClient.get(url);
+      final response = await retry<http.Response>(() async { return  await _httpClient.get(url).timeout(Duration(seconds: 4));} ,retryIf: (e) => e is TimeoutException );
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> json = jsonDecode(response.body);
@@ -33,18 +35,31 @@ class UserRepository {
     final uri = Uri.parse('${Api.baseUrl}/user/$playerId');
 
     try {
-      final response = await _httpClient.get(uri);
+      final response = await retry<http.Response>(() async {
+        return _httpClient
+            .get(uri)
+            .timeout(const Duration(seconds: 5));
+      }, 
+      retryIf: (e) => e is TimeoutException,onRetry: (e)=>print("erreur server"));
+      
+
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> json = jsonDecode(response.body);
         return Player.fromJson(json);
-      } else {
+      }
+      else if (response.statusCode == 404) {
+        return await getNewPlayer();
+      }
+      
+      
+       else {
         throw Exception(
           'Impossible de charger le joueur (Code: ${response.statusCode})',
         );
       }
     } catch (e) {
-      throw Exception('$e');
+      throw Exception("${e.runtimeType}");
     }
   }
 }

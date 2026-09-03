@@ -102,8 +102,6 @@ class GameScreen extends StatelessWidget {
                     GameDiscovery() => DiscoveryView(),
 
                     GameOptions() => OptionsView(),
-                    // GameClassicStart() => ResultView(
-                    //   attempts: state.finalAttemptsUsed,
                     // ),
                     GameFailure() => ResultView(
                       isWin: false,

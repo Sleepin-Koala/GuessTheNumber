@@ -96,9 +96,7 @@ class GameCubit extends Cubit<GameState> {
 
       emit(GameInitial(player: _currentPlayer!));
     } catch (e) {
-      _currentPlayer = await _userRepository.getNewPlayer();
-      SettingsService.setData(_currentPlayer!.id);
-      emit(GameInitial(player: _currentPlayer!));
+      print(e);
     }
   }
 
@@ -164,7 +162,6 @@ class GameCubit extends Cubit<GameState> {
   }
 
   // ENDLESS
-
   Future<void> startEndlessGame(int bet) async {
     if (_currentPlayer == null) {
       emit(const GameError(errorMessage: "Profil joueur non initialisé."));
@@ -325,14 +322,16 @@ class GameCubit extends Cubit<GameState> {
           status: 'win',
           levelPlayed: _currentLevel,
         );
-        _currentPlayer = await _userRepository.getActualPlayer(SettingsService.playerId);
+        _currentPlayer = await _userRepository.getActualPlayer(
+          SettingsService.playerId,
+        );
         emit(
           GameClassicWin(
             finalAttemptsUsed: result.maxAttempt - result.attemptLeft,
             currentLevel: _currentLevel,
             coinsEarned: res.coins,
             xpWinned: res.xp,
-            starsWinned: res.stars
+            starsWinned: res.stars,
           ),
         );
         break;
@@ -345,7 +344,9 @@ class GameCubit extends Cubit<GameState> {
             status: 'lose',
             levelPlayed: _currentLevel,
           );
-          _currentPlayer = await _userRepository.getActualPlayer(SettingsService.playerId);
+          _currentPlayer = await _userRepository.getActualPlayer(
+            SettingsService.playerId,
+          );
           emit(const GameFailure(reason: "attemps"));
         } else {
           final updatedSession = SoloModeSession(
@@ -518,7 +519,16 @@ class GameCubit extends Cubit<GameState> {
   Future<void> leaveDuelRoom() async {
     _timerPolling?.cancel();
     _currentRoom = null;
-  
+
     onDuelMode();
   }
+
+}
+
+
+class DUEL {
+
+    
+
+
 }

@@ -25,17 +25,21 @@ class GameRepository {
     duelMode = DuelModeRepo(_httpClient);
   }
 
-  //solo
 
-  /// POST /game/guess
   Future<GuessResult> makeGuess({
     required String sessionId,
     required String playerId,
     required int number,
   }) async {
     final url = Uri.parse('${Api.baseUrl}/game/guess');
-
+ 
     try {
+
+
+
+
+      
+
       final response = await _httpClient.post(
         url,
         headers: {'Content-Type': 'application/json'},

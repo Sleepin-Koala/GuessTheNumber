@@ -21,6 +21,8 @@ class SettingsService {
     soundEnabled = prefs.getBool(_keySound) ?? true;
     musicEnabled = prefs.getBool(_keyMusic) ?? true;
     playerId = prefs.getString(_playerId)?? "";
+
+    print("app/lib/core/services/settings_service.dart -> l'id du joueur : $playerId");
   }
 
   static Future<void> setHapticsEnabled(bool value) async {

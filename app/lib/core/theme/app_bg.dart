@@ -6,6 +6,6 @@ class AppBG {
 
 
   void paint(){
-    return null;
+    return;
   }
 }

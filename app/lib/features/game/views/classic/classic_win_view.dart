@@ -2,13 +2,11 @@ import 'package:app/core/theme/app_colors.dart';
 import 'package:app/core/theme/app_typography.dart';
 import 'package:app/core/widgets/CartoonButton.dart';
 import 'package:app/core/widgets/CartoonIcon.dart';
-import 'package:app/core/widgets/CustomSVGBackground.dart';
 import 'package:app/features/game/bloc/game_cubit.dart';
 import 'package:app/features/game/bloc/game_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'dart:math' as math;
 
 class ClassicWinView extends StatefulWidget {
   const ClassicWinView({super.key});
@@ -36,19 +34,19 @@ class _ClassicWinViewState extends State<ClassicWinView>
         vsync: this,
       );
 
-      final _slideAnim = Tween<Offset>(
+      final slideAnim = Tween<Offset>(
         begin: const Offset(0, 1.2),
         end: i == 1 ? Offset(0, -0.4) : Offset.zero,
       ).animate(CurvedAnimation(parent: controller, curve: Curves.elasticOut));
 
-      final _scaleAnim = Tween<double>(
+      final scaleAnim = Tween<double>(
         begin: 0.0,
         end: 1.0,
       ).animate(CurvedAnimation(parent: controller, curve: Curves.bounceInOut));
 
       _controller.add(controller);
-      _animatedScale.add(_scaleAnim);
-      _animatedSlide.add(_slideAnim);
+      _animatedScale.add(scaleAnim);
+      _animatedSlide.add(slideAnim);
 
       _starAnimations();
     }
