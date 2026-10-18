@@ -93,3 +93,12 @@ class JoinData(BaseModel):
 class HidenGuessNumberData(BaseModel):
     player_id : str
     number: int
+
+
+class RenameData(BaseModel):
+    player_id: str
+    name: str
+
+class BuyData(BaseModel):
+    playerId: str
+    itemId: int

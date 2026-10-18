@@ -34,7 +34,6 @@ def new_player():
 
 @router.get("/{user_id}")
 def get_user(user_id : str):
-    print(user_id)
     user = session.query(Player).filter_by(id = user_id).first()
     if not user:
         raise HTTPException(404 , "user not found")
@@ -42,38 +41,42 @@ def get_user(user_id : str):
     
     return PlayerData(id = user.id , name = user.name , gems = user.gems , coins = user.coins , xp = user.xp , level = user.level) # type: ignore # 
 
-# @router.post("/rename")
-# def editPlayer(editData : EditName):
-#     user = session.query(Player).filter_by(id = editData.player_id).first()
-#     if not user:
-#         raise HTTPException(404 , "user not found")
-    
-#     user.name = editData.name
+MAX_NAME_LENGTH = 20
 
-#     return PlayerData(id = user.id , name = user.name , gems = user.gems , coins = user.coins , xp = user.xp , level = user.level) # type: ignore # 
+@router.post("/rename")
+def editPlayer(editData : RenameData):
+    user = session.query(Player).filter_by(id = editData.player_id).first()
+    if not user:
+        raise HTTPException(404 , "user not found")
 
-# @router.get("/stats/{user_id}")
-# def getStats(user_id: str):
-#     info = Statistics(user_id)
-#     return StatsData(fatestWin= float(info.getFastestTime()) , TotalTime = info.getTotalTime() ,
-#                      TotalTries = info.getNbTry(),meanTries =  info.getMeanTries() , 
-#                      winGames=info.getTotalWin() ,TotalGames = info.getTotalGames(),
-#                     endedGames = info.getTotalGameFinished() 
-#                 )
+    name = editData.name.strip()
+    if not 1 <= len(name) <= MAX_NAME_LENGTH:
+        raise HTTPException(422 , f"name must be between 1 and {MAX_NAME_LENGTH} characters")
+
+    user.name = name
+    session.commit()
+
+    return PlayerData(id = user.id , name = user.name , gems = user.gems , coins = user.coins , xp = user.xp , level = user.level) # type: ignore
 
 
-# @router.get("/stats/history/{user_id}")
-# def getStats(user_id: str):
-#     datas = CropTable(5)
-#     T = []
-#     for i,d in enumerate(datas):
-#         T.append({"id" : i , 
-#          "type": "classic" if d.attempt_left != -1 else "discovery",
-#         "result" : d.result,
-#         "attemps" : d.max_attempt - d.attempt_left if  d.attempt_left != -1 else None,
-#          "date": d.started_time })
-        
-#     return T
-    
+@router.get("/stats/{user_id}")
+def getStats(user_id: str):
+    try:
+        info = Statistics(user_id)
+    except DataNotFound:
+        raise HTTPException(404 , "user not found")
+
+    return StatsData(fatestWin = info.getFastestTime() , TotalTime = info.getTotalTime() ,
+                     TotalTries = info.getNbTry() , meanTries = info.getMeanTries() ,
+                     winGames = info.getTotalWin() , TotalGames = info.getTotalGames() ,
+                     endedGames = info.getTotalGameFinished())
 
 
+@router.get("/stats/history/{user_id}")
+def getHistory(user_id: str):
+    try:
+        info = Statistics(user_id)
+    except DataNotFound:
+        raise HTTPException(404 , "user not found")
+
+    return info.getHistory(10)

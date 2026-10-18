@@ -27,7 +27,7 @@ app.add_middleware(CORSMiddleware ,
 
 app.include_router(user_router)
 app.include_router(game_router)
-# app.include_router(shop_router)
+app.include_router(shop_router)
 
 
 

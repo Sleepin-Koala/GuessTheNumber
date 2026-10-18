@@ -1,49 +1,67 @@
+from pathlib import Path
 from fastapi import APIRouter , HTTPException
 from all import *
 import json
 
 router = APIRouter(prefix="/shop")
- 
+
+ITEMS_FILE = Path(__file__).resolve().parent.parent / "assets" / "Powerup.json"
+
 def fillItems():
-    elements = json.load(open("./assets/Powerup.json" , "r" , encoding="utf-8"))
+    """Synchronise la table Items avec Powerup.json (le catalogue fait foi pour les prix)."""
+    elements = json.loads(ITEMS_FILE.read_text(encoding="utf-8"))
     for element in elements:
-        elem = Items(id = element.get("id") , 
-                    name = element.get("name"),
-                    price = element.get("price"))
-        session.add(elem)
-        session.commit()
+        item = session.get(Items , element["id"])
+        if item is None:
+            session.add(Items(id = element["id"] , name = element["name"] , price = element["price"]))
+        else:
+            item.name = element["name"]
+            item.price = element["price"]
+    session.commit()
 
-if len(session.query(Items).all()) == 0:
-    fillItems()
+fillItems()
 
-# @router.post("/buy")
-# def buy(data: BuyData):
-#     player = session.query(Player).filter_by(id = data.playerId).first()
-#     currentItem = session.query(Items).filter_by(id = data.itemId).first()
 
-#     if not player or not currentItem:
-#         return HTTPException(404 , "not found")
+def _player_data(player):
+    return PlayerData(id = player.id , name = player.name , gems = player.gems , coins = player.coins , xp = player.xp , level = player.level) # type: ignore
 
-#     if player.coins >= currentItem.price:
-#         player.coins -= currentItem.price
 
-#     holding = session.query(PlayerItems).filter_by(playerId = data.playerId , itemId = data.itemId).first()
+def _holding(player_id , item_id):
+    return session.query(PlayerItems).filter_by(playerId = player_id , itemId = item_id).first()
 
-#     holding.amount += 1   
 
-#     session.commit()
+@router.post("/buy")
+def buy(data: BuyData):
+    player = session.query(Player).filter_by(id = data.playerId).first()
+    item = session.get(Items , data.itemId)
 
-#     return PlayerData(id= player.id , name=player.name , gems=player.gems , coins = player.coins , xp = player.xp , level=player.level) # type: ignore
+    if not player or not item:
+        raise HTTPException(404 , "not found")
 
-# @router.post("/count")
-# def getCount(data: BuyData):
-#     player = session.query(Player).filter_by(id = data.playerId).first()
-#     currentItem = session.query(Items).filter_by(id = data.itemId).first()
+    if player.coins < item.price:
+        raise HTTPException(402 , "Not enough coins")
 
-#     if not player or not currentItem:
-#         return HTTPException(404 , "not found")
+    holding = _holding(player.id , item.id)
+    if holding is None:
+        holding = PlayerItems(playerId = player.id , itemId = item.id , amount = 0)
+        session.add(holding)
 
-#     c = session.query(PlayerItems).filter_by(playerId = data.playerId , itemId = data.itemId).all()
+    player.coins -= item.price
+    holding.amount = (holding.amount or 0) + 1
 
-#     return len(c)
-    
+    session.commit()
+
+    return _player_data(player)
+
+
+@router.post("/count")
+def getCount(data: BuyData):
+    player = session.query(Player).filter_by(id = data.playerId).first()
+    item = session.get(Items , data.itemId)
+
+    if not player or not item:
+        raise HTTPException(404 , "not found")
+
+    holding = _holding(player.id , item.id)
+
+    return holding.amount or 0 if holding else 0

@@ -102,7 +102,7 @@ export default function Shop() {
             setTimeout(() => setNotification(null), 2000);
         } catch (error) {
             console.error(error);
-            setNotification({ type: "error", message: "Erreur lors de l'achat" });
+            setNotification({ type: "error", message: error.message || "Erreur lors de l'achat" });
             setTimeout(() => setNotification(null), 2000);
         }
     };
@@ -136,7 +136,7 @@ export default function Shop() {
                                 >
                                     <ShopCard
                                         item={item}
-                                        isAffordable={item.price < player.coins}
+                                        isAffordable={item.price <= player.coins}
                                         // quantity={inventory[item.id] || 0}
                                         onBuy={() => handleBuy(item)}
                                     // disabled={
@@ -161,7 +161,7 @@ export default function Shop() {
                                 className={`flex   bg-amber-300  px-6 py-3 rounded-full font-bold text-white shadow-hard z-50 bg-green-500" 
                                 }`}
                             >
-                                Item Achete
+                                {notification.message}
                             </motion.div>
                         </div>
                     )}
