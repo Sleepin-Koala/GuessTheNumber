@@ -27,6 +27,13 @@
 html {
     color: antiquewhite;
     user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* evite le zoom au double tap (le pinch-zoom reste possible) et le "rebond" de page */
+html, body {
+    touch-action: manipulation;
+    overscroll-behavior: none;
 }
 
 

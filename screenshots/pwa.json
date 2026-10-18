@@ -1,0 +1,51 @@
+{
+ "sw_registered": true,
+ "sw_controls_page": true,
+ "manifest": {
+  "name": "Guess the Number",
+  "short_name": "Plus-Minus",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "id": "/",
+  "background_color": "#1e1b4b",
+  "theme_color": "#1e1b4b"
+ },
+ "icons": [
+  [
+   "192x192",
+   "any"
+  ],
+  [
+   "512x512",
+   "any"
+  ],
+  [
+   "512x512",
+   "maskable"
+  ]
+ ],
+ "head_links": [
+  "<link rel=\"manifest\" href=\"/manifest.webmanifest\">",
+  "<link rel=\"apple-touch-icon\" href=\"/icons/apple-touch-icon.png\">",
+  "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\">",
+  "<meta name=\"theme-color\" content=\"#1e1b4b\">"
+ ],
+ "cache_keys": [
+  "shell-mvefcgbj",
+  "assets-mvefcgbj"
+ ],
+ "icon_status": {
+  "/icons/icon-192.png": 200,
+  "/icons/icon-512.png": 200,
+  "/icons/icon-maskable-512.png": 200,
+  "/icons/apple-touch-icon.png": 200,
+  "/offline.html": 200
+ },
+ "offline_root_renders_app": "Hors ligne : les parties et la boutique ont besoin du serveu",
+ "offline_root_has_ui": true,
+ "offline_deep_route_loads_shell": true,
+ "console_errors": [
+  "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+ ]
+}

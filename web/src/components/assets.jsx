@@ -10,7 +10,7 @@ export function Toggle({ children, current, setCurrent }) {
         <button
             onClick={() => setCurrent(!current)}
             className={`w-12 h-6 rounded-full transition ${current ? "bg-green-500" : "bg-gray-400"
-                } relative`}
+                } relative after:absolute after:-inset-y-3 after:-inset-x-1 after:content-['']`}
         >
             <motion.span
                 animate={current ? null : { left: 5 }}

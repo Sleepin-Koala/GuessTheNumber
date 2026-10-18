@@ -145,7 +145,7 @@ export default function Level({ playerData, playerSetter, current_level, setLeve
     return (
       <main className="flex flex-1 flex-col items-center justify-center">
 
-        <div className="flex w-screen justify-between flex-wrap gap-4 items-center px-4 z-10">
+        <div className="flex w-full justify-between flex-wrap gap-4 items-center px-4 z-10">
           {/* Tentatives */}
           <div className="flex flex-col items-center gap-1.5">
             <span className="font-black  text-white text-xs uppercase tracking-wider">Essais</span>
@@ -161,7 +161,7 @@ export default function Level({ playerData, playerSetter, current_level, setLeve
           <TimerRing total={session?.time_limit} left={timeLeft ?? session?.time_limit} />
         </div>
 
-        <div className="flex flex-1 w-screen justify-center items-center">
+        <div className="flex flex-1 min-h-0 w-full overflow-y-auto">
 
           <GameplayPanel hint={hint} distance={distance} numbers={numbers} isShaking={isShaking}
             range={10 * Number(current_level)} localNumber={localNumber}

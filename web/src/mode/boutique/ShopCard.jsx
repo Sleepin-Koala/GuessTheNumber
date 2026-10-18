@@ -49,7 +49,7 @@ export default function ShopCard({ item, isAffordable, onBuy }) {
         <button
           disabled={!isAffordable}
           className={`
-            w-full py-2 rounded-xl font-game font-black uppercase text-sm border-b-4 transition-all
+            w-full min-h-11 py-2 rounded-xl font-game font-black uppercase text-sm border-b-4 transition-all
             flex items-center justify-center gap-2
             ${isAffordable
               ? 'bg-linear-to-b from-yellow-400 to-yellow-500 text-black border-yellow-700 active:border-b-0 active:translate-y-1 hover:brightness-110'

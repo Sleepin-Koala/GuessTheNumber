@@ -1,16 +1,20 @@
+import { lazy, Suspense } from "react";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
 
 import Home from "./Home"
-import Discovery from "./mode/Discovery/main";
-import Classic from "./mode/Solo/main";
-import Duel from "./mode/Duel/main";
-import Shop from "./mode/boutique/main.jsx"
-import Stat from "./mode/stats/main.jsx"
+const Discovery = lazy(() => import("./mode/Discovery/main"))
+const Classic = lazy(() => import("./mode/Solo/main"))
+const Duel = lazy(() => import("./mode/Duel/main"))
+const Shop = lazy(() => import("./mode/boutique/main.jsx"))
+const Stat = lazy(() => import("./mode/stats/main.jsx"))
+import NetworkStatus from "./components/NetworkStatus"
 
 export default function App(){
   
   return (
       <BrowserRouter>
+        <NetworkStatus />
+        <Suspense fallback={null}>
         <Routes>
           <Route path="/" element = {<Home/>}/>
           <Route path="/discovery" element = {<Discovery/>}/>
@@ -19,6 +23,7 @@ export default function App(){
           <Route path="/shop" element = {<Shop/>}/>
           <Route path="/stats" element = {<Stat/>}/>
         </Routes>
+        </Suspense>
       </BrowserRouter>
   )
 }

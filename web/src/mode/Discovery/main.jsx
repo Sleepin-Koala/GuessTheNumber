@@ -66,8 +66,8 @@ export default function Discover() {
   return (
     <>
       <BG />
-      <div className="flex flex-col w-screen h-screen">
-        <Bar coins={player.coins} gems={player.gems} xp={player.xp} name={player.name} />
+      <div className="flex flex-col w-full h-dvh">
+        <Bar coins={player.coins} gems={player.gems} xp={player.xp} name={player.name} level={player.level} />
 
         {currentState === "not_begin" &&
           <motion.div

@@ -69,7 +69,7 @@ export default function Game({ stateHandler, session, PlayerId, range }) {
     return (
         <>
 
-            <div className={`flex flex-1 justify-center items-center overflow-hidden`}>
+            <div className={`flex flex-1 min-h-0 overflow-y-auto`}>
                 <GameplayPanel
                     isShaking={isShaking}
                     hint={hint}

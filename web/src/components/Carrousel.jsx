@@ -161,9 +161,9 @@ export function Carousel({ renderItem, itemWidth = 300, itemsPerView = 3  , onEn
                 if (absDiff > 1) return null;
 
                 return (
-                    <motion.div key={item.id} className="select-none"
+                    <motion.div key={item.id} className="select-none w-[78%] sm:w-1/2"
                         animate={style}
-                        style={{ width: "50%", flexShrink: 0, height: "70%" }}
+                        style={{ flexShrink: 0, height: "70%" }}
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.95 }}
 
@@ -178,15 +178,19 @@ export function Carousel({ renderItem, itemWidth = 300, itemsPerView = 3  , onEn
 
 
             {/* Flèches de navigation */}
-            {currentIndex == 0 ? null : <FaChevronLeft onClick={prev} className="absolute left-4 z-20 bg-white/30 backdrop-blur rounded-full p-2 text-9xl hover:bg-white/50 transition" />}
-            {currentIndex == CATEGORIES.length - 1 ? null : <FaChevronRight onClick={next} className="absolute right-4 z-20 bg-white/30 backdrop-blur rounded-full p-2 text-9xl hover:bg-white/50 transition" />}
-            <div className="absolute bottom-4 flex gap-2">
+            {currentIndex == 0 ? null : <FaChevronLeft onClick={prev} className="absolute left-2 bottom-12 sm:bottom-auto sm:left-4 z-20 bg-white/30 backdrop-blur rounded-full p-3 text-5xl sm:p-2 sm:text-9xl hover:bg-white/50 transition" />}
+            {currentIndex == CATEGORIES.length - 1 ? null : <FaChevronRight onClick={next} className="absolute right-2 bottom-12 sm:bottom-auto sm:right-4 z-20 bg-white/30 backdrop-blur rounded-full p-3 text-5xl sm:p-2 sm:text-9xl hover:bg-white/50 transition" />}
+            <div className="absolute bottom-0 flex">
                 {[...Array(totalItems-2)].map((_, i) => (
                     <button
                         key={i}
                         onClick={() => setCurrentIndex(i+1)}
-                        className={`w-2 h-2 rounded-full transition-all cursor-pointer ${i+1 === currentIndex ? "bg-white scale-125" : "bg-white/40"}`}
-                    />
+                        aria-label={`Aller a l'element ${i+1}`}
+                        aria-current={i+1 === currentIndex}
+                        className="flex items-center justify-center w-11 h-11 cursor-pointer"
+                    >
+                        <span className={`block w-2 h-2 rounded-full transition-all ${i+1 === currentIndex ? "bg-white scale-125" : "bg-white/40"}`} />
+                    </button>
                 ))}
             </div>
 

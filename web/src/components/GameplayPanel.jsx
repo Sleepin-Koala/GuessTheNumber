@@ -57,24 +57,24 @@ export default function GameplayPanel(
 
 
     return (
-        <motion.div className="min-w-[20rem] w-[90%] gap-3 rounded-3xl relative flex flex-col justify-between items-center backdrop-blur-md  shadow-2xl border-3 border-cartoon-blue/50 bg-[rgba(255,255,255,.15)]"
+        <motion.div className="m-auto min-w-[20rem] w-[90%] max-w-2xl gap-3 rounded-3xl relative flex flex-col justify-between items-center backdrop-blur-md  shadow-2xl border-3 border-cartoon-blue/50 bg-[rgba(255,255,255,.15)]"
             animate={isShaking ? { x: getShakeIntensity(distance, range) } : null} transition={{ duration: 0.2 }}
         >
 
             <button
                 onClick={()=>{inGameSound.click() ; onPause()}}
                 
-                className="cursor-pointer absolute left-3 top-3 z-10 bg-black/40 hover:bg-black/60 rounded-full p-2 text-white text-xl"
+                className="cursor-pointer absolute left-2 top-2 sm:left-3 sm:top-3 z-10 bg-black/40 hover:bg-black/60 rounded-full p-3 text-white text-xl"
             >
                 <FaPause/>
             </button>
             <div className="flex bg-cartoon-blue w-full rounded-t-3xl" >
                 <div className="flex-1">
                     <div className="flex items-center gap-3 w-full justify-center">
-                        <span className="title-ingame text-3xl text-white font-black uppercase p-3">Devine le Nombre mystère</span>
+                        <span className="title-ingame text-xl sm:text-3xl text-white font-black uppercase py-3 pl-14 pr-20 sm:p-3 text-center [@media(max-height:520px)]:text-lg [@media(max-height:520px)]:py-1">Devine le Nombre mystère</span>
                     </div>
 
-                    <div className={`text-3xl font-bold text-white text-center ${hint === "MOINS" ? "bg-cartoon-red" : hint === "PLUS" ? "bg-cartoon-green" : "bg-cartoon-yellow"} p-3 drop-shadow-lg`}>
+                    <div className={`text-xl sm:text-3xl [@media(max-height:520px)]:text-lg [@media(max-height:520px)]:p-1 font-bold text-white text-center ${hint === "MOINS" ? "bg-cartoon-red" : hint === "PLUS" ? "bg-cartoon-green" : "bg-cartoon-yellow"} p-3 drop-shadow-lg`}>
                         {hint === "MOINS" ? <div className="flex justify-center items-center"><FaArrowDown /><div>Trop petit !</div></div> :
                             hint === "USED" ? "Nombre deja utilisé" :
                                 hint === "PLUS" ? <div className="flex justify-center items-center"><FaArrowUp /><div>Trop Grand !</div></div> :
@@ -83,14 +83,14 @@ export default function GameplayPanel(
                     </div>
                 </div>
 
-                <div className="absolute right-10 top-5 flex flex-col justify-center bg-cartoon-yellow px-2 py-1 ring-3 ring-black rounded-2xl items-center text-black">
-                    <div className="uppercase">essais</div>
-                    <div className="text-7xl font-black">{attempt}</div>
+                <div className="absolute right-2 top-2 sm:right-10 sm:top-5 flex flex-col justify-center bg-cartoon-yellow px-2 py-1 ring-3 ring-black rounded-2xl items-center text-black">
+                    <div className="uppercase text-xs sm:text-base">essais</div>
+                    <div className="text-4xl sm:text-7xl [@media(max-height:520px)]:text-3xl font-black">{attempt}</div>
                 </div>
             </div>
 
 
-            <div className="w-45 h-45 rounded-full flex items-center justify-center text-7xl text-center"
+            <div className="w-28 h-28 sm:w-45 sm:h-45 [@media(max-height:700px)]:hidden rounded-full flex items-center justify-center text-5xl sm:text-7xl text-center"
                 style={{ boxShadow: `0 8px 32px rgba(0,0,0,.35), 0 0 0 4px rgba(255,255,255,.5)` }}>
                 <motion.span className="font-[1000] text-cartoon-blue fun-title"
                     animate={{
@@ -120,11 +120,11 @@ export default function GameplayPanel(
                     onChange={handleNumberChange}
                     onKeyDown={(ev) => { ev.key === "Enter" && onGuessr() }}
                     disabled={gameEnded || disabled}
-                    className="w-full px-4 py-2.5 text-3xl text-center text-white font-black focus:outline-5 focus:outline-cartoon-blue rounded-xl" />
+                    className="w-full px-4 py-2.5 text-2xl sm:text-3xl text-center text-white font-black focus:outline-5 focus:outline-cartoon-blue rounded-xl" />
 
             </div>
 
-            <button className="guess-button w-full py-3 text-white shadow-simple text-3xl hover:bg-cartoon-blue rounded-b-3xl font-bold"
+            <button className="guess-button w-full py-3 text-white shadow-simple text-2xl sm:text-3xl hover:bg-cartoon-blue rounded-b-3xl font-bold"
                 style={{ boxShadow: `0 6px 0 rgba(0,0,0,.25), 0 8px 24px rgba(0,0,0,.2)` }}
                 onClick={gameEnded ? onGameEnded : onGuessr}>{hint === "OK" ? "Recommencer" : "Deviner !"}
             </button>

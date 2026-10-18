@@ -145,8 +145,8 @@ export default function stats() {
 
             {/* Info Joueur */}
             <div className="flex-1 text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
-                <h1 className="text-3xl font-bold text-amber-50 italic tracking-tight">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-1">
+                <h1 className="text-2xl sm:text-3xl break-all md:break-normal font-bold text-amber-50 italic tracking-tight">
                   {player.name ?? "..."}
                 </h1>
                 <span className="bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded uppercase">
@@ -169,7 +169,7 @@ export default function stats() {
             </div>
 
             {/* Wallet */}
-            <div className="flex gap-4">
+            <div className="flex flex-wrap justify-center gap-4">
               <div className="bg-slate-950/80 border-2 border-slate-600 px-4 py-2 rounded-xl flex items-center gap-3">
                 <FaCoins className="text-yellow-400 text-xl" />
                 <span className="font-game font-bold text-lg">{player.coins ?? "..."}</span>
@@ -190,7 +190,7 @@ export default function stats() {
           <StatCard title="Nombre d'essais Moyen" icon={<FaClock />} color="from-green-500 to-green-600" delay={0.4} >{stats.meanTries ?? <FaInfinity />}</StatCard>
         </div>
 
-        <div className="flex gap-1 p-1">
+        <div className="flex flex-col lg:flex-row gap-3 p-2">
           <div className="bg-black/20 items-center backdrop-blur-md rounded-3xl p-2 shadow-hard border border-white/20">
             <h2 className="text-2xl font-bold text-white flex items-center gap-2 mb-4"><FaChartLine /> Taux de victoire</h2>
             <PieChart width={250} height={250}>
@@ -203,7 +203,7 @@ export default function stats() {
 
             </PieChart>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0 overflow-x-auto">
             <LastGameTable data={historyGame} />
           </div>
         </div>

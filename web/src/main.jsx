@@ -11,3 +11,21 @@ createRoot(document.getElementById('root')).render(
       <App />
  
 )
+
+
+// PWA: service worker uniquement sur le build de production
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").then((reg) => {
+      reg.addEventListener("updatefound", () => {
+        const worker = reg.installing
+        worker?.addEventListener("statechange", () => {
+          // nouvelle version installee alors qu'une ancienne controle deja la page
+          if (worker.state === "installed" && navigator.serviceWorker.controller) {
+            window.dispatchEvent(new CustomEvent("sw-update", { detail: reg }))
+          }
+        })
+      })
+    }).catch((e) => console.warn("SW registration failed", e))
+  })
+}

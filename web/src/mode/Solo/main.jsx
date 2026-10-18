@@ -26,8 +26,8 @@ export default function Classic() {
     return (
         <>
         <BG/>
-        <div className="h-screen w-screen flex flex-col">
-            <Bar coins={player.coins} gems = {player.gems} xp = {player.xp} name = {player.name}/>
+        <div className="h-dvh w-full flex flex-col">
+            <Bar coins={player.coins} gems={player.gems} xp={player.xp} name={player.name} level={player.level}/>
 
             {!currentLevel && <SelectionScreen player={player} onSelect={setCurrentLevel}/>}
 

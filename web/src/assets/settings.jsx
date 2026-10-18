@@ -63,7 +63,7 @@ export default function Settings({ settingsSetter, player, playerSetter }) {
                         </div>
                         <button
                             onClick={() => {settingsSetter(false);inGameSound.click()}}
-                            className="text-white/70 hover:text-white text-2xl p-2 rounded-full hover:bg-white/20 transition"
+                            className="flex items-center justify-center min-w-11 min-h-11 text-white/70 hover:text-white text-2xl p-2 rounded-full hover:bg-white/20 transition"
                         >
                             <FaTimes />
                         </button>

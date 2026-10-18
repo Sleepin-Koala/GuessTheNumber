@@ -41,7 +41,7 @@ export function shop() {
         <>
             <BG />
 
-            <div className="h-screen w-screen grid-cols-3">
+            <div className="h-dvh w-full grid-cols-3">
                 <Props coins={player.coins} gems={player.gems} xp={player.xp} name={player.name} mode={"shop"} />
 
                 <div className="flex-1 mt-6 grid grid-cols-4 z-1 p-1 gap-10">
@@ -113,7 +113,7 @@ export default function Shop() {
     return (
         <>
             <BG />
-            <div className="relative z-10 flex flex-col h-screen w-screen overflow-auto ">
+            <div className="relative z-10 flex flex-col h-dvh w-full overflow-auto ">
                 <Props coins={player.coins} gems={player.gems} xp={player.xp} name={player.name} mode={"shop"} />
 
                 <div className="flex-1 px-6">
@@ -122,7 +122,7 @@ export default function Shop() {
                     {/* Grille d'items */}
                     <motion.div
 
-                        className="grid lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8"
+                        className="grid lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8 w-full max-w-7xl mx-auto"
                     >
                         <AnimatePresence>
                             {filteredItems.map((item) => (

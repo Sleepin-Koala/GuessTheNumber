@@ -1,0 +1,276 @@
+{
+ "results": [
+  [
+   "Home: player auto-created",
+   "PASS",
+   "48d73a5b-5705-4507-9e0f-53871126ea32"
+  ],
+  [
+   "Home: starting wallet 500 coins / 5 gems / level 1",
+   "PASS",
+   "{'id': '48d73a5b-5705-4507-9e0f-53871126ea32', 'name': 'player_22', 'gems': 5, 'coins': 500, 'xp': 0, 'level': 1}"
+  ],
+  [
+   "Home: header shows player name",
+   "PASS",
+   ""
+  ],
+  [
+   "Home: carousel can open /discovery",
+   "PASS",
+   "{0: '/discovery', 1: '/classic', 2: '/', 3: '/', 4: '/shop', 5: '/stats', 6: '/discovery', 7: '/classic'}"
+  ],
+  [
+   "Home: carousel can open /classic",
+   "PASS",
+   "{0: '/discovery', 1: '/classic', 2: '/', 3: '/', 4: '/shop', 5: '/stats', 6: '/discovery', 7: '/classic'}"
+  ],
+  [
+   "Home: carousel can open Settings overlay (no navigation)",
+   "PASS",
+   "{0: '/discovery', 1: '/classic', 2: '/', 3: '/', 4: '/shop', 5: '/stats', 6: '/discovery', 7: '/classic'}"
+  ],
+  [
+   "Home: carousel can reach /shop",
+   "PASS",
+   "{0: '/discovery', 1: '/classic', 2: '/', 3: '/', 4: '/shop', 5: '/stats', 6: '/discovery', 7: '/classic'}"
+  ],
+  [
+   "Home: carousel can reach /stats",
+   "PASS",
+   "{0: '/discovery', 1: '/classic', 2: '/', 3: '/', 4: '/shop', 5: '/stats', 6: '/discovery', 7: '/classic'}"
+  ],
+  [
+   "Home: Settings overlay opens",
+   "PASS",
+   ""
+  ],
+  [
+   "Settings: rename saved on server",
+   "PASS",
+   "Tester42"
+  ],
+  [
+   "Settings: overlay closes after save",
+   "PASS",
+   ""
+  ],
+  [
+   "Settings: new name shown in header",
+   "PASS",
+   ""
+  ],
+  [
+   "Discovery: setup screen",
+   "PASS",
+   ""
+  ],
+  [
+   "Discovery: game starts (input visible)",
+   "PASS",
+   ""
+  ],
+  [
+   "Discovery: wrong guess shows 'Trop petit/Trop Grand' hint",
+   "PASS",
+   ""
+  ],
+  [
+   "Discovery: guesses recorded on server",
+   "PASS",
+   "34"
+  ],
+  [
+   "Classic: level grid shown, only level 1 unlocked",
+   "PASS",
+   ""
+  ],
+  [
+   "Classic: start overlay (GO)",
+   "PASS",
+   ""
+  ],
+  [
+   "Classic: game panel loaded",
+   "PASS",
+   ""
+  ],
+  [
+   "Classic: win overlay",
+   "PASS",
+   ""
+  ],
+  [
+   "Classic: reward paid + level 2 unlocked",
+   "PASS",
+   "{'id': '48d73a5b-5705-4507-9e0f-53871126ea32', 'name': 'Tester42', 'gems': 6, 'coins': 766, 'xp': 43, 'level': 2}"
+  ],
+  [
+   "Classic: game-over overlay after attempts exhausted",
+   "PASS",
+   ""
+  ],
+  [
+   "Classic: lose recorded server-side",
+   "PASS",
+   "lose"
+  ],
+  [
+   "Classic: locked level (3) does not open",
+   "PASS",
+   ""
+  ],
+  [
+   "Shop: tab Bonus shows items",
+   "PASS",
+   ""
+  ],
+  [
+   "Shop: tab Indices shows items",
+   "PASS",
+   ""
+  ],
+  [
+   "Shop: tab Aide shows items",
+   "PASS",
+   ""
+  ],
+  [
+   "Shop: purchase debits coins",
+   "PASS",
+   "766->646"
+  ],
+  [
+   "Shop: header coins updated",
+   "PASS",
+   ""
+  ],
+  [
+   "Shop: buy button not offered when too poor",
+   "PASS",
+   "ACHETER buttons=0"
+  ],
+  [
+   "Shop: Retour goes home",
+   "PASS",
+   ""
+  ],
+  [
+   "Stats: history lists discovery + classic games",
+   "PASS",
+   ""
+  ],
+  [
+   "Stats: shows Victoire and D\u00e9faite",
+   "PASS",
+   ""
+  ],
+  [
+   "Stats: Retour goes home",
+   "PASS",
+   ""
+  ],
+  [
+   "Duel (web): page has content",
+   "PASS",
+   "route is an empty stub"
+  ],
+  [
+   "API: negative endless bet rejected",
+   "PASS",
+   "[422]"
+  ],
+  [
+   "API: fake classic win rejected",
+   "PASS",
+   "[404]"
+  ],
+  [
+   "Console: no unexpected errors (deliberate 402/422/404 probes excluded)",
+   "PASS",
+   "[]"
+  ]
+ ],
+ "console_errors": [
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/shop",
+   "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  [
+   "/duel",
+   "Failed to load resource: the server responded with a status of 422 (Unprocessable Content)"
+  ],
+  [
+   "/duel",
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+ ]
+}

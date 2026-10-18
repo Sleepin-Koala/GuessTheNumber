@@ -78,36 +78,41 @@ export default function LevelSelect({ player, onSelect }) {
     }
 
     return (
-      <div className={`border-4  rounded-2xl shadow-3d-button flex text-2xl text-amber-50 font-black flex-col justify-center items-center
+      <div role="button" aria-disabled={isLock} className={`border-4  rounded-2xl shadow-3d-button flex text-2xl text-amber-50 font-black flex-col justify-center items-center
       ${isLock ? "bg-[#0000004d] border-[#ffffff12] cursor-not-allowed" : "bg-[#3b82f638] hover:-translate-y-1  hover:bg-cartoon-blue transition-all hover:shadow-3d-button-hov border-gray-500 duration-300 cursor-pointer"}
       `}
         onClick={HandleClick}>
 
         {isLock ? <FaLock /> : null}
         {level}
-        <span className="text-white/30 text-[10px]">1-{level * 10}</span>
+        <span className="text-white/60 text-xs">1-{level * 10}</span>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col h-screen relative">
+    <div className="flex flex-col h-dvh relative">
       <div className="relative z-10 flex flex-col h-full p-3">
 
-        <div className="flex justify-between">
+        <div className="flex justify-between items-center gap-2">
           <div className="text-3xl font-black text-amber-400">NIVEAUX</div>
-          <div className="text-white font-bold text-xs">// utilise les touches directionnelles pour changer de page</div>
+          <div className="hidden md:block text-white font-bold text-xs">// utilise les touches directionnelles pour changer de page</div>
+          <div className="flex items-center gap-2 text-white font-black">
+            <button aria-label="Page precedente" disabled={currentPage === 1} onClick={prev} className="min-w-11 min-h-11 rounded-xl bg-white/20 disabled:opacity-30">‹</button>
+            <span>{currentPage}</span>
+            <button aria-label="Page suivante" onClick={next} className="min-w-11 min-h-11 rounded-xl bg-white/20">›</button>
+          </div>
         </div>
 
         <motion.div
-          className="flex-1 overflow-hidden mt-2 "
+          className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto mt-2"
           variants={shakeVariants}
           animate={shake ?? "idle"}
         >
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={currentPage}
-              className="grid h-full sm:grid-cols-5 gap-3 backdrop-blur-sm rounded-xl p-3 bg-white/20  "
+              className="grid min-h-full auto-rows-[minmax(4.5rem,1fr)] grid-cols-4 sm:grid-cols-5 gap-2 sm:gap-3 backdrop-blur-sm rounded-xl p-3 bg-white/20  "
               variants={slideVariants}
               custom={direction}
               exit="exit"
@@ -124,7 +129,7 @@ export default function LevelSelect({ player, onSelect }) {
         </motion.div>
 
         <div className="flex justify-center">
-        <CartoonButton className="h-10 w-[60%] mt-3" 
+        <CartoonButton className="min-h-11 w-[60%] mt-3" 
         onClick={()=>navigate("/")}>
           Retour à l'ecran de jeu</CartoonButton>
         </div>

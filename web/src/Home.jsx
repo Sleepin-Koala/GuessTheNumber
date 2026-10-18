@@ -35,7 +35,7 @@ function Home() {
       }
     }
 
-    get_player();
+    player_id ? get_player() : new_player();
 
 
 
@@ -50,9 +50,9 @@ function Home() {
   return (
     <>
       <Bg />
-      <div className="flex flex-col h-screen w-screen">
+      <div className="flex flex-col h-dvh w-full">
 
-        <PlayerProps coins={player.coins} gems={player.gems} xp={player.xp} name={player.name} />
+        <PlayerProps coins={player.coins} gems={player.gems} xp={player.xp} name={player.name} level={player.level} />
 
         <div className="flex flex-col flex-1 items-center justify-center overflow-hidden">
 
@@ -70,10 +70,10 @@ function Home() {
                   cat.id === "settings" ? setShowSettings(true) : navigate(cat.path);
                 }}
               >
-                <div className="p-6 flex flex-col items-center text-center">
-                  <cat.icon className="text-9xl mb-4 drop-shadow-lg  text-white " />
-                  <h2 className="text-3xl font-extrabold text-white drop-shadow-md">{cat.name}</h2>
-                  <p className="text-white text-2xl  font-extrabold mt-3 leading-relaxed">{cat.description}</p>
+                <div className="p-4 sm:p-6 flex flex-col items-center text-center">
+                  <cat.icon className="text-6xl sm:text-9xl mb-2 sm:mb-4 drop-shadow-lg text-white [@media(max-height:520px)]:hidden" />
+                  <h2 className="text-2xl sm:text-3xl font-extrabold text-white drop-shadow-md">{cat.name}</h2>
+                  <p className="text-white text-base sm:text-2xl font-extrabold mt-2 sm:mt-3 leading-snug sm:leading-relaxed">{cat.description}</p>
                   {cat.id === "duel" && (
                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-3xl">
                       <span className="bg-white text-black px-4 py-2 rounded-full font-bold">🚧 Bientôt</span>
