@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { FaClock, FaHome } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
 import api from "../../api";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import useGameSound from "../../hooks/SoundHooks";
 
 // 🛡️ Constantes pour éviter les fautes de frappe dans les strings
@@ -52,16 +52,25 @@ export default function GameOverOverlay({ reason, level, onRetry, onHome , playe
   };
 
 
+  const started = useRef(false)
+
   useEffect(() => {
+        if (started.current) return
+        started.current = true
+
         async function EndLevel() {
-            const res = await api.post("/game/endlevel",
-                {
-                    session_id: sessionInfo.session_id,
-                    player_id: player_data.id,
-                    ended: Math.floor(Date.now() / 1000),
-                    status: "lose"
-                });
-            playerSetter(res)
+            try {
+                await api.post("/game/classic/end_level",
+                    {
+                        session_id: sessionInfo.session_id,
+                        player_id: player_data.id,
+                        ended: Date.now() / 1000,
+                        status: "lose",
+                        level_played: Number(level)
+                    });
+            } catch (e) {
+                console.error(e)
+            }
         }
 
         EndLevel()

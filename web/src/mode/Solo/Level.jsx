@@ -4,7 +4,7 @@ import Confetti from "react-confetti";
 import { useNavigate } from "react-router-dom";
 import GameplayPanel from "../../components/GameplayPanel";
 import WinOverlay from "./WinOverlay"
-import GameOverOverlay from "./GameoverOverlay"
+import GameOverOverlay from "./GameOverOverlay"
 import StartGameOverlay from "./StartGameOverlay"
 import { FaClock  , FaPause} from "react-icons/fa";
 import PauseOverlay from "../../components/PauseOverlay"
@@ -227,11 +227,17 @@ export default function Level({ playerData, playerSetter, current_level, setLeve
   useEffect(() => {
 
     async function grab_level() {
-      const res = await api.post("/game/level", { level: Number(current_level), player_id: playerData.id })
-      setSessionData(res)
+      try {
+        const res = await api.post("/game/classic/level", { level: Number(current_level), player_id: playerData.id })
+        setSessionData(res)
 
-      if (res.time_limit && res.time_limit > 0) {
-        setTimeLeft(res.time_limit)
+        if (res.time_limit && res.time_limit > 0) {
+          setTimeLeft(res.time_limit)
+        }
+      } catch (e) {
+        // niveau verrouille / joueur inconnu: retour a la selection
+        console.error(e)
+        setLevelPlaying(null)
       }
     }
 

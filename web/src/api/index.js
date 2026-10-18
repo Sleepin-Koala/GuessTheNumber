@@ -1,11 +1,21 @@
 
-const SERVER = "http://127.0.0.1:8000"
+const SERVER = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000"
 
 class ApiError extends Error {
   constructor(message, status) {
     super(message);
     this.status = status;
   }
+}
+
+// FastAPI renvoie { detail: "msg" } ou, pour une 422, { detail: [{ msg, loc, ... }] }
+function errorMessage(data, status) {
+  const detail = data?.detail ?? data?.error;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail) && detail.length > 0) {
+    return detail.map(d => d?.msg ?? String(d)).join(", ");
+  }
+  return `HTTP ${status}`;
 }
 
 async function request(method, path, { params, body } = {}) {
@@ -36,12 +46,12 @@ async function request(method, path, { params, body } = {}) {
   } catch (e) {
     // Network error (backend not running, CORS preflight fail, etc.)
     throw new ApiError(
-      `Cannot reach the server. Is the backend running on port 3001? (${e.message})`,
+      `Cannot reach the server. Is the backend running at ${SERVER}? (${e.message})`,
       0
     );
   }
 
-  // Parse JSON — even error responses from Express are JSON
+  // Parse JSON — FastAPI error responses are JSON too
   let data;
   try {
     data = await res.json();
@@ -50,7 +60,7 @@ async function request(method, path, { params, body } = {}) {
   }
 
   if (!res.ok) {
-    throw new ApiError(data.error || `HTTP ${res.status}`, res.status);
+    throw new ApiError(errorMessage(data, res.status), res.status);
   }
 
   return data;

@@ -25,7 +25,7 @@ export default function Discover() {
   async function StartGame() {
     try {
       if (parseInt(maxRange)) {
-        const sessionData = await api.post("/game/discover", { player_id: player.id, max_range: parseInt(maxRange) });
+        const sessionData = await api.post("/game/discovery/start", { player_id: player.id, max_range: parseInt(maxRange) });
         setSession(sessionData);
         setCurrentState("begin");
       }

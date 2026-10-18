@@ -1,34 +1,34 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../../api"
 import { FaTrophy, FaHome, FaCoins, FaStar } from "react-icons/fa";
 import { HoverButton } from "../../components/assets";
 
 
-let diff_coins , diff_exp
-
 export default function WinOverlay({ level, onNext, onHome, player_data, playerSetter, sessionInfo, onRetry }) {
 
-    
+    const [reward, setReward] = useState(null)
+    const started = useRef(false)
 
     useEffect(() => {
+        if (started.current) return
+        started.current = true
 
         async function EndLevel() {
-            const res = await api.post("/game/endlevel",
-                {
-                    session_id: sessionInfo.session_id,
-                    player_id: player_data.id,
-                    ended: Math.floor(Date.now() / 1000),
-                    status: "win",
-                    levelPlayed : level
-                });
-
-            console.log(res.coins , player_data.coins)
-            console.log(res)
-            diff_coins = res.coins - player_data.coins
-            diff_exp = res.xp - player_data.xp
-
-            playerSetter(res)
-            console.log(res)
+            try {
+                const res = await api.post("/game/classic/end_level",
+                    {
+                        session_id: sessionInfo.session_id,
+                        player_id: player_data.id,
+                        ended: Date.now() / 1000,
+                        status: "win",
+                        level_played : level
+                    });
+                setReward(res)
+                // la reponse ne contient que la recompense: on recharge le joueur
+                playerSetter(await api.get(`/user/${player_data.id}`))
+            } catch (e) {
+                console.error(e)
+            }
         }
 
         EndLevel()
@@ -59,14 +59,14 @@ export default function WinOverlay({ level, onNext, onHome, player_data, playerS
                     <FaCoins className="text-4xl text-white drop-shadow" />
                     <div>
                         <div className="text-xs text-white/80 uppercase">Gagné</div>
-                        <div className="text-3xl font-black text-white">+{diff_coins ?? '??'}</div>
+                        <div className="text-3xl font-black text-white">+{reward?.coins ?? '??'}</div>
                     </div>
                 </div>
                 <div className="bg-linear-to-br from-purple-500 to-indigo-700 rounded-2xl p-4 flex items-center gap-3 shadow-lg">
                     <div className="text-5xl font-black text-white"><FaStar /></div>
                     <div>
                         <div className="text-xs text-white/80 uppercase">XP</div>
-                        <div className="text-3xl font-black text-white">+{diff_exp ?? '??'}</div>
+                        <div className="text-3xl font-black text-white">+{reward?.xp ?? '??'}</div>
                     </div>
                 </div>
             </div>
