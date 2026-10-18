@@ -101,3 +101,7 @@ Duel has no web gameplay yet; it now shows a "Bientôt disponible" page instead 
 - Home carousel cards are tall with empty space on large phones; Shop cards are left-aligned on very wide screens (cosmetic).
 - Stats win-rate donut renders very small; decorative joystick in Settings extends past the card edge on phones (no scroll).
 - 200% zoom and keyboard-only navigation on desktop were not exhaustively tested; Duel gameplay, Endless mode and power-up effects do not exist in the web client.
+
+## Design pass (3D orb, fonts, micro-animations)
+
+Re-verified after the design pass: functional suite 38/38, viewport matrix 72/72, offline OK, Lighthouse mobile 95/100/100/100 (LCP 2.4 s), desktop 100/100/100/100. Orb screenshots: `screenshots/design/`. The orb was captured with software WebGL (SwiftShader) in headless Chromium; real-GPU frame rate on phones is UNVERIFIED. The Three.js chunk (~252 kB gzipped) loads only when a game starts and is not precached.

@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
+import { MotionConfig } from "framer-motion";
 
 import Home from "./Home"
 const Discovery = lazy(() => import("./mode/Discovery/main"))
@@ -12,6 +13,7 @@ import NetworkStatus from "./components/NetworkStatus"
 export default function App(){
   
   return (
+      <MotionConfig reducedMotion="user">
       <BrowserRouter>
         <NetworkStatus />
         <Suspense fallback={null}>
@@ -25,6 +27,7 @@ export default function App(){
         </Routes>
         </Suspense>
       </BrowserRouter>
+      </MotionConfig>
   )
 }
 

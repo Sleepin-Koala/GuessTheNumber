@@ -6,6 +6,9 @@
 }
 
 @theme {
+    --font-game: "Lilita One", "Arial Rounded MT Bold", system-ui, sans-serif;
+    --font-body: "Nunito Variable", system-ui, sans-serif;
+
     --color-cartoon-pink: #FF6B8B;
     --color-cartoon-blue: #4FACFE;
     --color-cartoon-yellow: #FFD200;
@@ -25,6 +28,7 @@
 
 
 html {
+    font-family: var(--font-body);
     color: antiquewhite;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -43,3 +47,36 @@ html, body {
 
 
 
+
+
+/* Titres et boutons: police "bonbon" (une seule graisse, on interdit le faux gras) */
+h1, h2, h3, .font-game, .title-ingame, .fun-title, .guess-button {
+    font-family: var(--font-game);
+    font-weight: 400;
+    font-synthesis-weight: none;
+    letter-spacing: 0.015em;
+}
+
+/* Apparition des tuiles de niveau: l'ecran se "remplit" au lieu de surgir d'un bloc */
+@keyframes tile-in {
+    from { opacity: 0; transform: translateY(10px) scale(0.7); }
+    60%  { opacity: 1; transform: translateY(-2px) scale(1.05); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-tile-in { animation: tile-in 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+
+/* Bonbon: rebond d'un badge quand sa valeur change */
+@keyframes bump {
+    0% { transform: scale(1); } 35% { transform: scale(1.22); } 100% { transform: scale(1); }
+}
+.animate-bump { animation: bump 0.5s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+:focus-visible { outline: 3px solid #ffd23f; outline-offset: 3px; }

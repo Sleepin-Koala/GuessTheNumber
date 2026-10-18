@@ -288,7 +288,8 @@ export default function Level({ playerData, playerSetter, current_level, setLeve
       )}
       {showConfetti && <Confetti recycle={false} numberOfPieces={300} gravity={0.2} />}
 
-      <GameScreen />
+      {/* appel direct: <GameScreen /> serait remonte (et la scene 3D recreee) a chaque tick du chrono */}
+      {GameScreen()}
 
     </>
   );

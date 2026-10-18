@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useCallback } from "react"
 import { FaArrowDown, FaArrowUp , FaPause } from "react-icons/fa"
 import { PiConfetti } from "react-icons/pi"
 import useGameSound from "../hooks/SoundHooks"
+import MysteryOrb from "./MysteryOrb"
   
 
 
@@ -13,6 +14,8 @@ export default function GameplayPanel(
     disabled = null, mode = "classic" }) {
 
     const inputRef = useRef(null)
+    // 0 = tres loin, 1 = tout proche; null tant qu'il n'y a pas de proposition
+    const heat = hint === "OK" ? 1 : numbers.length ? Math.pow(Math.max(0, 1 - distance / Math.max(range, 1)), 2.2) : null
     const {inGameSound} = useGameSound()
 
 
@@ -90,22 +93,24 @@ export default function GameplayPanel(
             </div>
 
 
+            <MysteryOrb heat={heat} hint={hint} shaking={isShaking} fallback={
             <div className="w-28 h-28 sm:w-45 sm:h-45 [@media(max-height:700px)]:hidden rounded-full flex items-center justify-center text-5xl sm:text-7xl text-center"
-                style={{ boxShadow: `0 8px 32px rgba(0,0,0,.35), 0 0 0 4px rgba(255,255,255,.5)` }}>
-                <motion.span className="font-[1000] text-cartoon-blue fun-title"
-                    animate={{
-                        y: [0, -20, 10, 0],      // float up and down
-                        rotate: [0, 10, 0]   // slight rotationx
-                    }}
-                    transition={{
-                        duration: 2,         // total cycle time (matches CSS)
-                        ease: "easeInOut",   // smooth easing
-                        repeat: Infinity,    // loop forever
-                        repeatType: "loop"   // default, ensures smooth loop
-                    }}
-                >???
-                </motion.span>
-            </div>
+                    style={{ boxShadow: `0 8px 32px rgba(0,0,0,.35), 0 0 0 4px rgba(255,255,255,.5)` }}>
+                    <motion.span className="font-[1000] text-cartoon-blue fun-title"
+                        animate={{
+                            y: [0, -20, 10, 0],      // float up and down
+                            rotate: [0, 10, 0]   // slight rotationx
+                        }}
+                        transition={{
+                            duration: 2,         // total cycle time (matches CSS)
+                            ease: "easeInOut",   // smooth easing
+                            repeat: Infinity,    // loop forever
+                            repeatType: "loop"   // default, ensures smooth loop
+                        }}
+                    >???
+                    </motion.span>
+                </div>
+            } />
 
             <div className="flex gap-1 justify-center h-10">
                 {numbers.map((n, idx) =>

@@ -1,6 +1,7 @@
 import { FaCoins, FaGem, FaStar, FaShoppingCart ,FaArrowLeft} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { CartoonButton } from "./assets";
+import useCountUp from "../hooks/useCountUp";
 
 const MODES = { 
   shop: <div className="flex items-center justify-center gap-2">
@@ -63,10 +64,11 @@ export default function PlayerProps({ coins, gems, xp, name, level, mode = null 
 }
 
 function Badge({ icon, value, label }) {
+  const shown = useCountUp(value)
   return (
-    <div className="flex items-center gap-1 sm:gap-2 bg-black/40 backdrop-blur rounded-full px-2 py-1 text-sm sm:text-base sm:px-4 sm:py-2 border border-white/20">
+    <div key={typeof value === "number" ? value : "loading"} className={`flex items-center gap-1 sm:gap-2 bg-black/40 backdrop-blur rounded-full px-2 py-1 text-sm sm:text-base sm:px-4 sm:py-2 border border-white/20 ${typeof value === "number" ? "animate-bump" : ""}`}>
       {icon}
-      <span className="text-white font-bold">{value ?? "..."}</span>
+      <span className="text-white font-bold tabular-nums">{value == null ? "..." : shown}</span>
       {label && <span className="hidden sm:inline text-white/60 text-xs">{label}</span>}
     </div>
   );

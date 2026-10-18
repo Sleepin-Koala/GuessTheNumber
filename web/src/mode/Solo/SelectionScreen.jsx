@@ -70,7 +70,7 @@ export default function LevelSelect({ player, onSelect }) {
     return () => window.removeEventListener("keydown", handleKey);
   }, [currentPage]);
 
-  function LvlBtn({ level, isLock }) {
+  function LvlBtn({ level, isLock, index = 0 }) {
 
     function HandleClick(){
       if (!isLock) { onSelect(level);inGameSound.click() }
@@ -78,7 +78,7 @@ export default function LevelSelect({ player, onSelect }) {
     }
 
     return (
-      <div role="button" aria-disabled={isLock} className={`border-4  rounded-2xl shadow-3d-button flex text-2xl text-amber-50 font-black flex-col justify-center items-center
+      <div role="button" aria-disabled={isLock} style={{ animationDelay: `${index * 22}ms` }} className={`animate-tile-in border-4  rounded-2xl shadow-3d-button flex text-2xl text-amber-50 font-black flex-col justify-center items-center
       ${isLock ? "bg-[#0000004d] border-[#ffffff12] cursor-not-allowed" : "bg-[#3b82f638] hover:-translate-y-1  hover:bg-cartoon-blue transition-all hover:shadow-3d-button-hov border-gray-500 duration-300 cursor-pointer"}
       `}
         onClick={HandleClick}>
@@ -121,7 +121,7 @@ export default function LevelSelect({ player, onSelect }) {
 
               {visibleLevels.map((e, k) => {
                 const unlocked = e <= player.level
-                return (<LvlBtn level={e} isLock={!unlocked} />)
+                return (<LvlBtn key={e} level={e} isLock={!unlocked} index={k} />)
               })}
 
             </motion.div>

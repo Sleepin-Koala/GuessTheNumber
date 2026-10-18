@@ -152,9 +152,9 @@ export function CartoonButton({ children, onClick = null, className = "px-10 py-
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onClick}
-            className={`relative bg-linear-to-r cursor-pointer from-yellow-400 to-orange-500 font-black rounded-2xl shadow-hard hover:shadow-xl transition-all disabled:opacity-50 ${className ?? ""}`}>
+            className={`font-game relative bg-linear-to-b cursor-pointer from-[#ffe066] to-[#ff9f1c] text-[#3b1d00] rounded-2xl shadow-[0_6px_0_#b45309,0_12px_20px_rgba(0,0,0,.4)] hover:brightness-110 active:translate-y-1 active:shadow-[0_2px_0_#b45309,0_4px_8px_rgba(0,0,0,.4)] transition-[box-shadow,transform,filter] disabled:opacity-50 ${className ?? ""}`}>
             {children}
-            <span className="absolute top-1 left-4 w-12 h-1 bg-white/50 rounded-full" />
+            <span className="absolute top-1.5 left-4 w-12 h-1.5 bg-white/60 rounded-full" aria-hidden="true" />
         </motion.button>
     )
 }
