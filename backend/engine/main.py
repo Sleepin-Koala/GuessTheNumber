@@ -29,8 +29,12 @@ class SoloMode(GameMode):
         return rd.randint(1 , 10*self.level)
     
     def calcul_precision(self , inputs:List[int]  , TrueNumber: int) -> float:
+        if not inputs or TrueNumber <= 0:
+            return 0.0
         precision = 0
         for x in inputs:
+            if x <= 0:
+                continue
             if x <= TrueNumber:
                 precision += x/TrueNumber
             else:
@@ -39,15 +43,21 @@ class SoloMode(GameMode):
 
     def calcul_score(self ,inputs: List[int] ,time_s: float , TrueNumber: int) -> float:
 
-        score_essais = (self.max_tries - len(inputs)) / (self.max_tries - 1)
-        score_precision = self.calcul_precision(inputs,TrueNumber)
-        score_temps = (self.max_time - time_s) / (self.max_time - self.get_min_time())
+        # chaque composante est bornee a [0, 1]: le temps/essais fournis ne peuvent pas gonfler la recompense
+        time_s = max(0.0, time_s)
+        score_essais = self._clamp((self.max_tries - len(inputs)) / (self.max_tries - 1))
+        score_precision = self._clamp(self.calcul_precision(inputs,TrueNumber))
+        score_temps = self._clamp((self.max_time - time_s) / (self.max_time - self.get_min_time()))
 
         score_total = (self.poids_essais * score_essais) + \
                     (self.poids_precision * score_precision) + \
                     (self.poids_temps * score_temps)
 
         return score_total
+
+    @staticmethod
+    def _clamp(x: float) -> float:
+        return max(0.0, min(1.0, x))
 
     def get_min_time(self):
         max_range = self.level * 10
@@ -62,7 +72,6 @@ class SoloMode(GameMode):
     
     def getStars(self , inputs: List[int] , time_s: float ,TrueNumber: int) -> int:
         score = self.calcul_score(inputs , time_s,TrueNumber)
-        print(score)
         if score <= 0.3 :
             return 1
         elif 0.3 < score <= 0.5:

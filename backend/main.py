@@ -1,5 +1,6 @@
 #modules internes
-from fastapi import FastAPI 
+from fastapi import FastAPI, Depends
+from all import db_guard
 from fastapi.middleware.cors import CORSMiddleware
 
 ##"routes"
@@ -11,9 +12,10 @@ from routes.shop import router as shop_router
 from fastapi import Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 
 
-app = FastAPI()
+app = FastAPI(dependencies=[Depends(db_guard)])
 app.add_middleware(CORSMiddleware , 
                    allow_origins = ["*"],
                    allow_credentials = True,
@@ -41,10 +43,7 @@ def getStatus():
 # handlers
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    body = await request.body()
-    print(f"Invalid body: {body.decode('utf-8', errors='ignore')}")
-    # Return the default 422 response
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={"detail": exc.errors(), "body": body.decode('utf-8', errors='ignore')}
+        content={"detail": jsonable_encoder(exc.errors(), custom_encoder={Exception: str})}
     )
