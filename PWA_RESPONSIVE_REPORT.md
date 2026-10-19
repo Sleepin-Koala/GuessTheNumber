@@ -105,3 +105,7 @@ Duel has no web gameplay yet; it now shows a "Bientôt disponible" page instead 
 ## Design pass (3D orb, fonts, micro-animations)
 
 Re-verified after the design pass: functional suite 38/38, viewport matrix 72/72, offline OK, Lighthouse mobile 95/100/100/100 (LCP 2.4 s), desktop 100/100/100/100. Orb screenshots: `screenshots/design/`. The orb was captured with software WebGL (SwiftShader) in headless Chromium; real-GPU frame rate on phones is UNVERIFIED. The Three.js chunk (~252 kB gzipped) loads only when a game starts and is not precached.
+
+### 3D Home scene
+
+`HomeBackdrop` keeps the SVG night backdrop and fades in a Three.js scene (30 glossy digit candies, fog, stars, pointer parallax) after idle. It is skipped without hardware WebGL, with Save-Data, and is static under `prefers-reduced-motion`. Without that guard, software WebGL dropped Lighthouse mobile performance to 56; with it: mobile 94/100/100/100 (LCP 2.4 s), desktop 100/100/100/100. The 3D chunk (~928 kB, ~254 kB gzip) is loaded on demand and excluded from the service-worker precache. Real-GPU frame rate: UNVERIFIED. Screenshots: `screenshots/design/home3d-*`.

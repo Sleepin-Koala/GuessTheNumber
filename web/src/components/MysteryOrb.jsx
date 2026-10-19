@@ -1,21 +1,9 @@
-import { Component, lazy, Suspense, useMemo } from "react"
+import { lazy, Suspense, useMemo } from "react"
+import { Boundary, webglAvailable, gpuAccelerated } from "./webgl"
 import useMediaQuery from "../hooks/useMediaQuery"
 
 // three.js est charge uniquement quand une partie commence (hors du chemin critique de l'accueil)
 const OrbScene = lazy(() => import("./OrbScene"))
-
-function webglAvailable() {
-    try {
-        const c = document.createElement("canvas")
-        return !!(c.getContext("webgl2") || c.getContext("webgl"))
-    } catch { return false }
-}
-
-class Boundary extends Component {
-    state = { failed: false }
-    static getDerivedStateFromError() { return { failed: true } }
-    render() { return this.state.failed ? this.props.fallback : this.props.children }
-}
 
 /**
  * Bonbon 3D mystere. `heat` va de 0 (loin) a 1 (tres proche), null = pas encore de proposition.
@@ -24,7 +12,7 @@ class Boundary extends Component {
 export default function MysteryOrb({ heat, hint, shaking, fallback }) {
     const hasRoom = useMediaQuery("(min-height: 701px)")
     const reduced = useMediaQuery("(prefers-reduced-motion: reduce)")
-    const ok = useMemo(webglAvailable, [])
+    const ok = useMemo(() => webglAvailable() && gpuAccelerated(), [])
 
     if (!hasRoom) return null   // ecrans courts (paysage): on libere la place pour le champ de saisie
     if (!ok) return fallback

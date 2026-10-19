@@ -1,7 +1,7 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { useEffect, useMemo, useRef } from "react"
 import * as THREE from "three"
-import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js"
+import Studio from "./three/Studio"
 
 // Palette: froid (loin) -> citron -> chaud (pres de la reponse)
 const GRAPE = new THREE.Color("#8b5cf6")
@@ -15,18 +15,6 @@ function heatColor(heat, out) {
     return heat < 0.5
         ? out.copy(ICE).lerp(LEMON, heat * 2)
         : out.copy(LEMON).lerp(HOT, (heat - 0.5) * 2)
-}
-
-// reflets "studio" pour l'effet bonbon verni, sans fichier HDR externe
-function Studio() {
-    const { gl, scene } = useThree()
-    useEffect(() => {
-        const pmrem = new THREE.PMREMGenerator(gl)
-        const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-        scene.environment = env
-        return () => { scene.environment = null; env.dispose(); pmrem.dispose() }
-    }, [gl, scene])
-    return null
 }
 
 function useLabelTexture() {

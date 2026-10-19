@@ -3,7 +3,7 @@ import api from "./api/index" // les requetes api
 import PlayerProps from "./components/PlayerProps"
 import SettingsPage from "../src/assets/settings"
 import { Carousel } from "./components/Carrousel";
-import Bg from "./components/Background"
+import Bg from "./components/HomeBackdrop"
 import { useNavigate } from "react-router-dom";
 import useGameSound from "./hooks/SoundHooks"
 

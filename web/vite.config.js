@@ -13,7 +13,9 @@ function swPrecache() {
     apply: 'build',
     configResolved(config) { outDir = config.build.outDir },
     writeBundle(_options, bundle) {
-      const assets = Object.keys(bundle).filter((f) => !f.endsWith('.map') && !f.includes('OrbScene'))  // scene 3D: telechargee a la demande, pas au precache.map((f) => '/' + f)
+      // les gros chunks charges a la demande (three.js) ne sont pas precaches
+      const onDemand = (f) => bundle[f].type === 'chunk' && !bundle[f].isEntry && bundle[f].code.length > 400_000
+      const assets = Object.keys(bundle).filter((f) => !f.endsWith('.map') && !onDemand(f)).map((f) => '/' + f)
       const file = join(outDir, 'sw.js')
       const source = readFileSync(file, 'utf8')
         .replace('"__ASSET_LIST__"]', JSON.stringify(assets).slice(1))

@@ -63,6 +63,7 @@ h1, h2, h3, .font-game, .title-ingame, .fun-title, .guess-button {
     60%  { opacity: 1; transform: translateY(-2px) scale(1.05); }
     to   { opacity: 1; transform: translateY(0) scale(1); }
 }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 .animate-tile-in { animation: tile-in 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
 
 /* Bonbon: rebond d'un badge quand sa valeur change */
