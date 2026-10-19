@@ -1,14 +1,14 @@
 {
  "mobile": {
   "scores": {
-   "performance": 95,
+   "performance": 97,
    "accessibility": 100,
    "best-practices": 100,
    "seo": 100
   },
-  "LCP": "2.1\u00a0s",
-  "CLS": "0",
-  "TBT": "180\u00a0ms"
+  "LCP": "2.3 s",
+  "CLS": "0.004",
+  "TBT": "90 ms"
  },
  "desktop": {
   "scores": {
@@ -17,8 +17,8 @@
    "best-practices": 100,
    "seo": 100
   },
-  "LCP": "0.5\u00a0s",
-  "CLS": "0",
-  "TBT": "0\u00a0ms"
+  "LCP": "0.6 s",
+  "CLS": "0.001",
+  "TBT": "0 ms"
  }
 }

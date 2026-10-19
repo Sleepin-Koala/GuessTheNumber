@@ -50,3 +50,11 @@ export async function restoreWithToken(code) {
         throw e
     }
 }
+
+// Lance la verification / creation du compte UNE fois et sans bloquer l'affichage. Les ecrans qui ont besoin du
+// compte (tous sauf l'accueil, qui l'attend lui-meme) passent par <AccountGate> en attendant ce resultat.
+let account
+export function startAccount() {
+    account ??= ensureAccount().catch((e) => { console.warn("Account check failed", e); return null })
+    return account
+}

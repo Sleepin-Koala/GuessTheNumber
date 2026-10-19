@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { ensureAccount } from "./api/account"
+import { startAccount } from "./api/account"
 import PlayerProps from "./components/PlayerProps"
 import SettingsPage from "../src/assets/settings"
 import { Carousel } from "./components/Carrousel";
@@ -19,7 +19,7 @@ function Home() {
 
 
   useEffect(() => {
-    ensureAccount().then((p) => p && setPlayer(p)).catch((e) => console.error(e))
+    startAccount().then((p) => p && setPlayer(p))
 
 
 

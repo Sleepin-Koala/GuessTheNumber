@@ -1,26 +1,18 @@
-import useSound from "use-sound";
-import clickSfx from '../sounds/click.wav';
+import { SOUNDS, play, music } from "../sounds/player"
 
-export default function useGameSound() {
-
-
-    const [playClick] = useSound(clickSfx, { volume: 1 });
-    const [playNotAllowed] = useSound("src/sounds/not_allowed.mp3", { volume: 1 });
-    const [onFalseAnswer] = useSound("src/sounds/not.mp3", { volume: 1 });
-
-    const [Win] = useSound("./src/sounds/win.wav", { volume: 1 });
-    const [playBuy] = useSound("./src/sounds/buy.mp3", { volume: 1 });
-    const [FailBuying] = useSound("./src/sounds/fail.mp3", { volume: 1 });
-    const [BgMusic , {stop: stopBgMusic}] = useSound("./src/sounds/main.mp3", { volume: 1 });
-
-
-    return {
-        inGameSound: { click: playClick , notallowedclick : playNotAllowed , isFalse: onFalseAnswer ,
-            onLose : FailBuying , onWin : Win
-        },
-        mainMusic : {play : BgMusic , stop : stopBgMusic},
-        situationSound: { onBuy : playBuy }
-    }
-
+// Meme interface qu'avant, mais sans etat React: les fonctions sont stables et le chargement audio est differe.
+const api = {
+    inGameSound: {
+        click: () => play(SOUNDS.click),
+        notallowedclick: () => play(SOUNDS.notAllowed),
+        isFalse: () => play(SOUNDS.wrong),
+        onLose: () => play(SOUNDS.fail),
+        onWin: () => play(SOUNDS.win),
+    },
+    mainMusic: music,
+    situationSound: { onBuy: () => play(SOUNDS.buy) },
 }
 
+export default function useGameSound() {
+    return api
+}

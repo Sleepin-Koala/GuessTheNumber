@@ -3,12 +3,12 @@
   [
    "Home: player auto-created",
    "PASS",
-   "04202c4b-32e3-4f20-a0cf-98463ed05183"
+   "bbe7b080-f281-45fc-b3a1-4de10fd8acc3"
   ],
   [
    "Home: starting wallet 500 coins / 5 gems / level 1",
    "PASS",
-   "{'id': '04202c4b-32e3-4f20-a0cf-98463ed05183', 'name': 'player_078182188768829', 'gems': 5, 'coins': 500, 'xp': 0, 'level': 1}"
+   "{'id': 'bbe7b080-f281-45fc-b3a1-4de10fd8acc3', 'name': 'player_0', 'gems': 5, 'coins': 500, 'xp': 0, 'level': 1}"
   ],
   [
    "Home: header shows player name",
@@ -113,7 +113,7 @@
   [
    "Classic: reward paid + level 2 unlocked",
    "PASS",
-   "{'id': '04202c4b-32e3-4f20-a0cf-98463ed05183', 'name': 'Tester42', 'gems': 6, 'coins': 768, 'xp': 44, 'level': 2}"
+   "{'id': 'bbe7b080-f281-45fc-b3a1-4de10fd8acc3', 'name': 'Tester42', 'gems': 6, 'coins': 766, 'xp': 43, 'level': 2}"
   ],
   [
    "Classic: game-over overlay after attempts exhausted",
@@ -129,6 +129,21 @@
    "Classic: locked level (3) does not open",
    "PASS",
    ""
+  ],
+  [
+   "Sound: turning 'Effets sonores' off silences the game (no audio fetched)",
+   "PASS",
+   "[]"
+  ],
+  [
+   "Sound: with sound on, the click sound loads from the production build (200)",
+   "PASS",
+   "[('http://127.0.0.1:4173/assets/click-D70tM4v5.wav', 200, 'audio/wav')]"
+  ],
+  [
+   "Sound: it is served as audio, not as the app's HTML page",
+   "PASS",
+   "['audio/wav']"
   ],
   [
    "Shop: tab Bonus shows items",
@@ -148,7 +163,7 @@
   [
    "Shop: purchase debits coins",
    "PASS",
-   "768->648"
+   "766->646"
   ],
   [
    "Shop: header coins updated",

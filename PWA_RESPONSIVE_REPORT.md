@@ -14,20 +14,21 @@ Evidence: `screenshots/final/<screen>-<viewport>.png` (72 images), `screenshots/
 | `/shop` | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
 | `/stats` | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
 | `/duel` | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| `/endless` | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
 | `classic-game` | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
 | `discovery-game` | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
 | `settings` | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
 
-Checked per cell: `scrollWidth <= innerWidth`, element-off-screen scan, console errors, touch-target sizes, input font size. Screenshots were also reviewed by eye (contact sheets at 360x640, 390x844, 844x390 landscape, 768x1024, 1920x1080) and by an independent subagent (Home, Classic, Shop at 390 / 768 / 1920).
+Checked per cell: `scrollWidth <= innerWidth`, element-off-screen scan, console errors (including Content-Security-Policy violations, since the production build ships a CSP), touch-target sizes, input font size. Screenshots were also reviewed by eye and by an independent subagent.
 
-## Lighthouse (production build, localhost)
+## Lighthouse (final secured production build, localhost)
 
 | | Perf | A11y | Best Practices | SEO | LCP | CLS | TBT |
 |---|---|---|---|---|---|---|---|
-| Mobile | 95 | 100 | 100 | 100 | 2.1 s | 0 | 180 ms |
-| Desktop | 100 | 100 | 100 | 100 | 0.5 s | 0 | 0 ms |
+| Mobile | 97 | 100 | 100 | 100 | 2.3 s | 0.004 | 90 ms |
+| Desktop | 100 | 100 | 100 | 100 | 0.6 s | 0.001 | 0 ms |
 
-This Lighthouse version has no separate PWA category; installability was verified by hand (below). Source maps are not emitted (audit `valid-source-maps` fails; not a user-facing issue).
+Mobile performance was 97 on four consecutive runs. (An earlier measurement of 75-91 was sandbox noise plus two real costs, both fixed: the audio library loading at start-up, and the account check blocking the first paint.) This Lighthouse version has no separate PWA category; installability was verified by hand (below).
 
 ## PWA checks
 
@@ -37,13 +38,15 @@ This Lighthouse version has no separate PWA category; installability was verifie
 - Offline: `/` and a deep route (`/shop`) reload from the service worker and show an offline banner; API-dependent screens show placeholders. `offline.html` fallback exists.
 - HTTPS is required for real deployments (localhost exempt): **UNVERIFIED**, no deployment target here.
 
-## Functional test of every feature (38 checks, all PASS)
+## Functional test of every feature (43 checks)
 
 - PASS Home: player auto-created
 - PASS Home: starting wallet 500 coins / 5 gems / level 1
 - PASS Home: header shows player name
 - PASS Home: carousel can open /discovery
 - PASS Home: carousel can open /classic
+- PASS Home: carousel can open /endless
+- PASS Home: carousel can open /duel
 - PASS Home: carousel can open Settings overlay (no navigation)
 - PASS Home: carousel can reach /shop
 - PASS Home: carousel can reach /stats
@@ -63,6 +66,9 @@ This Lighthouse version has no separate PWA category; installability was verifie
 - PASS Classic: game-over overlay after attempts exhausted
 - PASS Classic: lose recorded server-side
 - PASS Classic: locked level (3) does not open
+- PASS Sound: turning 'Effets sonores' off silences the game (no audio fetched)
+- PASS Sound: with sound on, the click sound loads from the production build (200)
+- PASS Sound: it is served as audio, not as the app's HTML page
 - PASS Shop: tab Bonus shows items
 - PASS Shop: tab Indices shows items
 - PASS Shop: tab Aide shows items
@@ -73,12 +79,12 @@ This Lighthouse version has no separate PWA category; installability was verifie
 - PASS Stats: history lists discovery + classic games
 - PASS Stats: shows Victoire and Défaite
 - PASS Stats: Retour goes home
-- PASS Duel (web): page has content
+- PASS Duel (web): lobby is shown
 - PASS API: negative endless bet rejected
 - PASS API: fake classic win rejected
 - PASS Console: no unexpected errors (deliberate 402/422/404 probes excluded)
 
-Duel has no web gameplay yet; it now shows a "Bientôt disponible" page instead of an empty screen. Note: the backend Duel routes exist but are not exercised by the web client.
+Other suites: power-ups 18, Duel/Endless/real-time 38, abandonment 17, security 21 (browser); 77 API tests.
 
 ## Defects fixed (file)
 
@@ -109,3 +115,8 @@ Re-verified after the design pass: functional suite 38/38, viewport matrix 72/72
 ### 3D Home scene
 
 `HomeBackdrop` keeps the SVG night backdrop and fades in a Three.js scene (30 glossy digit candies, fog, stars, pointer parallax) after idle. It is skipped without hardware WebGL, with Save-Data, and is static under `prefers-reduced-motion`. Without that guard, software WebGL dropped Lighthouse mobile performance to 56; with it: mobile 94/100/100/100 (LCP 2.4 s), desktop 100/100/100/100. The 3D chunk (~928 kB, ~254 kB gzip) is loaded on demand and excluded from the service-worker precache. Real-GPU frame rate: UNVERIFIED. Screenshots: `screenshots/design/home3d-*`.
+
+## Later fixes found by re-checking the final build
+
+- Sounds were broken in production (paths like `src/sounds/x.mp3` exist only on the dev server): audio files are now bundled; the "Effets sonores" setting is now honoured (it was never read); the audio library loads on first play instead of at start-up.
+- The account check no longer blocks the first paint (`AccountGate` on game screens; Home renders immediately).

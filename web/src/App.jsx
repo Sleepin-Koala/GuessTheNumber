@@ -11,6 +11,7 @@ const Shop = lazy(() => import("./mode/boutique/main.jsx"))
 const Stat = lazy(() => import("./mode/stats/main.jsx"))
 import NetworkStatus from "./components/NetworkStatus"
 import SessionBanner from "./components/SessionBanner"
+import AccountGate from "./components/AccountGate"
 
 export default function App(){
   
@@ -22,12 +23,12 @@ export default function App(){
         <Suspense fallback={null}>
         <Routes>
           <Route path="/" element = {<Home/>}/>
-          <Route path="/discovery" element = {<Discovery/>}/>
-          <Route path="/classic" element = {<Classic/>}/>
-          <Route path="/duel" element = {<Duel/>}/>
-          <Route path="/endless" element = {<Endless/>}/>
-          <Route path="/shop" element = {<Shop/>}/>
-          <Route path="/stats" element = {<Stat/>}/>
+          <Route path="/discovery" element = {<AccountGate><Discovery/></AccountGate>}/>
+          <Route path="/classic" element = {<AccountGate><Classic/></AccountGate>}/>
+          <Route path="/duel" element = {<AccountGate><Duel/></AccountGate>}/>
+          <Route path="/endless" element = {<AccountGate><Endless/></AccountGate>}/>
+          <Route path="/shop" element = {<AccountGate><Shop/></AccountGate>}/>
+          <Route path="/stats" element = {<AccountGate><Stat/></AccountGate>}/>
         </Routes>
         </Suspense>
       </BrowserRouter>

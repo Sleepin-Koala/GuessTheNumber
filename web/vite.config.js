@@ -15,7 +15,8 @@ function swPrecache() {
     writeBundle(_options, bundle) {
       // les gros chunks charges a la demande (three.js) ne sont pas precaches
       const onDemand = (f) => bundle[f].type === 'chunk' && !bundle[f].isEntry && bundle[f].code.length > 400_000
-      const assets = Object.keys(bundle).filter((f) => !f.endsWith('.map') && !onDemand(f)).map((f) => '/' + f)
+      const bigAudio = (f) => /\.(mp3|wav)$/.test(f) && (bundle[f].source?.length ?? 0) > 100_000   // musique / gros sons: telecharges au premier usage
+      const assets = Object.keys(bundle).filter((f) => !f.endsWith('.map') && !onDemand(f) && !bigAudio(f)).map((f) => '/' + f)
       const file = join(outDir, 'sw.js')
       const source = readFileSync(file, 'utf8')
         .replace('"__ASSET_LIST__"]', JSON.stringify(assets).slice(1))

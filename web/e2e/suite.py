@@ -103,6 +103,23 @@ with sync_playwright() as p:
         rec("Classic: locked level (3) does not open", pg.get_by_text("GO !").count()==0)
     run(classic,"Classic")
 
+    def sounds():
+        import re as _re
+        heard = []
+        pg.on("response", lambda r: heard.append((r.url, r.status, r.headers.get("content-type", ""))) if _re.search(r"\.(wav|mp3)(\?|$)", r.url) else None)
+        def press_play(sound):
+            heard.clear()
+            pg.goto(B+"/discovery"); pg.wait_for_load_state("networkidle"); pg.wait_for_timeout(500)
+            pg.evaluate("v=>localStorage.setItem('sound', v)", sound)
+            pg.get_by_text("JOUER").click(); pg.wait_for_timeout(1200)
+        press_play("false")
+        rec("Sound: turning 'Effets sonores' off silences the game (no audio fetched)", heard == [], str(heard))
+        press_play("true")
+        ok = [h for h in heard if "click" in h[0] and h[1] == 200]
+        rec("Sound: with sound on, the click sound loads from the production build (200)", len(ok) >= 1, str(heard[:2]))
+        rec("Sound: it is served as audio, not as the app's HTML page", all(("audio" in h[2] or "wav" in h[2] or "octet" in h[2]) and "html" not in h[2] for h in ok), str([h[2] for h in ok]))
+    run(sounds,"Sound")
+
     def shop():
         pg.goto(B+"/shop"); pg.wait_for_load_state("networkidle"); pg.wait_for_timeout(1000)
         before=me(pg)["coins"]

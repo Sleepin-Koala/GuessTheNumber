@@ -53,9 +53,6 @@ importers:
       three:
         specifier: ^0.186.1
         version: 0.186.1
-      use-sound:
-        specifier: ^5.0.0
-        version: 5.0.0(react@19.2.4)
     devDependencies:
       '@vitejs/plugin-react':
         specifier: ^5.1.1
@@ -1160,11 +1157,6 @@ packages:
     peerDependencies:
       browserslist: '>= 4.21.0'
 
-  use-sound@5.0.0:
-    resolution: {integrity: sha512-MNHT3FFC5HxNCrgZtrnpIMJI2cw/0D2xismcrtyht8BTuF5FhFhb57xO/jlQr2xJaFrc/0btzRQvGyHQwB7PVA==}
-    peerDependencies:
-      react: '>=16.8'
-
   use-sync-external-store@1.6.0:
     resolution: {integrity: sha512-Pp6GSwGP/NrPIrxVFAIkOQeyw8lFenOHijQWkUTrDvrF4ALqylP2C/KCkeS9dpUM3KvYRQhna5vt7IL95+ZQ9w==}
     peerDependencies:
@@ -2146,11 +2138,6 @@ snapshots:
       browserslist: 4.28.2
       escalade: 3.2.0
       picocolors: 1.1.1
-
-  use-sound@5.0.0(react@19.2.4):
-    dependencies:
-      howler: 2.2.4
-      react: 19.2.4
 
   use-sync-external-store@1.6.0(react@19.2.4):
     dependencies:
