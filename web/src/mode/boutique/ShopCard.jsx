@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, useAnimationControls } from "framer-motion";
 import { FaCoins, FaLock, FaCheck, FaBolt, FaHourglassHalf, FaGem, FaHeart } from "react-icons/fa";
 import { GiCrystalEye } from "react-icons/gi";
 
@@ -13,59 +14,64 @@ const getIcon = (name) => {
 };
 
 export default function ShopCard({ item, isAffordable, onBuy }) {
+  const controls = useAnimationControls()
+  const [floaters, setFloaters] = useState([])
+
+  function buy() {
+    onBuy()
+    // la carte "rebondit" et le prix s'envole: on voit ce qui vient d'etre depense
+    controls.start({ scale: [1, 1.08, 0.97, 1], rotate: [0, -2.5, 2.5, 0], transition: { duration: 0.45 } })
+    const id = Date.now()
+    setFloaters((f) => [...f, id])
+    setTimeout(() => setFloaters((f) => f.filter((x) => x !== id)), 900)
+  }
 
   return (
     <motion.div
-      whileHover={{ y: -5, rotate: 1 }}
-      whileTap={{ scale: 0.95 }}
-      className={`bg-white border-black py-5 px-1 rounded-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]
+      animate={controls}
+      whileHover={{ y: -5 }}
+      className={`candy-gloss relative h-full flex flex-col rounded-3xl p-4 border-2 transition-[filter,opacity]
       ${isAffordable
-          ? 'bg-white border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'
-          : 'bg-slate-800 border-slate-600 shadow-none grayscale cursor-not-allowed'
+          ? 'bg-linear-to-b from-[#4b2d99] to-[#2a1560] border-white/25 candy-lip'
+          : 'bg-linear-to-b from-[#2b2447] to-[#1c1733] border-white/10 saturate-50 opacity-80'
         }`}
     >
-
-
       <div className="flex flex-col items-center gap-2 text-center">
-        <div className={`w-16 h-16 rounded-xl flex items-center justify-center text-3xl mb-2 border-2
-                    ${isAffordable ? 'bg-yellow-100 border-yellow-400 text-yellow-600' : 'bg-slate-700 border-slate-600 text-slate-500'}`}>
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl ring-4 shadow-[inset_0_-5px_0_rgba(0,0,0,.2)]
+                    ${isAffordable ? 'bg-linear-to-b from-yellow-300 to-orange-400 ring-white/40 text-amber-900' : 'bg-slate-700 ring-white/10 text-slate-400'}`}>
           {getIcon(item.name)}
         </div>
-        <h3 className="font-black  text-amber-950 text-xl uppercase text-white-800 leading-tight">
-          {item.name}
-        </h3>
+        <h3 className="text-2xl text-white leading-tight">{item.name}</h3>
       </div>
 
-      <p className="text-xs text-gray-500 font-semibold text-center grow">
+      <p className="text-sm text-white/75 font-semibold text-center grow mt-1">
         {item.description}
       </p>
 
-      <div className="flex flex-col gap-2 mt-2">
-        <div className="flex items-center justify-center gap-1 font-bold text-gray-800 bg-gray-100 py-1 rounded-lg border border-gray-200">
-          <FaCoins className="text-yellow-500" />
-          <span className="text-lg">{item.price}</span>
+      <div className="relative flex flex-col gap-2 mt-3">
+        <div className="flex items-center justify-center gap-1.5 font-black text-white bg-black/30 py-1 rounded-full">
+          <FaCoins className="text-yellow-300" />
+          <span className="text-lg tabular-nums">{item.price}</span>
         </div>
+
+        {floaters.map((id) => (
+          <span key={id} aria-hidden="true" className="animate-coin-rise pointer-events-none absolute left-1/2 -top-1 -translate-x-1/2 font-game text-2xl text-yellow-300 drop-shadow">
+            -{item.price}
+          </span>
+        ))}
 
         <button
           disabled={!isAffordable}
-          className={`
-            w-full min-h-11 py-2 rounded-xl font-game font-black uppercase text-sm border-b-4 transition-all
-            flex items-center justify-center gap-2
+          onClick={buy}
+          className={`w-full min-h-11 py-2 rounded-2xl font-game text-lg transition-all flex items-center justify-center gap-2
             ${isAffordable
-              ? 'bg-linear-to-b from-yellow-400 to-yellow-500 text-black border-yellow-700 active:border-b-0 active:translate-y-1 hover:brightness-110'
-              : 'bg-slate-600 text-slate-400 border-slate-800'
+              ? 'bg-linear-to-b from-[#ffe066] to-[#ff9f1c] text-[#3b1d00] shadow-[0_5px_0_#b45309] active:translate-y-1 active:shadow-[0_1px_0_#b45309] hover:brightness-110'
+              : 'bg-slate-700 text-slate-400 shadow-[0_5px_0_#0f172a]'
             }`}
-            onClick={onBuy}
-            
         >
-          {!isAffordable ? (
-            <>
-              <FaLock /> Pas assez
-            </>) : "ACHETER"
-          }
+          {isAffordable ? "Acheter" : <><FaLock /> Pas assez</>}
         </button>
       </div>
-
     </motion.div>
   );
 }

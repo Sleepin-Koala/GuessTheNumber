@@ -81,3 +81,17 @@ h1, h2, h3, .font-game, .title-ingame, .fun-title, .guess-button {
 }
 
 :focus-visible { outline: 3px solid #ffd23f; outline-offset: 3px; }
+
+/* Bonbon: reflet en haut + "levre" epaisse en bas */
+.candy-gloss::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 46%;
+    background: linear-gradient(to bottom, rgba(255,255,255,.34), rgba(255,255,255,0));
+    border-radius: inherit; pointer-events: none;
+}
+.candy-lip { box-shadow: inset 0 -8px 0 rgba(0,0,0,.2), 0 10px 0 rgba(0,0,0,.28), 0 18px 28px rgba(0,0,0,.35); }
+
+@keyframes float-slow { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-8px) rotate(2deg); } }
+.animate-float-slow { animation: float-slow 3.2s ease-in-out infinite; }
+
+@keyframes coin-rise { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-46px) scale(1.25); } }
+.animate-coin-rise { animation: coin-rise .9s ease-out forwards; }

@@ -19,11 +19,11 @@ function StatCard({ children, title, color, icon = null, delay }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: delay }}
-      className={`bg-linear-to-br ${color} rounded-3xl p-5 shadow-hard border-2 border-white/30 flex flex-col items-center text-center`}
+      className={`candy-gloss candy-lip relative bg-linear-to-br ${color} rounded-3xl p-5 border-2 border-white/30 flex flex-col items-center text-center`}
     >
       <div className="text-4xl mb-2 text-white drop-shadow">{icon}</div>
-      <div className="text-4xl font-black text-white">{children}</div>
-      <div className="text-lg font-bold text-white/80 mt-1">{title}</div>
+      <div className="text-4xl font-game text-white tabular-nums">{children}</div>
+      <div className="text-lg font-bold text-white/90 mt-1">{title}</div>
     </motion.div>
   )
 }
@@ -45,6 +45,9 @@ function LastGameTable({ data }) {
           </tr>
         </thead>
         <tbody>
+          {data.length === 0 && (
+            <tr><td colSpan={4} className="py-6 px-4 text-center text-white/70 font-bold">Aucune partie pour l'instant. Lance un mode de jeu !</td></tr>
+          )}
           {data.map((session) => (
             <tr key={session.id} className="border-b border-white/10 hover:bg-white/10 transition">
               <td className="py-2 px-4">
@@ -184,16 +187,18 @@ export default function stats() {
 
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-4">
-          <StatCard title="victoire la plus rapide" icon={<FaClock />} color="from-purple-500 to-pink-600" delay={0.4} >{stats.fatestWin ? stats.fatestWin.toFixed(2) : <FaInfinity />}s</StatCard>
+          <StatCard title="Victoire la plus rapide" icon={<FaClock />} color="from-purple-500 to-pink-600" delay={0.4} >{stats.fatestWin ? `${stats.fatestWin.toFixed(2)} s` : "—"}</StatCard>
           <StatCard title="Temps total passé" icon={<FaClock />} color="from-red-500 to-red-600" delay={0.4} >{ParseSeconds(stats.TotalTime) ?? <FaInfinity />}</StatCard>
-          <StatCard title="Temps total d'essais" icon={<FaClock />} color="from-slate-500 to-slate-600" delay={0.4} >{stats.TotalTries ?? <FaInfinity />}</StatCard>
-          <StatCard title="Nombre d'essais Moyen" icon={<FaClock />} color="from-green-500 to-green-600" delay={0.4} >{stats.meanTries ?? <FaInfinity />}</StatCard>
+          <StatCard title="Essais au total" icon={<FaClock />} color="from-slate-500 to-slate-600" delay={0.4} >{stats.TotalTries ?? <FaInfinity />}</StatCard>
+          <StatCard title="Essais par partie" icon={<FaClock />} color="from-green-500 to-green-600" delay={0.4} >{stats.meanTries ?? <FaInfinity />}</StatCard>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-3 p-2">
           <div className="bg-black/20 items-center backdrop-blur-md rounded-3xl p-2 shadow-hard border border-white/20">
             <h2 className="text-2xl font-bold text-white flex items-center gap-2 mb-4"><FaChartLine /> Taux de victoire</h2>
-            <PieChart width={250} height={250}>
+            {stats.TotalGames === 0 || stats.TotalGames == null
+              ? <p className="w-60 py-16 text-center text-white/70 font-bold">Joue une partie pour voir ton taux de victoire.</p>
+              : <PieChart width={250} height={250}>
               <Pie data={winRateData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} fill="#8884d8" dataKey="value" nameKey={"name"}>
                 {winRateData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={WinRateColors[index % WinRateColors.length]} />
@@ -201,7 +206,7 @@ export default function stats() {
               </Pie>
               <Tooltip formatter={(value, name) => [`${value} (${((value / stats.TotalGames) * 100).toFixed(1)}%)`, name]} />
 
-            </PieChart>
+            </PieChart>}
           </div>
           <div className="flex-1 min-w-0 overflow-x-auto">
             <LastGameTable data={historyGame} />
