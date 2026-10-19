@@ -21,6 +21,13 @@ function errorMessage(data, status) {
   return `HTTP ${status}`;
 }
 
+// Pendant un essai de restauration, un 401 est normal (mauvais code): on ne declenche pas l'alerte "compte non reconnu".
+let quietDepth = 0
+export async function quietly(fn) {
+  quietDepth++
+  try { return await fn() } finally { quietDepth-- }
+}
+
 async function request(method, path, { params, body } = {}) {
 
   // Build URL with optional query params
@@ -34,10 +41,11 @@ async function request(method, path, { params, body } = {}) {
     url += '?' + qs.toString();
   }
 
-  const options = {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-  };
+  const headers = { 'Content-Type': 'application/json' };
+  const token = localStorage.getItem('token');
+  if (token) headers.Authorization = `Bearer ${token}`;   // le jeton secret du joueur (voir api/account.js)
+
+  const options = { method, headers };
 
   if (body !== undefined) {
     options.body = JSON.stringify(body);
@@ -63,6 +71,11 @@ async function request(method, path, { params, body } = {}) {
   }
 
   if (!res.ok) {
+    if (res.status === 401 && token && quietDepth === 0) window.dispatchEvent(new Event('gtn:auth-lost'));   // le serveur ne reconnait plus ce jeton
+    if (res.status === 429) {
+      const wait = res.headers.get('retry-after');
+      throw new ApiError(`Trop de requêtes${wait ? ` : réessaie dans ${wait} s` : ''}.`, 429);
+    }
     throw new ApiError(errorMessage(data, res.status), res.status);
   }
 

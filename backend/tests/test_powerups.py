@@ -1,5 +1,5 @@
 import pytest
-from conftest import give, secret
+from conftest import give, secret, db
 import all as A
 import engine
 from engine.power_up import is_prime, is_perfect
@@ -34,7 +34,7 @@ def test_inventory_follows_purchases_and_uses(client, player):
     s = start_classic(client, player)
     assert use(client, player, s["session_id"], 3).json()["remaining"] == 1
     assert client.get(f"/shop/inventory/{player}").json() == {"items": {"3": 1}}
-    assert client.get("/shop/inventory/nobody").status_code == 404
+    assert client.get("/shop/inventory/nobody").status_code == 403     # not yours (and no hint whether it exists)
 
 
 def test_cannot_use_what_you_do_not_own_or_twice(client, player):
@@ -47,7 +47,7 @@ def test_cannot_use_what_you_do_not_own_or_twice(client, player):
 
 
 def test_other_players_session_is_off_limits(client, player):
-    other = client.get("/user/new_player").json()["id"]
+    other = client.post("/user/new_player").json()["id"]
     give(other, 1)
     s = start_classic(client, player)
     assert use(client, other, s["session_id"], 1).status_code == 403
@@ -66,8 +66,8 @@ def test_reveal_items_tell_the_truth(client, player, item, kind, check):
 
 
 def test_scan_halves_the_range_and_keeps_the_answer_inside(client, player):
-    A.session.query(A.Player).filter_by(id=player).first().level = 10      # unlock level 10 (range 1..100)
-    A.session.commit()
+    with db() as s:
+        s.query(A.Player).filter_by(id=player).first().level = 10      # unlock level 10 (range 1..100)
     for _ in range(25):
         give(player, 2)
         s = start_classic(client, player, level=10)       # 1..100
@@ -117,7 +117,8 @@ def test_slow_extends_the_clock_by_at_least_five_seconds(client, player):
     r = use(client, player, s["session_id"], 7).json()
     assert r["extra"] >= 5
     # the clock is stored server-side too
-    assert A.session.query(A.SoloSession).filter_by(id=s["session_id"]).first().time_limit == s["time_limit"] + r["extra"]
+    with db() as d:
+        assert d.query(A.SoloSession).filter_by(id=s["session_id"]).first().time_limit == s["time_limit"] + r["extra"]
 
 
 def test_multiplier_doubles_coins_and_only_before_the_first_guess(client, player):
@@ -127,9 +128,11 @@ def test_multiplier_doubles_coins_and_only_before_the_first_guess(client, player
     assert use(client, player, sid, 8).json() == {"item_id": 8, "remaining": 1, "kind": "multiplier", "value": 2}
     assert guess(client, player, sid, n).json()["result"] == "OK"
     end = client.post("/game/classic/end_level", json={"session_id": sid, "player_id": player, "status": "win", "level_played": 1, "ended": 0}).json()
-    row = A.session.query(A.GameSession).filter_by(id=sid).first()
-    inputs = [t.number for t in A.session.query(A.UserTries).filter_by(session_id=sid).all()]
-    base = engine.SoloMode(1).getRewardCoin(inputs, row.ended_time - row.started_time, n)
+    with db() as d:
+        row = d.query(A.GameSession).filter_by(id=sid).first()
+        duration = row.ended_time - row.started_time
+        inputs = [t.number for t in d.query(A.UserTries).filter_by(session_id=sid).all()]
+    base = engine.SoloMode(1).getRewardCoin(inputs, duration, n)
     assert end["coins"] == 2 * base
 
     s2 = start_classic(client, player)

@@ -7,7 +7,7 @@ def coins(client, pid):
 
 
 def new_player(client):
-    return client.get("/user/new_player").json()["id"]
+    return client.post("/user/new_player").json()["id"]
 
 
 def host(client, pid, bet=100, rng=20, name="Salle"):

@@ -1,11 +1,20 @@
-from pydantic import BaseModel 
-from typing import Any, Optional
+from pydantic import BaseModel , Field
+from typing import Any, Optional , Annotated
+
+
+Id = Annotated[str, Field(min_length=1, max_length=64)]           # identifiants: courts
+BigNumber = Annotated[int, Field(ge=-10**9, le=10**9)]            # evite les depassements d'entier SQLite
+Coins = Annotated[int, Field(ge=0, le=10**9)]
+
+
+class ClaimData(BaseModel):
+    player_id: Id
 
 
 class GuessData(BaseModel):
-    session_id: str
-    player_id : str
-    number: int
+    session_id: Id
+    player_id : Id
+    number: BigNumber
 
 class PlayerData(BaseModel):
     id: Optional[str]
@@ -24,12 +33,12 @@ class SoloEndGameData(BaseModel):
 # Discovery
 
 class DiscoverData(BaseModel):
-    player_id : str
-    max_range : int
+    player_id : Id
+    max_range : Annotated[int, Field(ge=-10**9, le=10**9)]
 
 class DiscoveryEndSessionData(BaseModel):
-    session_id: str
-    player_id: str
+    session_id: Id
+    player_id: Id
     ended: float
 
 
@@ -38,28 +47,28 @@ class DiscoveryEndSessionData(BaseModel):
 
      
 class LevelData(BaseModel):
-    level : int
-    player_id : str
+    level : Annotated[int, Field(ge=-10**6, le=10**6)]
+    player_id : Id
 
 class ClassicEndLevelData(BaseModel):
-    session_id: str
-    player_id: str
-    status: str
-    level_played: int
+    session_id: Id
+    player_id: Id
+    status: Annotated[str, Field(max_length=16)]
+    level_played: Annotated[int, Field(ge=-10**6, le=10**6)]
     ended: float
 
 # endless
 
 class EndlessEndSessionData(BaseModel):
-    session_id: str
-    player_id: str
-    status: str
+    session_id: Id
+    player_id: Id
+    status: Annotated[str, Field(max_length=16)]
     ended: float
 
 class EndlessData(BaseModel):
-    player_id: str
-    bet: int
-    stage : int
+    player_id: Id
+    bet: Annotated[int, Field(ge=-10**9, le=10**9)]
+    stage : Annotated[int, Field(ge=-10**6, le=10**6)]
 
 class RoomData(BaseModel) :
     room_id: str
@@ -83,35 +92,35 @@ class RoomData(BaseModel) :
     server_time : Optional[float] = None    # heure du serveur au moment de l'envoi (pour calculer le temps restant sans decalage d'horloge)
 
 class LeaveData(BaseModel):
-    player_id: str
+    player_id: Id
 
 class HostRoomData(BaseModel) :
-    host_id: str
-    name : str
-    amount: int
-    max_range : int
+    host_id: Id
+    name : Annotated[str, Field(max_length=60)]
+    amount: Coins
+    max_range : Annotated[int, Field(ge=1, le=10**6)]
 
 class CheckRoomData(BaseModel):
-    room_id : str
+    room_id : Id
 
 class JoinData(BaseModel):
-    player_id: str
-    room_id : str
+    player_id: Id
+    room_id : Id
 
 class HidenGuessNumberData(BaseModel):
-    player_id : str
-    number: int
+    player_id : Id
+    number: BigNumber
 
 
 class RenameData(BaseModel):
-    player_id: str
-    name: str
+    player_id: Id
+    name: Annotated[str, Field(max_length=40)]
 
 class PowerupData(BaseModel):
-    session_id: str
-    player_id: str
-    item_id: int
+    session_id: Id
+    player_id: Id
+    item_id: Annotated[int, Field(ge=1, le=1000)]
 
 class BuyData(BaseModel):
-    playerId: str
-    itemId: int
+    playerId: Id
+    itemId: Annotated[int, Field(ge=1, le=1000)]

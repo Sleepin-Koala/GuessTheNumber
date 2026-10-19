@@ -23,6 +23,14 @@ session = session_()
 # rollback en cas d'erreur pour ne jamais laisser la session dans un etat casse.
 db_lock = threading.Lock()
 
+
+class _Current:
+    """Joueur authentifie de la requete HTTP en cours (voir routes/auth.py)."""
+    player_id = None
+
+
+current = _Current()
+
 def db_guard(conn: HTTPConnection):
     if conn.scope["type"] != "http":
         yield          # WebSocket: connexion longue, pas de verrou (les acces BD y sont courts et verrouilles a la main)
@@ -34,4 +42,5 @@ def db_guard(conn: HTTPConnection):
         session.rollback()
         raise
     finally:
+        current.player_id = None
         db_lock.release()

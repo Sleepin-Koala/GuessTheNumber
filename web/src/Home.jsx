@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import api from "./api/index" // les requetes api 
+import { ensureAccount } from "./api/account"
 import PlayerProps from "./components/PlayerProps"
 import SettingsPage from "../src/assets/settings"
 import { Carousel } from "./components/Carrousel";
@@ -19,25 +19,7 @@ function Home() {
 
 
   useEffect(() => {
-    let player_id = localStorage.getItem("id")
-
-    async function new_player() {
-      const playerid = await api.get("/user/new_player")
-      localStorage.setItem("id", playerid.id)
-      setPlayer(playerid)
-    }
-
-    async function get_player() {
-      try {
-        const player_data = await api.get(`/user/${player_id}`)
-        setPlayer(player_data)
-      }
-      catch (e) {
-        new_player()
-      }
-    }
-
-    player_id ? get_player() : new_player();
+    ensureAccount().then((p) => p && setPlayer(p)).catch((e) => console.error(e))
 
 
 

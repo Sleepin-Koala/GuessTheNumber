@@ -8,7 +8,7 @@ def rec(name, ok, detail=""):
 def answer():
     c=sqlite3.connect(DB); r=c.execute("select number from sessions order by started_time desc limit 1").fetchone(); c.close(); return r[0]
 def me(pg):
-    return pg.evaluate("async()=>fetch('%s/user/'+localStorage.getItem('id')).then(r=>r.json())"%API)
+    return pg.evaluate("async()=>fetch('%s/user/'+localStorage.getItem('id'),{headers:{Authorization:'Bearer '+localStorage.getItem('token')}}).then(r=>r.json())"%API)
 
 def guess(pg, n):
     inp=pg.locator("input[type=number]").first
@@ -114,7 +114,7 @@ with sync_playwright() as p:
         after=me(pg)["coins"]; rec("Shop: purchase debits coins", after==before-120, f"{before}->{after}")
         rec("Shop: header coins updated", str(after) in pg.locator("body").inner_text())
         # drain to test insufficient funds
-        pg.evaluate("""async()=>{const id=localStorage.getItem('id');for(let i=0;i<20;i++){await fetch('%s/shop/buy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({playerId:id,itemId:1})})}}"""%API)
+        pg.evaluate("""async()=>{const id=localStorage.getItem('id');for(let i=0;i<20;i++){await fetch('%s/shop/buy',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+localStorage.getItem('token')},body:JSON.stringify({playerId:id,itemId:1})})}}"""%API)
         pg.reload(); pg.wait_for_load_state("networkidle"); pg.wait_for_timeout(1000)
         pg.get_by_role("button",name="Indices").click(); pg.wait_for_timeout(400)
         dis=pg.get_by_role("button",name="ACHETER").count()
@@ -140,7 +140,7 @@ with sync_playwright() as p:
 
     def api_security():
         # cheating attempts straight at the API from the browser origin
-        r=pg.evaluate("""async()=>{const id=localStorage.getItem('id');const j=(p,b)=>fetch('%s'+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(async r=>[r.status]);
+        r=pg.evaluate("""async()=>{const id=localStorage.getItem('id');const j=(p,b)=>fetch('%s'+p,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+localStorage.getItem('token')},body:JSON.stringify(b)}).then(async r=>[r.status]);
           return [await j('/game/endless/start',{player_id:id,bet:-100,stage:1}), await j('/game/classic/end_level',{session_id:'x',player_id:id,status:'win',level_played:1,ended:0})]}"""%API)
         rec("API: negative endless bet rejected", r[0]==[422], str(r[0])); rec("API: fake classic win rejected", r[1]==[404], str(r[1]))
     run(api_security,"API")

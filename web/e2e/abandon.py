@@ -7,7 +7,7 @@ B = os.environ.get("GTN_WEB", "http://127.0.0.1:4173"); API = "http://127.0.0.1:
 R = []
 def rec(name, ok, detail=""):
     R.append(ok); print("PASS" if ok else "FAIL", name, detail, flush=True)
-def coins(pg): return pg.evaluate("fetch('%s/user/'+localStorage.getItem('id')).then(r=>r.json())" % API)["coins"]
+def coins(pg): return pg.evaluate("fetch('%s/user/'+localStorage.getItem('id'),{headers:{Authorization:'Bearer '+localStorage.getItem('token')}}).then(r=>r.json())" % API)["coins"]
 def text(pg): return pg.locator("body").inner_text()
 def wait_text(pg, s, timeout=9000):
     try: pg.get_by_text(s, exact=False).first.wait_for(timeout=timeout); return True

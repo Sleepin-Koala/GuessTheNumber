@@ -3,7 +3,7 @@ import time
 import pytest
 
 import all as A
-from conftest import secret
+from conftest import secret, db
 from routes.game_mode import duel_mode as D
 from routes.realtime import hub
 from test_duel import host, join, hide, guess, new_player, status, coins
@@ -70,8 +70,8 @@ def test_forfeit_rules(client):
 
 def test_a_loser_who_cannot_pay_only_loses_what_they_have(client):
     h, g, rid = started(client, bet=300)
-    A.session.query(A.Player).filter_by(id=g).first().coins = 120
-    A.session.commit()
+    with db() as s:
+        s.query(A.Player).filter_by(id=g).first().coins = 120
     forfeit(client, rid, g)
     assert (coins(client, h), coins(client, g)) == (620, 0)
 

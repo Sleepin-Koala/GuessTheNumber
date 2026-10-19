@@ -23,7 +23,7 @@ with sync_playwright() as p:
     pg.get_by_role("button", name="Indices").click(); pg.wait_for_timeout(400)
     pg.get_by_role("button", name="Acheter").nth(1).click(); pg.wait_for_timeout(1000)    # Premier (120)
     rec("Shop: purchase shows an owned badge", pg.get_by_label("1 en stock").count() == 1)
-    rec("Shop: inventory endpoint agrees", pg.evaluate("fetch('%s/shop/inventory/'+localStorage.getItem('id')).then(r=>r.json())" % API)["items"].get("5") == 1)
+    rec("Shop: inventory endpoint agrees", pg.evaluate("fetch('%s/shop/inventory/'+localStorage.getItem('id'),{headers:{Authorization:'Bearer '+localStorage.getItem('token')}}).then(r=>r.json())" % API)["items"].get("5") == 1)
 
     # 2. donne 2 de chaque objet pour la suite (le reste de la boutique est deja teste)
     for i in range(1, 9):

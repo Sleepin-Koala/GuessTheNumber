@@ -262,3 +262,29 @@ Réglages (variables d'environnement du serveur, en secondes) :
 - **Déconnexion** : l'adversaire voit une bannière avec compte à rebours ; si le joueur ne revient pas à temps, il perd par forfait. Si **les deux** sont partis, la salle est annulée et aucune pièce ne bouge.
 - Le résultat manqué pendant une absence est affiché au retour (une seule fois). Motif de fin : champ `end_reason` (`solved`, `forfeit`, `disconnect`, `timeout`, `abandoned`, `expired`, `cancelled`).
 - Tests : `pytest backend/tests` (45) ; e2e `web/e2e/abandon.py` (serveur lancé avec des délais courts, voir l'en-tête du script).
+
+---
+
+## Sécurité
+
+**Identité.** Chaque compte a un identifiant public (`id`, visible par les autres joueurs) et un **jeton secret** renvoyé une seule fois par `POST /user/new_player`. Le serveur ne stocke que son empreinte SHA-256. Le jeton voyage dans `Authorization: Bearer …` (HTTP) ou dans le sous-protocole WebSocket (`Sec-WebSocket-Protocol: gtn.v1, <jeton>`), **jamais dans l'URL**.
+
+- **Refus par défaut** : toute route HTTP exige un jeton valide, sauf `/health`, `/user/new_player` et `/user/claim` (liste `PUBLIC` dans `backend/routes/auth.py`). Une route ajoutée plus tard est donc protégée d'office ; un test balaie tout le schéma OpenAPI pour le vérifier.
+- **On n'agit qu'en son nom** : l'identifiant fourni dans une requête doit être celui du propriétaire du jeton (sinon 403). Lire le compte d'un autre est aussi refusé.
+- **Sockets** : jeton obligatoire, appartenance à la salle vérifiée, identité prise du jeton (pas de l'URL), origine contrôlée, 30 connexions max par adresse.
+- **Comptes existants** (créés avant les jetons) : `POST /user/claim` donne un jeton, **une seule fois** ; le client le fait automatiquement. Tant qu'un ancien compte n'a pas été réclamé, quiconque connaît son id peut le faire : fenêtre de migration à fermer en supprimant cette route une fois les comptes migrés.
+- **Récupération** : Paramètres → « Copier mon code de récupération » (c'est le jeton) puis « Restaurer un compte » sur un autre appareil. Sans ce code, un compte dont le jeton est perdu est perdu. Si le serveur ne reconnaît plus un jeton, l'appli le dit (elle ne crée jamais un nouveau compte en silence).
+
+**Limitation de débit** (en mémoire, un seul processus) : création de comptes 10/h par adresse, réclamations 10/10 min, devinettes 120/min et par joueur, création de salles 15/min, filet général 600/min par adresse. Réponse `429` avec `Retry-After`. Taille de requête limitée à 16 Ko ; nombres, identifiants et textes bornés (jamais de 500 sur une valeur absurde).
+
+**Navigateur** : CORS limité aux origines autorisées (sans cookies ni `credentials`), en-têtes `nosniff`, `X-Frame-Options: DENY`, `no-referrer`, `no-store` sur l'API ; **Content-Security-Policy** posée dans le build de production (scripts `self` uniquement, `connect-src` limité à l'API configurée). `frame-ancestors` doit être ajouté par le serveur qui héberge les fichiers du site (une balise `<meta>` ne le prend pas en compte). La documentation interactive (`/docs`) est désactivée par défaut.
+
+| Variable (serveur) | Défaut | Rôle |
+|---|---|---|
+| `GTN_ALLOWED_ORIGINS` | – | origines supplémentaires (séparées par des virgules) pour CORS et WebSocket ; par défaut `localhost`/`127.0.0.1` sur 5173 et 4173 |
+| `GTN_TRUST_PROXY` | – | `1` derrière un reverse proxy de confiance : l'adresse client est lue dans `X-Forwarded-For` |
+| `GTN_RATE_LIMIT` | actif | `off` désactive la limitation (tests) |
+| `GTN_MAX_WS_PER_IP` | 30 | connexions WebSocket simultanées par adresse |
+| `GTN_DOCS` | – | `1` active `/docs` |
+
+**Limites connues** : le jeton est dans `localStorage` (lisible par un script s'il y avait une faille XSS, d'où la CSP) ; limitation de débit et annuaire de sockets en mémoire (un seul processus) ; **il faut servir l'API et le site en HTTPS/WSS** en production (sinon le jeton circule en clair) ; pas de rotation ni d'expiration des jetons, pas de blocage après échecs répétés d'un même jeton (le jeton fait 256 bits, la devinette est hors de portée, mais pas la limitation de débit par adresse) ; la taille est contrôlée sur `Content-Length` seulement.

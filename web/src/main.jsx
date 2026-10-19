@@ -7,12 +7,19 @@ import '@fontsource/lilita-one'
 import '@fontsource-variable/nunito'
 import './index.css'
 import App from './App.jsx'
+import { ensureAccount } from './api/account'
 
-createRoot(document.getElementById('root')).render(
-  
-      <App />
- 
-)
+// le compte (id + jeton) doit exister avant que les pages ne lisent localStorage
+async function start() {
+  try {
+    await Promise.race([ensureAccount(), new Promise((resolve) => setTimeout(resolve, 4000))])
+  } catch (e) {
+    console.warn("Account check failed", e)      // serveur injoignable: l'appli s'affiche quand meme (mode hors ligne)
+  }
+  createRoot(document.getElementById('root')).render(<App />)
+}
+
+start()
 
 
 // PWA: service worker uniquement sur le build de production

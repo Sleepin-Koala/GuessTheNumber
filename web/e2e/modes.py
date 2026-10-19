@@ -8,7 +8,7 @@ def rec(name, ok, detail=""):
     R.append(ok); print("PASS" if ok else "FAIL", name, detail, flush=True)
 def db(sql, *a):
     c = sqlite3.connect(DB); r = c.execute(sql, a).fetchall(); c.commit(); c.close(); return r
-def coins(pg): return pg.evaluate("fetch('%s/user/'+localStorage.getItem('id')).then(r=>r.json())" % API)["coins"]
+def coins(pg): return pg.evaluate("fetch('%s/user/'+localStorage.getItem('id'),{headers:{Authorization:'Bearer '+localStorage.getItem('token')}}).then(r=>r.json())" % API)["coins"]
 def text(pg): return pg.locator("body").inner_text()
 def wait_text(pg, s, timeout=9000):
     try: pg.get_by_text(s, exact=False).first.wait_for(timeout=timeout); return True

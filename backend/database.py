@@ -14,6 +14,7 @@ class Player(Base):
     xp = Column(Integer , default=0)
     coins = Column(Integer , default=500)
     gems = Column(Integer , default=10)
+    token_hash = Column(String , nullable=True, index=True)    # sha256 du jeton secret du joueur (le jeton lui-meme n'est jamais stocke)
 
     # Relationships
     #sent_friends = relationship("Friend", foreign_keys="Friend.sender_id", backref="sender")
@@ -143,6 +144,7 @@ def make_db():
 # colonnes ajoutees apres coup: (table, colonne, type SQL)
 _NEW_COLUMNS = [
     ("sessions", "max_range", "INTEGER"),
+    ("player", "token_hash", "VARCHAR"),
     ("duel", "updated_at", "FLOAT"),
     ("duel", "end_reason", "VARCHAR"),
 ]

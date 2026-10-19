@@ -11,57 +11,6 @@ import useGameSound from "../../hooks/SoundHooks"
 import useInventory from "../../hooks/useInventory"
 
 
-export function shop() {
-    const [player, setPlayer] = useState({ name: null, id: null, coins: null, gems: null, xp: null, level: null })
-
-    useEffect(() => {
-
-        let player_id = localStorage.getItem("id")
-
-        async function new_player() {
-            const playerid = await api.get("/user/new_player")
-            localStorage.setItem("id", playerid.id)
-            setPlayer(playerid)
-        }
-
-        async function get_player() {
-            try {
-                const player_data = await api.get(`/user/${player_id}`)
-                setPlayer(player_data)
-            }
-            catch (e) {
-                new_player()
-            }
-        }
-
-        get_player();
-
-    }, [])
-
-    return (
-        <>
-            <BG />
-
-            <div className="h-dvh w-full grid-cols-3">
-                <Props coins={player.coins} gems={player.gems} xp={player.xp} name={player.name} mode={"shop"} />
-
-                <div className="flex-1 mt-6 grid grid-cols-4 z-1 p-1 gap-10">
-
-                    {power_ups.map((powerUp, index) => (
-                        <div className="flex justify-center items-center" key={index}>
-
-
-
-                        </div>
-                    ))}
-                </div>
-
-            </div>
-
-        </>
-    )
-}
-
 export default function Shop() {
     const [player, setPlayer] = useState({ name: null, id: null, coins: 0, gems: 0, xp: 0, level: 0 });
     const [activeCategory, setActiveCategory] = useState("hint");

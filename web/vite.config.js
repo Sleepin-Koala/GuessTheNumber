@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -25,7 +25,34 @@ function swPrecache() {
   }
 }
 
+// Politique de securite du contenu (production uniquement: le serveur de dev a besoin de scripts inline).
+// connect-src n'autorise que l'API configuree (HTTP + WebSocket). frame-ancestors / X-Frame-Options sont a poser
+// dans les en-tetes du serveur qui heberge ces fichiers (une balise <meta> ne les prend pas en compte).
+function csp(apiOrigin) {
+  const ws = apiOrigin.replace(/^http/, 'ws')
+  const policy = [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "media-src 'self' data: blob:",
+    "font-src 'self' data:",
+    `connect-src 'self' ${apiOrigin} ${ws}`,
+    "worker-src 'self'",
+    "manifest-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; ')
+  return {
+    name: 'csp',
+    apply: 'build',
+    transformIndexHtml: (html) => html.replace('<head>', `<head>\n    <meta http-equiv="Content-Security-Policy" content="${policy}" />\n    <meta name="referrer" content="no-referrer" />`),
+  }
+}
+
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react() , tailwindcss(), swPrecache()],
+export default defineConfig(({ mode }) => {
+  const api = loadEnv(mode, process.cwd(), '').VITE_API_URL || 'http://127.0.0.1:8000'
+  return { plugins: [react() , tailwindcss(), swPrecache(), csp(api)] }
 })

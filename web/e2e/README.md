@@ -14,8 +14,11 @@ GTN_DB=/chemin/vers/backend/main.db python modes.py ../screenshots/modes        
 DUEL_DISCONNECT_GRACE=4 DUEL_TURN_TIMEOUT=12 DUEL_WAIT_TIMEOUT=8 DUEL_SWEEP_INTERVAL=0.5   # (au lancement d'uvicorn)
 python abandon.py ../screenshots/abandon                                   # abandon, deconnexion, inactivite, salle oubliee (17 verifications)
 
-# API (45 tests, base temporaire, aucun serveur a lancer):
-pip install pytest httpx && pytest backend/tests
+GTN_DB=/chemin/vers/backend/main.db python security.py ../screenshots/security  # jetons, migration, recuperation, CSP, debit (21 verifications)
+#   -> lancer le backend SANS GTN_RATE_LIMIT=off pour celui-la, avec GTN_RATE_LIMIT=off pour tous les autres
+
+# API (77 tests, base temporaire, aucun serveur a lancer):
+pip install -r backend/requirements-dev.txt && pytest backend/tests
 ```
 
 ## Scenes 3D

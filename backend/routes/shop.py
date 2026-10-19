@@ -1,6 +1,7 @@
 from pathlib import Path
 from fastapi import APIRouter , HTTPException
 from all import *
+from routes.auth import acting
 import json
 
 router = APIRouter(prefix="/shop")
@@ -32,6 +33,7 @@ def _holding(player_id , item_id):
 
 @router.post("/buy")
 def buy(data: BuyData):
+    acting(data.playerId)
     player = session.query(Player).filter_by(id = data.playerId).first()
     item = session.get(Items , data.itemId)
 
@@ -56,6 +58,7 @@ def buy(data: BuyData):
 
 @router.post("/count")
 def getCount(data: BuyData):
+    acting(data.playerId)
     player = session.query(Player).filter_by(id = data.playerId).first()
     item = session.get(Items , data.itemId)
 
@@ -69,6 +72,7 @@ def getCount(data: BuyData):
 
 @router.get("/inventory/{player_id}")
 def getInventory(player_id: str):
+    acting(player_id)
     player = session.query(Player).filter_by(id = player_id).first()
     if not player:
         raise HTTPException(404 , "not found")

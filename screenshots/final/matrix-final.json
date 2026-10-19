@@ -132,9 +132,7 @@
   "W": 360,
   "H": 640,
   "scrollH": 640,
-  "off": [
-   "DIV.absolute -bottom-8 -left-8 text-7xl opacity-20 poi -35..51"
-  ],
+  "off": [],
   "small": [
    "BUTTON:w-12 h-6 rounded-f 48x24"
   ],
@@ -278,9 +276,7 @@
   "W": 390,
   "H": 844,
   "scrollH": 844,
-  "off": [
-   "DIV.absolute -bottom-8 -left-8 text-7xl opacity-20 poi -35..51"
-  ],
+  "off": [],
   "small": [
    "BUTTON:w-12 h-6 rounded-f 48x24"
   ],
@@ -424,9 +420,7 @@
   "W": 430,
   "H": 932,
   "scrollH": 932,
-  "off": [
-   "DIV.absolute -bottom-8 -left-8 text-7xl opacity-20 poi -35..51"
-  ],
+  "off": [],
   "small": [
    "BUTTON:w-12 h-6 rounded-f 48x24"
   ],

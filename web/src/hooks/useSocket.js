@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react"
 import { wsUrl } from "../api/index"
+import { getToken } from "../api/account"
 
 const HEARTBEAT_MS = 20000      // le serveur ferme une socket silencieuse au bout de 60 s
-const NO_RETRY = [4403, 4404]   // pas membre / salle inconnue: reessayer ne servirait a rien
+const NO_RETRY = [4401, 4403, 4404]   // pas authentifie / pas membre / salle inconnue: reessayer ne servirait a rien
 
 /**
  * WebSocket qui se reconnecte toute seule (attente 0,5 s doublee jusqu'a 8 s) et envoie un ping regulier.
@@ -15,11 +16,12 @@ export default function useSocket(path, onMessage) {
     handler.current = onMessage
 
     useEffect(() => {
-        if (!path) { setConnected(false); return }
+        const token = getToken()
+        if (!path || !token) { setConnected(false); return }
         let ws, timer, beat, retry = 0, alive = true
 
         const open = () => {
-            ws = new WebSocket(wsUrl(path))
+            ws = new WebSocket(wsUrl(path), ["gtn.v1", token])      // le jeton voyage dans le sous-protocole, pas dans l'URL
             ws.onopen = () => {
                 retry = 0
                 setConnected(true)
@@ -34,6 +36,7 @@ export default function useSocket(path, onMessage) {
             ws.onclose = (e) => {
                 clearInterval(beat)
                 setConnected(false)
+                if (e.code === 4401) window.dispatchEvent(new Event("gtn:auth-lost"))
                 if (!alive || NO_RETRY.includes(e.code)) return
                 timer = setTimeout(open, Math.min(8000, 500 * 2 ** retry++))
             }

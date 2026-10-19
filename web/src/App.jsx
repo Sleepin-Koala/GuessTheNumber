@@ -10,6 +10,7 @@ const Endless = lazy(() => import("./mode/Endless/main"))
 const Shop = lazy(() => import("./mode/boutique/main.jsx"))
 const Stat = lazy(() => import("./mode/stats/main.jsx"))
 import NetworkStatus from "./components/NetworkStatus"
+import SessionBanner from "./components/SessionBanner"
 
 export default function App(){
   
@@ -17,6 +18,7 @@ export default function App(){
       <MotionConfig reducedMotion="user">
       <BrowserRouter>
         <NetworkStatus />
+        <SessionBanner />
         <Suspense fallback={null}>
         <Routes>
           <Route path="/" element = {<Home/>}/>

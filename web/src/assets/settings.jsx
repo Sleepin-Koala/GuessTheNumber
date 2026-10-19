@@ -5,6 +5,7 @@ import { FaCog, FaUser, FaVolumeUp, FaVolumeMute, FaTimes, FaSave } from "react-
 import { BiSolidJoystick } from "react-icons/bi"
 import { Toggle } from "../components/assets";
 import useGameSound from "../hooks/SoundHooks";
+import AccountRecovery from "../components/AccountRecovery";
 
 export default function Settings({ settingsSetter, player, playerSetter }) {
     const [soundEnabled, setSoundEnabled] = useState(() => {
@@ -52,7 +53,7 @@ export default function Settings({ settingsSetter, player, playerSetter }) {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.8, y: 30 }}
                     transition={{ type: "spring", damping: 20 }}
-                    className="relative w-full max-w-md rounded-3xl bg-linear-to-br from-indigo-800 to-purple-900 p-6 shadow-hard border-4 border-yellow-400"
+                    className="relative w-full max-w-md max-h-[92dvh] overflow-y-auto rounded-3xl bg-linear-to-br from-indigo-800 to-purple-900 p-6 shadow-hard border-4 border-yellow-400"
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* En-tête avec icône et fermeture */}
@@ -89,6 +90,8 @@ export default function Settings({ settingsSetter, player, playerSetter }) {
                     </div> </Toggle>
 
 
+
+                    <AccountRecovery />
 
                     {/* Bouton sauvegarder */}
                     <button

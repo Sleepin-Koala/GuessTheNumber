@@ -9,6 +9,8 @@ import logging
 from fastapi import WebSocket , WebSocketDisconnect
 from fastapi.concurrency import run_in_threadpool
 from routes.utils import get_player_or_404
+from routes.auth import acting , ws_player_id , WS_SUBPROTOCOL
+from security import origin_allowed , client_ip , MAX_WS_PER_IP
 from routes.realtime import hub
 
 
@@ -191,6 +193,7 @@ def joinRoom(JoinData : JoinData):
 
 @router.post("/rooms/{roomId}/hide")
 def hideNumber(HideNumberData : HidenGuessNumberData, roomId: str):
+    acting(HideNumberData.player_id)
     room = get_room_or_404(roomId)
     if room.status not in ("round1_hide", "round2_hide"):
         raise HTTPException(status_code=409, detail="Ce n'est pas le moment de cacher un nombre")
@@ -214,7 +217,7 @@ def hideNumber(HideNumberData : HidenGuessNumberData, roomId: str):
 
 @router.post("/rooms/{roomId}/guess")
 def GuessNumber(GuessNumberData : HidenGuessNumberData, roomId: str):
-
+    acting(GuessNumberData.player_id)
     room = get_room_or_404(roomId)
 
     if room.status not in ("round1_guess", "round2_guess"):
@@ -259,6 +262,7 @@ def GuessNumber(GuessNumberData : HidenGuessNumberData, roomId: str):
 @router.post("/rooms/{roomId}/leave")
 def leaveRoom(LeaveData : LeaveData, roomId: str):
     """Annule une salle encore en attente. Pour une partie en cours: voir /forfeit."""
+    acting(LeaveData.player_id)
     room = get_room_or_404(roomId)
     if LeaveData.player_id not in (room.host_id , room.guest_id):
         raise HTTPException(status_code=403, detail="Tu ne fais pas partie de cette salle")
@@ -275,6 +279,7 @@ def leaveRoom(LeaveData : LeaveData, roomId: str):
 @router.post("/rooms/{roomId}/forfeit")
 def forfeitRoom(LeaveData : LeaveData, roomId: str):
     """Abandon volontaire d'une partie en cours: l'adversaire gagne et recoit la mise."""
+    acting(LeaveData.player_id)
     room = get_room_or_404(roomId)
     if LeaveData.player_id not in (room.host_id , room.guest_id):
         raise HTTPException(status_code=403, detail="Tu ne fais pas partie de cette salle")
@@ -384,6 +389,24 @@ def _lobby_snapshot():
             raise
 
 
+_detached: set = set()
+
+
+def _detach(coro):
+    """Lance `coro` hors de la tache de la socket. Quand une connexion est coupee par annulation de tache (arret du
+    serveur, fermeture brutale...), TOUS les `await` d'un `finally` sont annules: le nettoyage doit donc tourner
+    dans une tache independante, sinon le delai de grace ne demarrerait jamais."""
+    task = asyncio.get_running_loop().create_task(coro)
+    _detached.add(task)                      # reference forte: sinon la tache peut etre ramassee avant la fin
+    task.add_done_callback(_detached.discard)
+
+
+async def _after_disconnect(room_id: str , ws: WebSocket , player_id: str):
+    await hub.leave_room(room_id , ws)                             # annonce la presence a l'autre joueur
+    if not hub.is_online(room_id , player_id):                     # plus aucune connexion de ce joueur
+        await run_in_threadpool(_start_grace , room_id , player_id)
+
+
 async def _pump(ws: WebSocket):
     """Boucle commune: repond aux ping, ignore le reste, ferme apres IDLE_TIMEOUT de silence."""
     while True:
@@ -396,13 +419,33 @@ async def _pump(ws: WebSocket):
             await ws.send_json({"type": "pong"})
 
 
+async def _admit(ws: WebSocket):
+    """Controles communs avant d'accepter une socket. Retourne l'id du joueur, ou None (la socket est alors fermee)."""
+    if not origin_allowed(ws.headers.get("origin")):
+        await ws.close(code = 4403)
+        return None
+    if hub.connections_from(client_ip(ws.scope)) >= MAX_WS_PER_IP:
+        await ws.close(code = 4429)
+        return None
+    player_id = await run_in_threadpool(ws_player_id , ws)
+    if player_id is None:
+        await ws.close(code = 4401)
+        return None
+    return player_id
+
+
 @router.websocket("/ws/{room_id}")
-async def room_socket(ws: WebSocket , room_id: str , player_id: str):
+async def room_socket(ws: WebSocket , room_id: str):
+    player_id = await _admit(ws)
+    if player_id is None:
+        return
     code , snapshot = await run_in_threadpool(_room_snapshot , room_id , player_id)
     if code:
         await ws.close(code = code)
         return
-    await ws.accept()
+    await ws.accept(subprotocol = WS_SUBPROTOCOL)
+    ip = client_ip(ws.scope)
+    hub.track(ws , ip)
     await ws.send_json(snapshot)
     for other , deadline in hub.graces_for(room_id):               # qui est deja en train de decrocher
         if other != player_id:
@@ -415,14 +458,16 @@ async def room_socket(ws: WebSocket , room_id: str , player_id: str):
     except (WebSocketDisconnect , RuntimeError):
         pass
     finally:
-        await hub.leave_room(room_id , ws)
-        if not hub.is_online(room_id , player_id):                 # plus aucune connexion de ce joueur
-            await run_in_threadpool(_start_grace , room_id , player_id)
+        hub.drop(ws)                                               # synchrone: la presence est exacte tout de suite
+        _detach(_after_disconnect(room_id , ws , player_id))
 
 
 @router.websocket("/ws-lobby")
 async def lobby_socket(ws: WebSocket):
-    await ws.accept()
+    if await _admit(ws) is None:
+        return
+    await ws.accept(subprotocol = WS_SUBPROTOCOL)
+    hub.track(ws , client_ip(ws.scope))
     await ws.send_json(await run_in_threadpool(_lobby_snapshot))
     hub.lobby.add(ws)
     try:

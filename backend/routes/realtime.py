@@ -19,6 +19,7 @@ class Hub:
         self.rooms: dict[str, dict[WebSocket, str]] = defaultdict(dict)   # room_id -> {socket: player_id}
         self.lobby: set[WebSocket] = set()
         self.grace: dict[tuple[str, str], float] = {}                     # (room_id, player_id) -> echeance
+        self.ips: dict[WebSocket, str] = {}                               # socket -> adresse (limite de connexions par IP)
         # lu par la boucle asyncio ET par les threads des routes / du balayeur
         self._lock = threading.Lock()
 
@@ -43,6 +44,15 @@ class Hub:
             sockets = list(self.lobby)
         if sockets:
             self._schedule(self._send(sockets, payload))
+
+    # ---- connexions par adresse ----
+    def track(self, ws: WebSocket, ip: str) -> None:
+        with self._lock:
+            self.ips[ws] = ip
+
+    def connections_from(self, ip: str) -> int:
+        with self._lock:
+            return sum(1 for v in self.ips.values() if v == ip)
 
     # ---- presence ----
     def online(self, room_id: str) -> list[str]:
@@ -79,6 +89,7 @@ class Hub:
 
     def drop(self, ws: WebSocket) -> None:
         with self._lock:
+            self.ips.pop(ws, None)
             self.lobby.discard(ws)
             for room_id in list(self.rooms):
                 self.rooms[room_id].pop(ws, None)

@@ -1,8 +1,11 @@
 #modules internes
 import asyncio
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from routes.realtime import hub
+from routes.auth import authenticate
+from security import SecurityMiddleware, ALLOWED_ORIGINS
 from routes.game_mode.duel_mode import sweeper
 from all import db_guard
 from fastapi.middleware.cors import CORSMiddleware
@@ -28,14 +31,17 @@ async def lifespan(_app):
     hub.bind(None)
 
 
-app = FastAPI(dependencies=[Depends(db_guard)], lifespan=lifespan)
-app.add_middleware(CORSMiddleware , 
-                   allow_origins = ["*"],
-                   allow_credentials = True,
-                   allow_methods = ["*"],
-                   allow_headers = ["*"]
-                   
-                   )  
+# ordre: db_guard (verrou) puis authenticate (jeton): toute route est protegee par defaut
+_DOCS = os.environ.get("GTN_DOCS") == "1"      # la documentation interactive decrit toute l'API: desactivee par defaut
+app = FastAPI(dependencies=[Depends(db_guard), Depends(authenticate)], lifespan=lifespan,
+              docs_url="/docs" if _DOCS else None, redoc_url=None, openapi_url="/openapi.json" if _DOCS else None)
+app.add_middleware(SecurityMiddleware)                      # taille, debit, en-tetes (interieur)
+app.add_middleware(CORSMiddleware,                          # exterieur: ajoute les en-tetes CORS meme aux erreurs 401/429
+                   allow_origins = ALLOWED_ORIGINS,
+                   allow_credentials = False,               # le jeton voyage dans Authorization, pas dans un cookie
+                   allow_methods = ["GET", "POST"],
+                   allow_headers = ["Authorization", "Content-Type"],
+                   expose_headers = ["Retry-After"])      # le navigateur doit pouvoir lire le delai d'attente d'un 429
 
 
 app.include_router(user_router)
