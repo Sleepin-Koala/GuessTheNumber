@@ -11,7 +11,10 @@ GTN_DB=/chemin/vers/backend/main.db python powerups.py ../screenshots/powerups  
 
 GTN_DB=/chemin/vers/backend/main.db python modes.py ../screenshots/modes        # Duel (2 navigateurs) + Mode Infini (30 verifications)
 
-# API (30 tests, base temporaire, aucun serveur a lancer):
+DUEL_DISCONNECT_GRACE=4 DUEL_TURN_TIMEOUT=12 DUEL_WAIT_TIMEOUT=8 DUEL_SWEEP_INTERVAL=0.5   # (au lancement d'uvicorn)
+python abandon.py ../screenshots/abandon                                   # abandon, deconnexion, inactivite, salle oubliee (17 verifications)
+
+# API (45 tests, base temporaire, aucun serveur a lancer):
 pip install pytest httpx && pytest backend/tests
 ```
 

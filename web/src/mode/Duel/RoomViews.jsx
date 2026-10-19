@@ -4,6 +4,7 @@ import api from "../../api/index"
 import GameplayPanel from "../../components/GameplayPanel"
 import { CartoonButton } from "../../components/assets"
 import useCountUp from "../../hooks/useCountUp"
+import useCountdown, { mmss } from "../../hooks/useCountdown"
 
 // Carte centrale commune aux ecrans d'attente
 function Card({ children }) {
@@ -28,6 +29,47 @@ export function RoomHeader({ room, opponent, round, live, opponentOnline }) {
                 <span className={`w-2.5 h-2.5 rounded-full ${live ? "bg-emerald-400" : "bg-amber-400 animate-pulse"}`} aria-hidden="true" />
                 {live ? "En direct" : "Reconnexion…"}
             </span>
+        </div>
+    )
+}
+
+// Qui doit jouer, et combien de temps il lui reste avant de perdre par forfait
+export function TurnTimer({ room, me, opponent }) {
+    const left = useCountdown(room.status === "waiting" ? null : room.turn_deadline, room.server_time)
+    if (left === null) return null
+    const actor = room.status.endsWith("_hide") ? room.current_hider_id : room.current_guesser_id
+    const mine = actor === me
+    return (
+        <span className={`px-3 py-1 rounded-full font-bold ${left <= 10 ? "bg-red-500 text-white animate-pulse" : left <= 20 ? "bg-amber-300 text-black" : "bg-black/40 text-white"}`} role="timer" aria-label={`${left} secondes restantes`}>
+            {mine ? "Ton tour" : `Tour de ${opponent ?? "l'adversaire"}`} : {mmss(left)}
+        </span>
+    )
+}
+
+// L'adversaire a perdu la connexion: il a quelques secondes pour revenir, sinon il perd
+export function OpponentGone({ grace, opponent }) {
+    const left = useCountdown(grace?.deadline ?? null, grace?.server_time)
+    if (!grace) return null
+    return (
+        <p role="alert" className="mx-auto mt-2 max-w-xl rounded-2xl bg-amber-300 text-black font-bold px-4 py-2 text-center">
+            {opponent ?? "Ton adversaire"} s'est déconnecté. Victoire par forfait dans {left ?? 0} s s'il ne revient pas.
+        </p>
+    )
+}
+
+// Abandon volontaire, avec confirmation (la mise est perdue)
+export function ForfeitButton({ onForfeit, bet }) {
+    const [asking, setAsking] = useState(false)
+    const [busy, setBusy] = useState(false)
+    if (!asking) {
+        return <button type="button" onClick={() => setAsking(true)} className="min-h-11 px-5 rounded-full bg-white/10 text-white/80 font-bold hover:bg-white/20">Abandonner</button>
+    }
+    return (
+        <div className="flex flex-wrap items-center justify-center gap-2 text-white font-bold" role="alertdialog" aria-label="Confirmer l'abandon">
+            <span>Abandonner et perdre {bet} pièces ?</span>
+            <button type="button" disabled={busy} onClick={async () => { setBusy(true); try { await onForfeit() } finally { setBusy(false); setAsking(false) } }}
+                className="min-h-11 px-4 rounded-full bg-red-500 text-white">Oui, abandonner</button>
+            <button type="button" onClick={() => setAsking(false)} className="min-h-11 px-4 rounded-full bg-white/20">Non</button>
         </div>
     )
 }
@@ -149,6 +191,16 @@ export function Watch({ room, opponent, attempts, mySecret }) {
     )
 }
 
+function reasonText(reason, won, opponent) {
+    const them = opponent ?? "Ton adversaire"
+    switch (reason) {
+        case "forfeit": return won ? `${them} a abandonné.` : "Tu as abandonné."
+        case "disconnect": return won ? `${them} s'est déconnecté trop longtemps.` : "Tu as été déconnecté trop longtemps."
+        case "timeout": return won ? `${them} n'a pas joué à temps.` : "Tu n'as pas joué à temps."
+        default: return won ? `Tu as battu ${them}.` : `${them} a gagné.`
+    }
+}
+
 export function Result({ room, me, opponent, coinsBefore, coinsNow, onDone }) {
     const won = room.winner_id === me
     const isHost = room.host_id === me
@@ -163,13 +215,15 @@ export function Result({ room, me, opponent, coinsBefore, coinsNow, onDone }) {
                 <div className={`text-6xl ${won ? "text-amber-300" : "text-slate-300"}`}>{won ? <FaTrophy /> : <FaHeartBroken />}</div>
                 <h2 id="duel-result" className="text-4xl text-white">{won ? "Victoire !" : "Défaite"}</h2>
                 <p className="text-white/80 font-bold">
-                    {won ? `Tu as battu ${opponent ?? "ton adversaire"}` : `${opponent ?? "Ton adversaire"} a gagné`}.
-                    {mine === theirs && " Égalité d'essais : l'hôte l'emporte."}
+                    {reasonText(room.end_reason, won, opponent)}
+                    {(room.end_reason ?? "solved") === "solved" && mine === theirs && " Égalité d'essais : l'hôte l'emporte."}
                 </p>
-                <div className="grid grid-cols-2 gap-3 w-full text-white">
-                    <div className="rounded-2xl bg-black/30 p-2"><div className="text-sm text-white/70">Tes essais</div><div className="font-game text-3xl">{mine}</div></div>
-                    <div className="rounded-2xl bg-black/30 p-2"><div className="text-sm text-white/70">Ses essais</div><div className="font-game text-3xl">{theirs}</div></div>
-                </div>
+                {(room.end_reason ?? "solved") === "solved" && (
+                    <div className="grid grid-cols-2 gap-3 w-full text-white">
+                        <div className="rounded-2xl bg-black/30 p-2"><div className="text-sm text-white/70">Tes essais</div><div className="font-game text-3xl">{mine}</div></div>
+                        <div className="rounded-2xl bg-black/30 p-2"><div className="text-sm text-white/70">Ses essais</div><div className="font-game text-3xl">{theirs}</div></div>
+                    </div>
+                )}
                 {delta !== null && (
                     <div className={`flex items-center gap-2 font-game text-3xl ${shown >= 0 ? "text-yellow-300" : "text-red-300"}`}><FaCoins aria-hidden="true" />{shown > 0 ? "+" : ""}{shown}</div>
                 )}

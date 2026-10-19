@@ -4,6 +4,8 @@ from fastapi import APIRouter , HTTPException
 from all import *
 import engine
 import asyncio
+import os
+import logging
 from fastapi import WebSocket , WebSocketDisconnect
 from fastapi.concurrency import run_in_threadpool
 from routes.utils import get_player_or_404
@@ -11,6 +13,57 @@ from routes.realtime import hub
 
 
 router = APIRouter(prefix="/duel")
+log = logging.getLogger("duel")
+
+# Delais (secondes). Surchargeables par variables d'environnement.
+TURN_TIMEOUT = float(os.environ.get("DUEL_TURN_TIMEOUT", 90))          # inactivite max du joueur dont c'est le tour
+WAIT_TIMEOUT = float(os.environ.get("DUEL_WAIT_TIMEOUT", 600))         # salle en attente d'un adversaire
+DISCONNECT_GRACE = float(os.environ.get("DUEL_DISCONNECT_GRACE", 30))  # temps pour revenir apres une deconnexion
+SWEEP_INTERVAL = float(os.environ.get("DUEL_SWEEP_INTERVAL", 1))       # frequence du balayeur de delais
+
+ACTIVE = ("waiting" , "round1_hide" , "round1_guess" , "round2_hide" , "round2_guess")
+IN_PROGRESS = ACTIVE[1:]
+
+
+def touch(room: Duel , now: float = None):
+    room.updated_at = now if now is not None else time.time()
+
+
+def turn_actor(room: Duel):
+    """Le joueur dont on attend une action (cacher ou deviner), ou None."""
+    if room.status.endswith("_hide"):
+        return room.hider_id
+    if room.status.endswith("_guess"):
+        return room.guesser_id
+    return None
+
+
+def turn_deadline(room: Duel):
+    if room.status not in ACTIVE or room.updated_at is None:
+        return None
+    return room.updated_at + (WAIT_TIMEOUT if room.status == "waiting" else TURN_TIMEOUT)
+
+
+def settle(room: Duel , winner_id: str , loser_id: str , reason: str):
+    """Termine la partie: designe le gagnant et deplace la mise (bornee par le solde du perdant)."""
+    room.winner_id = winner_id
+    room.status = "finished"
+    room.end_reason = reason
+    winner = session.query(Player).filter_by(id = winner_id).first()
+    loser = session.query(Player).filter_by(id = loser_id).first()
+    amount = min(room.bet_amount or 0 , loser.coins)
+    loser.coins -= amount
+    winner.coins += amount
+
+
+def forfeit_player(room: Duel , loser_id: str , reason: str):
+    winner_id = room.guest_id if loser_id == room.host_id else room.host_id
+    settle(room , winner_id , loser_id , reason)
+
+
+def cancel(room: Duel , reason: str):
+    room.status = "cancelled"
+    room.end_reason = reason
 
 def _name(player_id):
     player = session.query(Player).filter_by(id = player_id).first() if player_id else None
@@ -45,7 +98,10 @@ def create_room(room: Duel):
         last_feedback = room.last_feedback,
         round1_attempts_used = room.round1_attempts_used,
         round2_attempts_used = room.round2_attempts_used,
-        winner_id = room.winner_id
+        winner_id = room.winner_id,
+        end_reason = room.end_reason,
+        turn_deadline = turn_deadline(room),
+        server_time = time.time(),
     )
 
 
@@ -75,7 +131,7 @@ def hostServer(HostRoomData: HostRoomData):
     # une seule salle en attente par joueur: l'ancienne est annulee
     replaced = session.query(Duel).filter_by(host_id = host.id , status = "waiting").all()
     for old in replaced:
-        old.status = "cancelled"
+        cancel(old , "replaced")
 
     new_game = Duel(
         id = str(uuid4()), 
@@ -93,7 +149,8 @@ def hostServer(HostRoomData: HostRoomData):
         last_feedback = None,
         round1_attempts_used = 0,
         round2_attempts_used = 0,
-        winner_id = None
+        winner_id = None,
+        updated_at = time.time()
     )
 
 
@@ -124,6 +181,7 @@ def joinRoom(JoinData : JoinData):
     room.status = "round1_hide"
     room.guest_id = guest.id
     room.guesser_id = guest.id
+    touch(room)
 
     session.commit()
     notify(room)
@@ -147,6 +205,7 @@ def hideNumber(HideNumberData : HidenGuessNumberData, roomId: str):
         room.guesser_number = HideNumberData.number
 
     room.status = "round1_guess" if room.status == "round1_hide" else "round2_guess"
+    touch(room)
 
     session.commit()
     notify(room)
@@ -173,6 +232,7 @@ def GuessNumber(GuessNumberData : HidenGuessNumberData, roomId: str):
     else:
         room.round2_attempts_used = (room.round2_attempts_used or 0) + 1
 
+    touch(room)
     room.last_distance = float(abs(his_number-GuessNumberData.number))
     room.last_feedback = engine.checkResult(his_number , GuessNumberData.number)
 
@@ -188,16 +248,7 @@ def GuessNumber(GuessNumberData : HidenGuessNumberData, roomId: str):
             else:
                 winner_id, loser_id = room.host_id, room.guest_id
 
-            room.winner_id = winner_id
-
-            winner = session.query(Player).filter_by(id = winner_id).first()
-            loser = session.query(Player).filter_by(id = loser_id).first()
-            # transfert a somme nulle, borne par le solde du perdant
-            amount = min(room.bet_amount or 0, loser.coins)
-            loser.coins -= amount
-            winner.coins += amount
-
-            room.status = "finished"
+            settle(room , winner_id , loser_id , "solved")
 
     session.commit()
     notify(room)
@@ -207,18 +258,100 @@ def GuessNumber(GuessNumberData : HidenGuessNumberData, roomId: str):
 
 @router.post("/rooms/{roomId}/leave")
 def leaveRoom(LeaveData : LeaveData, roomId: str):
-    """Annule une salle encore en attente. (L'abandon d'une partie en cours n'est pas gere ici.)"""
+    """Annule une salle encore en attente. Pour une partie en cours: voir /forfeit."""
     room = get_room_or_404(roomId)
     if LeaveData.player_id not in (room.host_id , room.guest_id):
         raise HTTPException(status_code=403, detail="Tu ne fais pas partie de cette salle")
     if room.status != "waiting":
         raise HTTPException(status_code=409, detail="La partie est deja commencee")
 
-    room.status = "cancelled"
+    cancel(room , "cancelled")
     session.commit()
     notify(room)
 
     return create_room(room)
+
+
+@router.post("/rooms/{roomId}/forfeit")
+def forfeitRoom(LeaveData : LeaveData, roomId: str):
+    """Abandon volontaire d'une partie en cours: l'adversaire gagne et recoit la mise."""
+    room = get_room_or_404(roomId)
+    if LeaveData.player_id not in (room.host_id , room.guest_id):
+        raise HTTPException(status_code=403, detail="Tu ne fais pas partie de cette salle")
+    if room.status not in IN_PROGRESS:
+        raise HTTPException(status_code=409, detail="Aucune partie en cours dans cette salle")
+
+    forfeit_player(room , LeaveData.player_id , "forfeit")
+    session.commit()
+    notify(room)
+
+    return create_room(room)
+
+
+# ---------------------------------------------------------------------------
+# Delais: inactivite, salles abandonnees, deconnexions
+# ---------------------------------------------------------------------------
+def sweep(now: float = None):
+    """Applique les delais echus (appele chaque seconde par `sweeper`; `now` permet de tester sans attendre)."""
+    now = time.time() if now is None else now
+    with db_lock:
+        try:
+            changed = []
+            for room in session.query(Duel).filter(Duel.status.in_(ACTIVE)).all():
+                if room.updated_at is None:                 # ligne creee avant l'ajout de la colonne
+                    touch(room , now)
+                    continue
+                if now < room.updated_at + (WAIT_TIMEOUT if room.status == "waiting" else TURN_TIMEOUT):
+                    continue
+                if room.status == "waiting":
+                    cancel(room , "expired")
+                else:
+                    forfeit_player(room , turn_actor(room) , "timeout")
+                changed.append(room)
+
+            for room_id , player_id , _deadline in hub.expired_graces(now):
+                hub.clear_grace(room_id , player_id)
+                room = session.query(Duel).filter_by(id = room_id).first()
+                if room is None or room.status not in ACTIVE or hub.is_online(room_id , player_id):
+                    continue
+                other = room.guest_id if player_id == room.host_id else room.host_id
+                if room.status == "waiting" or other is None or not hub.is_online(room_id , other):
+                    cancel(room , "abandoned")              # salle vide, ou les deux joueurs sont partis: personne ne gagne
+                else:
+                    forfeit_player(room , player_id , "disconnect")
+                changed.append(room)
+
+            session.commit()
+            for room in changed:
+                notify(room)
+        except BaseException:
+            session.rollback()
+            raise
+
+
+async def sweeper():
+    """Tache de fond lancee avec l'application."""
+    while True:
+        await asyncio.sleep(SWEEP_INTERVAL)
+        try:
+            await run_in_threadpool(sweep)
+        except Exception:
+            log.exception("sweep failed")
+
+
+def _start_grace(room_id: str , player_id: str):
+    """Un joueur vient de perdre sa connexion: il a DISCONNECT_GRACE secondes pour revenir."""
+    with db_lock:
+        try:
+            room = session.query(Duel).filter_by(id = room_id).first()
+            if room is None or room.status not in ACTIVE:
+                return
+            deadline = time.time() + DISCONNECT_GRACE
+            hub.set_grace(room_id , player_id , deadline)
+            hub.publish_room(room_id , {"type": "grace" , "player_id": player_id , "deadline": deadline , "server_time": time.time()})
+        except BaseException:
+            session.rollback()
+            raise
 
 
 # ---------------------------------------------------------------------------
@@ -271,13 +404,20 @@ async def room_socket(ws: WebSocket , room_id: str , player_id: str):
         return
     await ws.accept()
     await ws.send_json(snapshot)
+    for other , deadline in hub.graces_for(room_id):               # qui est deja en train de decrocher
+        if other != player_id:
+            await ws.send_json({"type": "grace" , "player_id": other , "deadline": deadline , "server_time": time.time()})
     await hub.join_room(room_id , ws , player_id)
+    if hub.clear_grace(room_id , player_id):                       # il est revenu a temps
+        hub.publish_room(room_id , {"type": "grace_cleared" , "player_id": player_id})
     try:
         await _pump(ws)
     except (WebSocketDisconnect , RuntimeError):
         pass
     finally:
         await hub.leave_room(room_id , ws)
+        if not hub.is_online(room_id , player_id):                 # plus aucune connexion de ce joueur
+            await run_in_threadpool(_start_grace , room_id , player_id)
 
 
 @router.websocket("/ws-lobby")

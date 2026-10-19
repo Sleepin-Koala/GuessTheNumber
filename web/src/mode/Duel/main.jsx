@@ -6,12 +6,16 @@ import Bar from "../../components/PlayerProps"
 import { CartoonButton } from "../../components/assets"
 import Lobby from "./Lobby"
 import useSocket from "../../hooks/useSocket"
-import { RoomHeader, Waiting, Hide, WaitHide, Guess, Watch, Result } from "./RoomViews"
+import { RoomHeader, Waiting, Hide, WaitHide, Guess, Watch, Result, TurnTimer, OpponentGone, ForfeitButton } from "./RoomViews"
 
 const STORE = "duel_room"
 const POLL_MS = 1500          // sondage rapide, seulement quand la socket est coupee
 const SAFETY_POLL_MS = 10000  // filet de securite quand tout passe par la socket
 const ACTIVE = (s) => s && s !== "finished" && s !== "cancelled"
+const CLOSED_NOTICE = {
+    abandoned: "La salle a été fermée : tous les joueurs avaient quitté.",
+    expired: "La salle a expiré faute d'adversaire.",
+}
 
 // Duel: deux joueurs, chacun cache un nombre puis cherche celui de l'autre; le moins d'essais gagne la mise.
 // L'etat de la salle vient du serveur (sondage toutes les 1,5 s): rien n'est decide cote client.
@@ -25,6 +29,8 @@ export default function Duel() {
     const [coinsBefore, setCoinsBefore] = useState(null)
     const [coinsNow, setCoinsNow] = useState(null)
     const [online, setOnline] = useState([])
+    const [graces, setGraces] = useState({})     // player_id -> { deadline, server_time }: joueurs en cours de deconnexion
+    const [notice, setNotice] = useState("")
     const hold = useRef(false)          // vrai pendant l'animation de victoire de la manche
     const pending = useRef(null)        // dernier etat recu pendant l'animation
 
@@ -50,7 +56,7 @@ export default function Duel() {
                 const saved = JSON.parse(localStorage.getItem(STORE) ?? "null")
                 if (p && saved?.room_id) {
                     const r = await api.post("/game/duel/status", { room_id: saved.room_id })
-                    if (ACTIVE(r.status) && (r.host_id === p.id || r.guest_id === p.id)) {
+                    if ((ACTIVE(r.status) || r.status === "finished") && (r.host_id === p.id || r.guest_id === p.id)) {
                         setRoom(r); setCoinsBefore(saved.coinsBefore ?? p.coins); setMySecret(saved.secret ?? null)
                     } else forget()
                 }
@@ -76,6 +82,8 @@ export default function Duel() {
     const { connected } = useSocket(roomId && me && ACTIVE(status) ? `/game/duel/ws/${roomId}?player_id=${me}` : null, (msg) => {
         if (msg.type === "room") applyRoom(msg.room)
         if (msg.type === "presence") setOnline(msg.online)
+        if (msg.type === "grace") setGraces((g) => ({ ...g, [msg.player_id]: { deadline: msg.deadline, server_time: msg.server_time } }))
+        if (msg.type === "grace_cleared") setGraces((g) => { const { [msg.player_id]: _gone, ...rest } = g; return rest })
     })
 
     // sondage HTTP: rapide si la socket est coupee, lent sinon (filet de securite)
@@ -95,11 +103,11 @@ export default function Duel() {
 
     // fin de partie / salle annulee
     useEffect(() => {
-        if (status === "finished") { forget(); loadPlayer().then((p) => setCoinsNow(p?.coins ?? null)).catch(() => {}) }
-        if (status === "cancelled") { forget(); setRoom(null) }
+        if (status === "finished") { setGraces({}); loadPlayer().then((p) => setCoinsNow(p?.coins ?? null)).catch(() => {}) }   // on garde la salle en memoire jusqu'au clic sur "Retour au lobby"
+        if (status === "cancelled") { forget(); setGraces({}); setNotice(CLOSED_NOTICE[room?.end_reason] ?? ""); setRoom(null) }
     }, [status, loadPlayer])
 
-    const enter = (r) => { setRoom(r); setCoinsBefore(player.coins); setMySecret(null); setCoinsNow(null); remember(r, { coinsBefore: player.coins, secret: null }) }
+    const enter = (r) => { setNotice(""); setRoom(r); setCoinsBefore(player.coins); setMySecret(null); setCoinsNow(null); remember(r, { coinsBefore: player.coins, secret: null }) }
 
     async function cancel() {
         setBusy(true)
@@ -112,7 +120,12 @@ export default function Duel() {
         setMySecret(n); remember(next, { secret: n }); setRoom(next)
     }
 
-    function done() { forget(); setRoom(null); setCoinsNow(null); loadPlayer().catch(() => {}) }
+    async function forfeit() {
+        try { applyRoom(await api.post(`/game/duel/rooms/${room.room_id}/forfeit`, { player_id: player.id })) }
+        catch (e) { setError(e.message) }
+    }
+
+    function done() { forget(); setRoom(null); setCoinsNow(null); setGraces({}); loadPlayer().catch(() => {}) }
 
     const isHost = room?.host_id === me
     const opponent = room ? (isHost ? room.guest_name : room.host_name) : null
@@ -139,7 +152,7 @@ export default function Duel() {
                 {!room && (
                     <div className="flex-1 min-h-0 overflow-y-auto">
                         {player
-                            ? <Lobby player={player} onJoined={enter} onHosted={enter} onBack={() => navigate("/")} />
+                            ? <Lobby player={player} onJoined={enter} onHosted={enter} onBack={() => navigate("/")} notice={notice} />
                             : <p className="text-center text-white/80 font-bold p-8">{error ? "" : "Chargement…"}</p>}
                     </div>
                 )}
@@ -148,7 +161,10 @@ export default function Duel() {
                     <>
                         <RoomHeader room={room} opponent={opponent} round={round} live={connected}
                             opponentOnline={online.includes(isHost ? room.guest_id : room.host_id)} />
+                        {status !== "finished" && <div className="flex justify-center px-3 pt-1"><TurnTimer room={room} me={me} opponent={opponent} /></div>}
+                        <OpponentGone grace={graces[isHost ? room.guest_id : room.host_id]} opponent={opponent} />
                         <main className="flex-1 min-h-0 overflow-y-auto flex flex-col justify-center py-4">{view}</main>
+                        {status?.startsWith("round") && <div className="flex justify-center pb-3"><ForfeitButton onForfeit={forfeit} bet={room.bet_amount} /></div>}
                         {status === "finished" && <Result room={room} me={me} opponent={opponent} coinsBefore={coinsBefore} coinsNow={coinsNow} onDone={done} />}
                     </>
                 )}

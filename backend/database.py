@@ -101,6 +101,8 @@ class Duel(Base):
     round1_attempts_used = Column(Integer , nullable = True,default=0) 
     round2_attempts_used  = Column(Integer , nullable = True,default=0) 
     winner_id = Column(String , nullable = True,default=None) 
+    updated_at = Column(Float, nullable=True)          # derniere action (sert aux delais d'inactivite)
+    end_reason = Column(String, nullable=True)         # solved | forfeit | disconnect | timeout | abandoned | expired | cancelled
 
 class Items(Base):
     __tablename__ = "items"
@@ -138,9 +140,18 @@ def make_db():
     return engine
 
 
+# colonnes ajoutees apres coup: (table, colonne, type SQL)
+_NEW_COLUMNS = [
+    ("sessions", "max_range", "INTEGER"),
+    ("duel", "updated_at", "FLOAT"),
+    ("duel", "end_reason", "VARCHAR"),
+]
+
+
 def _migrate(engine):
     """Ajoute les colonnes apparues apres la creation d'une base existante (SQLite)."""
     with engine.begin() as conn:
-        cols = [row[1] for row in conn.exec_driver_sql("PRAGMA table_info(sessions)")]
-        if "max_range" not in cols:
-            conn.exec_driver_sql("ALTER TABLE sessions ADD COLUMN max_range INTEGER")
+        for table, column, sql_type in _NEW_COLUMNS:
+            cols = [row[1] for row in conn.exec_driver_sql(f"PRAGMA table_info({table})")]
+            if cols and column not in cols:
+                conn.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN {column} {sql_type}")

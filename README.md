@@ -246,3 +246,19 @@ Le Duel est synchronisé par **WebSocket** : chaque action (créer / rejoindre u
 - Côté client (`web/src/hooks/useSocket.js`) : reconnexion automatique (0,5 s doublée jusqu'à 8 s), ping toutes les 20 s, et sondage HTTP de secours (10 s si la socket marche, 1,5 s sinon).
 - Limite actuelle : l'annuaire de connexions est en mémoire, donc **un seul processus serveur**. Pour en lancer plusieurs, il faudra un bus (Redis pub/sub).
 - Tests : `pip install -r backend/requirements-dev.txt && pytest backend/tests` (30 tests dont le temps réel) ; e2e navigateur dans `web/e2e/`.
+
+### Joueurs qui partent (Duel)
+
+Réglages (variables d'environnement du serveur, en secondes) :
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `DUEL_TURN_TIMEOUT` | 90 | inactivité maximale du joueur dont c'est le tour (cacher / deviner) : au-delà, il perd par forfait |
+| `DUEL_DISCONNECT_GRACE` | 30 | délai pour revenir après une coupure de socket (un simple rechargement de page ne coûte rien) |
+| `DUEL_WAIT_TIMEOUT` | 600 | durée de vie d'une salle sans adversaire |
+| `DUEL_SWEEP_INTERVAL` | 1 | fréquence du balayeur de délais |
+
+- **Abandon volontaire** : `POST /game/duel/rooms/{id}/forfeit` (bouton « Abandonner », avec confirmation). L'adversaire gagne la mise (bornée par le solde du perdant).
+- **Déconnexion** : l'adversaire voit une bannière avec compte à rebours ; si le joueur ne revient pas à temps, il perd par forfait. Si **les deux** sont partis, la salle est annulée et aucune pièce ne bouge.
+- Le résultat manqué pendant une absence est affiché au retour (une seule fois). Motif de fin : champ `end_reason` (`solved`, `forfeit`, `disconnect`, `timeout`, `abandoned`, `expired`, `cancelled`).
+- Tests : `pytest backend/tests` (45) ; e2e `web/e2e/abandon.py` (serveur lancé avec des délais courts, voir l'en-tête du script).

@@ -78,6 +78,9 @@ class RoomData(BaseModel) :
     winner_id : Optional[str]
     host_name : Optional[str] = None
     guest_name : Optional[str] = None
+    end_reason : Optional[str] = None       # pourquoi la partie s'est terminee
+    turn_deadline : Optional[float] = None  # quand le joueur dont c'est le tour sera declare forfait (epoch, secondes)
+    server_time : Optional[float] = None    # heure du serveur au moment de l'envoi (pour calculer le temps restant sans decalage d'horloge)
 
 class LeaveData(BaseModel):
     player_id: str

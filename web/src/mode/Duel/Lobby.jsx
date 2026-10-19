@@ -7,7 +7,7 @@ import useSocket from "../../hooks/useSocket"
 const BETS = [0, 50, 100, 250, 500]
 const RANGES = [10, 50, 100, 500]
 
-export default function Lobby({ player, onJoined, onHosted, onBack }) {
+export default function Lobby({ player, onJoined, onHosted, onBack, notice }) {
     const [rooms, setRooms] = useState(null)
     const [error, setError] = useState("")
     const [name, setName] = useState("")
@@ -124,6 +124,7 @@ export default function Lobby({ player, onJoined, onHosted, onBack }) {
                 </ul>
             </section>
 
+            {notice && <p role="status" className="lg:col-span-2 rounded-2xl bg-amber-300 text-black font-bold p-3 text-center">{notice}</p>}
             {error && <p role="alert" className="lg:col-span-2 rounded-2xl bg-red-500/85 text-white font-bold p-3 text-center">{error}</p>}
 
             <div className="lg:col-span-2 flex justify-center">

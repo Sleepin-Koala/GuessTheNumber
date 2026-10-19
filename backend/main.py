@@ -3,6 +3,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from routes.realtime import hub
+from routes.game_mode.duel_mode import sweeper
 from all import db_guard
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -21,7 +22,9 @@ from fastapi.encoders import jsonable_encoder
 @asynccontextmanager
 async def lifespan(_app):
     hub.bind(asyncio.get_running_loop())     # permet aux routes synchrones de pousser des messages aux sockets
+    task = asyncio.create_task(sweeper())    # delais d'inactivite / deconnexion
     yield
+    task.cancel()
     hub.bind(None)
 
 
