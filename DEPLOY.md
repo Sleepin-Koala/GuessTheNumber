@@ -139,6 +139,7 @@ A restart of the API takes the service down for a minute; open games reconnect o
 | Browser console shows CORS or CSP errors naming the API | Same two causes; the origin must match exactly. |
 | "En direct" never appears | WebSockets refused: check Render **Logs** for a refused origin or token. |
 | "Trop de requêtes" on first visit | Too many accounts from one address, or `GTN_PROXY_HOPS` is wrong (see `/whoami` above). |
+| Render log: `Could not parse SQLAlchemy URL` or `GTN_DATABASE_URL ... n'est pas une adresse PostgreSQL` | The value of `GTN_DATABASE_URL` is not a clean address. It must be exactly the string starting with `postgresql://` (no quotes, no `DATABASE_URL=`, no spaces). Fix it in Render → Environment. |
 | Errors mentioning the database after weeks of use | Neon's free compute-hours may be used up (resets monthly) — check the Neon dashboard. |
 | Page not found on a direct link such as `/duel` | Root directory must be `web` so `web/public/_redirects` is deployed. |
 

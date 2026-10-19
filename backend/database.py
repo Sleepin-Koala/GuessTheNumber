@@ -1,4 +1,5 @@
 import os
+import re
 
 from sqlalchemy.orm import declarative_base , relationship
 from sqlalchemy import Column , Integer , BigInteger , String ,Float, ForeignKey , create_engine
@@ -135,17 +136,31 @@ class PlayerItems(Base):
 
 
 
+_POSTGRES_URL = re.compile(r"postgres(?:ql)?(?:\+\w+)?://[^\s'\"`]+")
+
+
 def database_url() -> str:
     """Adresse de la base. `GTN_DATABASE_URL` (ex. Postgres heberge: postgresql://user:mdp@hote/base) prend le dessus;
     sinon un fichier SQLite (`GTN_DB_PATH`, par defaut `main.db`)."""
-    url = os.environ.get("GTN_DATABASE_URL")
-    if url:
-        # les hebergeurs donnent postgres:// ou postgresql://; SQLAlchemy doit savoir quel pilote utiliser (psycopg 3)
-        for prefix in ("postgres://", "postgresql://"):
-            if url.startswith(prefix):
-                return "postgresql+psycopg://" + url[len(prefix):]
-        return url
-    return f"sqlite:///{os.environ.get('GTN_DB_PATH', 'main.db')}"
+    raw = os.environ.get("GTN_DATABASE_URL", "").strip()
+    if not raw:
+        return f"sqlite:///{os.environ.get('GTN_DB_PATH', 'main.db')}"
+    if raw.startswith("sqlite"):
+        return raw
+    # tolere les erreurs de copier-coller: guillemets, `DATABASE_URL=postgresql://...`, `psql 'postgresql://...'`, espaces
+    found = _POSTGRES_URL.search(raw)
+    if not found:
+        # message sans afficher la valeur (elle contient un mot de passe)
+        raise RuntimeError(
+            "GTN_DATABASE_URL est definie mais ce n'est pas une adresse PostgreSQL: elle doit commencer par "
+            f"postgresql:// (la valeur fait {len(raw)} caracteres{'' if '://' in raw else ' et ne contient pas ://'}). "
+            "Colle l'adresse seule, sans guillemets ni nom de variable.")
+    url = found.group(0)
+    # les hebergeurs donnent postgres:// ou postgresql://; SQLAlchemy doit savoir quel pilote utiliser (psycopg 3)
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url[len(prefix):]
+    return url
 
 
 def make_db():

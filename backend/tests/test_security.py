@@ -371,3 +371,26 @@ def test_no_request_leaves_the_shared_session_inside_a_transaction(client, anon)
     client.get(f"/shop/inventory/{pid}")
     with A.db_lock:
         assert not A.session.in_transaction()
+
+
+@pytest.mark.parametrize("pasted", [
+    'postgresql://u:p@host/db?sslmode=require',
+    '  postgresql://u:p@host/db?sslmode=require  \n',                           # espaces / retour a la ligne
+    '"postgresql://u:p@host/db?sslmode=require"',                              # guillemets
+    "'postgresql://u:p@host/db?sslmode=require'",
+    'DATABASE_URL="postgresql://u:p@host/db?sslmode=require"',                 # ligne de fichier .env copiee entiere
+    "DATABASE_URL=postgres://u:p@host/db?sslmode=require",
+    "psql 'postgresql://u:p@host/db?sslmode=require'",                         # commande psql copiee entiere
+])
+def test_database_url_survives_typical_copy_paste_mistakes(monkeypatch, pasted):
+    import database
+    monkeypatch.setenv("GTN_DATABASE_URL", pasted)
+    assert database.database_url() == "postgresql+psycopg://u:p@host/db?sslmode=require"
+
+
+def test_a_value_that_is_not_an_address_gives_a_readable_error_without_leaking_it(monkeypatch):
+    import database
+    monkeypatch.setenv("GTN_DATABASE_URL", "my-secret-password-123")
+    with pytest.raises(RuntimeError) as e:
+        database.database_url()
+    assert "postgresql://" in str(e.value) and "my-secret-password-123" not in str(e.value)
