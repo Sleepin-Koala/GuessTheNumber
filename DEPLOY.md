@@ -76,26 +76,28 @@ curl https://<name>.onrender.com/whoami      # → {"ip":"..."}
 curl https://ifconfig.me                      # → your real public address
 ```
 
-They must match. If `/whoami` shows another address, there is more than one proxy in front of the server: set `GTN_PROXY_HOPS=2` in Render and test again. (If this is wrong, all players share one address and the "10 new accounts per hour" limit applies to everybody together.)
+They must match. If `/whoami` shows another address, there is more than one proxy in front of the server: raise `GTN_PROXY_HOPS` and test again. On Render it was **3** when this was written (1 showed a private `10.x` address, 2 showed a Cloudflare address). (If this is wrong, all players share one address and the "10 new accounts per hour" limit applies to everybody together.)
 
-## Step 3 — Deploy the web app (Cloudflare Pages)
+## Step 3 — Deploy the web app (Cloudflare)
 
-Dashboard → **Workers & Pages** → create a **Pages** project from an existing Git repository → the repository. Settings:
+Cloudflare now steers new projects to **Workers** (which also serves static files, free) instead of **Pages**, and its dashboard menus change often, so the most reliable way is the command line. The repository already contains `web/wrangler.jsonc`. From the repository root:
 
-| Setting | Value |
-|---|---|
-| Production branch | `main` |
-| Root directory | `web` |
-| Build command | `pnpm install --frozen-lockfile && pnpm build` |
-| Build output directory | `dist` |
-| Environment variable `VITE_API_URL` | `https://<name>.onrender.com` |
-| Environment variable `NODE_VERSION` | `22` |
+```bash
+cd web
+pnpm install --frozen-lockfile
+VITE_API_URL=https://<name>.onrender.com pnpm build      # the API address is baked in at build time (and into the security policy)
+cd ..
+npx wrangler login                                        # once; opens the browser
+npx wrangler deploy -c web/wrangler.jsonc
+```
 
-`VITE_API_URL` is baked into the app **at build time** (and into its security policy): if you change it, redeploy the site. You get `https://<project>.pages.dev`.
+The command prints the site address: `https://guess-it.<your-account>.workers.dev` (change `name` in `web/wrangler.jsonc` to use another name). Run the same build and deploy commands again to publish a new version. `web/public/_headers` adds the security and cache headers; unknown paths such as `/duel` are served `index.html` by `not_found_handling` in the config. (Do not add a `_redirects` file with `/* /index.html 200`: Workers rejects it as a redirect loop.)
+
+*Alternative — Pages with Git:* Cloudflare dashboard → Workers & Pages → Create → look for the small "Looking to deploy Pages?" link → import the repository (root directory `web`, build command `pnpm install --frozen-lockfile && pnpm build`, output `dist`, variables `VITE_API_URL` and `NODE_VERSION=22`). It redeploys on every push, but needs Cloudflare's GitHub app to have access to the repository, and `web/public/_redirects` with `/*  /index.html  200` must be recreated for that route.
 
 ## Step 4 — Allow the site to talk to the API
 
-In Render → the service → **Environment**: set `GTN_ALLOWED_ORIGINS` to `https://<project>.pages.dev` (exactly: `https`, no trailing slash). Render restarts the service.
+In Render → the service → **Environment**: set `GTN_ALLOWED_ORIGINS` to the site address (`https://guess-it.<your-account>.workers.dev`) (exactly: `https`, no trailing slash). Render restarts the service.
 
 ## Step 5 — Check that it works
 
@@ -121,7 +123,7 @@ The server allows **10 new accounts per hour per internet address**; testers on 
 | Task | How |
 |---|---|
 | Live logs | Render dashboard → the service → **Logs** |
-| New web version | `git push` — Cloudflare redeploys by itself |
+| New web version | rebuild and `npx wrangler deploy -c web/wrangler.jsonc` (see Step 3) |
 | New API version | `git push` — Render redeploys (`autoDeploy`), or **Manual Deploy** in its dashboard |
 | Change a setting | Render → **Environment** (restarts the service) |
 | Roll back | Render: **Events/Deploys** → redeploy an older one · Cloudflare: Deployments → **Rollback** |

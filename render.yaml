@@ -17,5 +17,5 @@ services:
         sync: false
       - key: GTN_TRUST_PROXY
         value: "1"
-      - key: GTN_PROXY_HOPS           # nombre de proxys devant le serveur: a verifier avec /whoami (voir DEPLOY.md)
-        value: "1"
+      - key: GTN_PROXY_HOPS           # proxys devant le serveur (Cloudflare + Render): 3, verifie avec /whoami (voir DEPLOY.md)
+        value: "3"

@@ -48,7 +48,8 @@ render.yaml          Blueprint Render (offre gratuite)
   tests/             tests de l'API (pytest)
 web/
   src/               pages (mode/), composants, hooks, API client
-  public/            manifeste, service worker, icônes, _headers / _redirects (hébergement)
+  public/            manifeste, service worker, icônes, _headers (en-têtes d'hébergement)
+  wrangler.jsonc     configuration d'hébergement Cloudflare (Workers + fichiers statiques)
   e2e/               tests navigateur (Playwright, Python)
 screenshots/         captures de vérification (responsive, modes, sécurité)
 PWA_RESPONSIVE_REPORT.md   rapport de vérification responsive / PWA / Lighthouse
@@ -154,7 +155,7 @@ Réglages (variables d'environnement du serveur, en secondes) :
 | `GTN_DOCS` | – | `1` active `/docs` |
 | `GTN_DATABASE_URL` | – | adresse PostgreSQL (`postgresql://…`) ; sinon fichier SQLite |
 | `GTN_DB_PATH` | `main.db` | emplacement du fichier SQLite (ex. `/data/main.db` sur un volume) |
-| `GTN_PROXY_HOPS` | 1 | nombre de proxys de confiance (avec `GTN_TRUST_PROXY=1`) ; `GET /whoami` sert à le vérifier |
+| `GTN_PROXY_HOPS` | 1 | nombre de proxys de confiance (avec `GTN_TRUST_PROXY=1`) ; `GET /whoami` sert à le vérifier (3 sur Render) |
 | `GTN_NEW_ACCOUNTS_PER_HOUR` | 10 | comptes créables par heure et par adresse |
 
 **Limites connues** : le jeton est dans `localStorage` (lisible par un script s'il y avait une faille XSS, d'où la CSP) ; limitation de débit et annuaire de sockets en mémoire (un seul processus) ; **il faut servir l'API et le site en HTTPS/WSS** en production (sinon le jeton circule en clair) ; pas de rotation ni d'expiration des jetons, pas de blocage après échecs répétés d'un même jeton (le jeton fait 256 bits, la devinette est hors de portée, mais pas la limitation de débit par adresse) ; la taille est contrôlée sur `Content-Length` seulement.
@@ -166,7 +167,7 @@ Réglages (variables d'environnement du serveur, en secondes) :
 Fonctionnel et testé : les quatre modes, la boutique et les power-ups, les statistiques, le temps réel et la gestion des départs, l'authentification par jeton, la PWA, l'adaptation mobile/tablette/PC.
 
 À faire / limites connues :
-- **Déploiement** : prêt à publier **gratuitement** (site sur Cloudflare Pages, serveur sur Render, base sur Neon ; variante Fly.io payante) mais pas encore en ligne : voir [DEPLOY.md](DEPLOY.md). Un seul processus serveur (limitation de débit et annuaire de sockets en mémoire) ; le serveur gratuit s'endort après 15 min d'inactivité.
+- **Déploiement** : prêt à publier **gratuitement** (site sur Cloudflare, serveur sur Render, base sur Neon ; variante Fly.io payante) mais pas encore en ligne : voir [DEPLOY.md](DEPLOY.md). Un seul processus serveur (limitation de débit et annuaire de sockets en mémoire) ; le serveur gratuit s'endort après 15 min d'inactivité.
 - Pas encore testé sur de vrais appareils iOS / Android (installation, encoche, cadence d'images de la 3D sur GPU mobile).
 - Pas de classement ni de liste d'amis, les gemmes ne servent encore à rien, une seule langue (français).
 - Le jeton de compte est dans `localStorage` ; pas d'expiration ni de rotation des jetons.

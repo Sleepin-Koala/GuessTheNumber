@@ -1,0 +1,13 @@
+// Hebergement du site sur Cloudflare (Workers + fichiers statiques, offre gratuite).
+// Deploiement: construire d'abord le site (VITE_API_URL=<adresse de l'API> pnpm build), puis
+//   npx wrangler deploy -c web/wrangler.jsonc        (depuis la racine du depot)
+{
+  "name": "guess-it",
+  "compatibility_date": "2026-10-01",
+  "preview_urls": false,         // pas d'adresses de previsualisation: l'API n'autorise que l'adresse officielle du site
+  "assets": {
+    "directory": "./dist",
+    // toute adresse qui n'est pas un fichier (/duel, /shop...) renvoie index.html (application a page unique)
+    "not_found_handling": "single-page-application"
+  }
+}
