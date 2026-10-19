@@ -1,5 +1,8 @@
 #modules internes
+import asyncio
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
+from routes.realtime import hub
 from all import db_guard
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -15,7 +18,14 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
 
-app = FastAPI(dependencies=[Depends(db_guard)])
+@asynccontextmanager
+async def lifespan(_app):
+    hub.bind(asyncio.get_running_loop())     # permet aux routes synchrones de pousser des messages aux sockets
+    yield
+    hub.bind(None)
+
+
+app = FastAPI(dependencies=[Depends(db_guard)], lifespan=lifespan)
 app.add_middleware(CORSMiddleware , 
                    allow_origins = ["*"],
                    allow_credentials = True,

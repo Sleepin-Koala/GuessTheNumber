@@ -3,7 +3,11 @@ from fastapi import APIRouter
 from fastapi import APIRouter , HTTPException 
 from all import *
 import engine
+import asyncio
+from fastapi import WebSocket , WebSocketDisconnect
+from fastapi.concurrency import run_in_threadpool
 from routes.utils import get_player_or_404
+from routes.realtime import hub
 
 
 router = APIRouter(prefix="/duel")
@@ -11,6 +15,17 @@ router = APIRouter(prefix="/duel")
 def _name(player_id):
     player = session.query(Player).filter_by(id = player_id).first() if player_id else None
     return player.name if player else None
+
+
+def open_rooms():
+    return [create_room(r).model_dump() for r in session.query(Duel).filter_by(status = "waiting").all()]
+
+
+def notify(room: Duel):
+    """Pousse l'etat de la salle (et la liste du lobby si elle a change) aux sockets connectees."""
+    hub.publish_room(room.id , {"type": "room" , "room": create_room(room).model_dump()})
+    if room.status in ("waiting" , "cancelled" , "round1_hide"):
+        hub.publish_lobby({"type": "lobby" , "rooms": open_rooms()})
 
 
 def create_room(room: Duel):
@@ -58,7 +73,8 @@ def hostServer(HostRoomData: HostRoomData):
         raise HTTPException(status_code=422, detail=f"max_range doit etre entre 1 et {MAX_DUEL_RANGE}")
 
     # une seule salle en attente par joueur: l'ancienne est annulee
-    for old in session.query(Duel).filter_by(host_id = host.id , status = "waiting").all():
+    replaced = session.query(Duel).filter_by(host_id = host.id , status = "waiting").all()
+    for old in replaced:
         old.status = "cancelled"
 
     new_game = Duel(
@@ -83,6 +99,9 @@ def hostServer(HostRoomData: HostRoomData):
 
     session.add(new_game)
     session.commit()
+    for old in replaced:
+        notify(old)
+    notify(new_game)
 
     return create_room(new_game)
 
@@ -107,6 +126,7 @@ def joinRoom(JoinData : JoinData):
     room.guesser_id = guest.id
 
     session.commit()
+    notify(room)
 
     return create_room(room)
 
@@ -129,7 +149,7 @@ def hideNumber(HideNumberData : HidenGuessNumberData, roomId: str):
     room.status = "round1_guess" if room.status == "round1_hide" else "round2_guess"
 
     session.commit()
-    
+    notify(room)
 
     return create_room(room)
 
@@ -180,6 +200,7 @@ def GuessNumber(GuessNumberData : HidenGuessNumberData, roomId: str):
             room.status = "finished"
 
     session.commit()
+    notify(room)
 
     return create_room(room)
 
@@ -195,5 +216,78 @@ def leaveRoom(LeaveData : LeaveData, roomId: str):
 
     room.status = "cancelled"
     session.commit()
+    notify(room)
 
     return create_room(room)
+
+
+# ---------------------------------------------------------------------------
+# WebSocket: le serveur pousse chaque changement (les actions restent en HTTP)
+# ---------------------------------------------------------------------------
+IDLE_TIMEOUT = 60      # secondes sans message (ping inclus) avant de fermer une socket morte
+
+
+def _room_snapshot(room_id: str , player_id: str):
+    """(code_de_fermeture, payload): verifie que le joueur appartient a la salle. Verrou BD pris a la main."""
+    with db_lock:
+        try:
+            room = session.query(Duel).filter_by(id = room_id).first()
+            if room is None:
+                return 4404 , None
+            if player_id not in (room.host_id , room.guest_id):
+                return 4403 , None
+            return None , {"type": "room" , "room": create_room(room).model_dump()}
+        except BaseException:
+            session.rollback()
+            raise
+
+
+def _lobby_snapshot():
+    with db_lock:
+        try:
+            return {"type": "lobby" , "rooms": open_rooms()}
+        except BaseException:
+            session.rollback()
+            raise
+
+
+async def _pump(ws: WebSocket):
+    """Boucle commune: repond aux ping, ignore le reste, ferme apres IDLE_TIMEOUT de silence."""
+    while True:
+        try:
+            msg = await asyncio.wait_for(ws.receive_json() , timeout = IDLE_TIMEOUT)
+        except asyncio.TimeoutError:
+            await ws.close(code = 1001)
+            return
+        if isinstance(msg , dict) and msg.get("type") == "ping":
+            await ws.send_json({"type": "pong"})
+
+
+@router.websocket("/ws/{room_id}")
+async def room_socket(ws: WebSocket , room_id: str , player_id: str):
+    code , snapshot = await run_in_threadpool(_room_snapshot , room_id , player_id)
+    if code:
+        await ws.close(code = code)
+        return
+    await ws.accept()
+    await ws.send_json(snapshot)
+    await hub.join_room(room_id , ws , player_id)
+    try:
+        await _pump(ws)
+    except (WebSocketDisconnect , RuntimeError):
+        pass
+    finally:
+        await hub.leave_room(room_id , ws)
+
+
+@router.websocket("/ws-lobby")
+async def lobby_socket(ws: WebSocket):
+    await ws.accept()
+    await ws.send_json(await run_in_threadpool(_lobby_snapshot))
+    hub.lobby.add(ws)
+    try:
+        await _pump(ws)
+    except (WebSocketDisconnect , RuntimeError):
+        pass
+    finally:
+        hub.drop(ws)

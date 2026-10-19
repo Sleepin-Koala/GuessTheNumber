@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from models import *
 import time
 import threading
+from starlette.requests import HTTPConnection
 import engine
 
 GIVEN_UP = "abandoned"
@@ -22,7 +23,10 @@ session = session_()
 # rollback en cas d'erreur pour ne jamais laisser la session dans un etat casse.
 db_lock = threading.Lock()
 
-def db_guard():
+def db_guard(conn: HTTPConnection):
+    if conn.scope["type"] != "http":
+        yield          # WebSocket: connexion longue, pas de verrou (les acces BD y sont courts et verrouilles a la main)
+        return
     db_lock.acquire()
     try:
         yield

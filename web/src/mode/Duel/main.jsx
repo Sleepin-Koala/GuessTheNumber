@@ -5,10 +5,12 @@ import BG from "../../components/Background"
 import Bar from "../../components/PlayerProps"
 import { CartoonButton } from "../../components/assets"
 import Lobby from "./Lobby"
+import useSocket from "../../hooks/useSocket"
 import { RoomHeader, Waiting, Hide, WaitHide, Guess, Watch, Result } from "./RoomViews"
 
 const STORE = "duel_room"
-const POLL_MS = 1500
+const POLL_MS = 1500          // sondage rapide, seulement quand la socket est coupee
+const SAFETY_POLL_MS = 10000  // filet de securite quand tout passe par la socket
 const ACTIVE = (s) => s && s !== "finished" && s !== "cancelled"
 
 // Duel: deux joueurs, chacun cache un nombre puis cherche celui de l'autre; le moins d'essais gagne la mise.
@@ -22,7 +24,9 @@ export default function Duel() {
     const [mySecret, setMySecret] = useState(null)
     const [coinsBefore, setCoinsBefore] = useState(null)
     const [coinsNow, setCoinsNow] = useState(null)
-    const hold = useRef(false)
+    const [online, setOnline] = useState([])
+    const hold = useRef(false)          // vrai pendant l'animation de victoire de la manche
+    const pending = useRef(null)        // dernier etat recu pendant l'animation
 
     const loadPlayer = useCallback(async () => {
         const id = localStorage.getItem("id")
@@ -54,23 +58,40 @@ export default function Duel() {
         })()
     }, [loadPlayer])
 
-    // sondage de l'etat de la salle tant que la partie n'est pas terminee
-    const roomId = room?.room_id, status = room?.status
+    // un nouvel etat de la salle (socket, sondage ou reponse HTTP): applique tout de suite, sauf pendant l'animation
+    const applyRoom = useCallback((next) => {
+        if (hold.current) { pending.current = next; return }
+        setRoom((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next))
+        setError("")
+    }, [])
+
+    const setHold = useCallback((on) => {
+        hold.current = on
+        if (!on && pending.current) { const n = pending.current; pending.current = null; setRoom(n) }
+    }, [])
+
+    const roomId = room?.room_id, status = room?.status, me = player?.id
+
+    // temps reel: le serveur pousse chaque changement de la salle + qui est connecte
+    const { connected } = useSocket(roomId && me && ACTIVE(status) ? `/game/duel/ws/${roomId}?player_id=${me}` : null, (msg) => {
+        if (msg.type === "room") applyRoom(msg.room)
+        if (msg.type === "presence") setOnline(msg.online)
+    })
+
+    // sondage HTTP: rapide si la socket est coupee, lent sinon (filet de securite)
     useEffect(() => {
         if (!roomId || !ACTIVE(status)) return
         const tick = async () => {
-            if (document.hidden || hold.current) return
+            if (document.hidden) return
             try {
-                const next = await api.post("/game/duel/status", { room_id: roomId })
-                setRoom((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next))
-                setError("")
+                applyRoom(await api.post("/game/duel/status", { room_id: roomId }))
             } catch (e) {
                 setError(`Connexion perdue : ${e.message}. Nouvel essai en cours…`)
             }
         }
-        const id = setInterval(tick, POLL_MS)
+        const id = setInterval(tick, connected ? SAFETY_POLL_MS : POLL_MS)
         return () => clearInterval(id)
-    }, [roomId, status])
+    }, [roomId, status, connected, applyRoom])
 
     // fin de partie / salle annulee
     useEffect(() => {
@@ -93,7 +114,6 @@ export default function Duel() {
 
     function done() { forget(); setRoom(null); setCoinsNow(null); loadPlayer().catch(() => {}) }
 
-    const me = player?.id
     const isHost = room?.host_id === me
     const opponent = room ? (isHost ? room.guest_name : room.host_name) : null
     const round = status?.startsWith("round1") ? 1 : status?.startsWith("round2") ? 2 : null
@@ -104,7 +124,7 @@ export default function Duel() {
         if (status === "waiting") view = isHost ? <Waiting room={room} onCancel={cancel} busy={busy} /> : null
         else if (status?.endsWith("_hide")) view = room.current_hider_id === me ? <Hide room={room} opponent={opponent} onHide={hide} /> : <WaitHide opponent={opponent} />
         else if (status?.endsWith("_guess")) view = room.current_guesser_id === me
-            ? <Guess key={status} room={room} me={me} opponent={opponent} round={round} attempts={attempts ?? 0} onRoom={setRoom} onHold={(b) => { hold.current = b }} />
+            ? <Guess key={status} room={room} me={me} opponent={opponent} round={round} attempts={attempts ?? 0} onRoom={applyRoom} onHold={setHold} />
             : <Watch room={room} opponent={opponent} attempts={attempts ?? 0} mySecret={mySecret} />
     }
 
@@ -126,7 +146,8 @@ export default function Duel() {
 
                 {room && me && (
                     <>
-                        <RoomHeader room={room} opponent={opponent} round={round} />
+                        <RoomHeader room={room} opponent={opponent} round={round} live={connected}
+                            opponentOnline={online.includes(isHost ? room.guest_id : room.host_id)} />
                         <main className="flex-1 min-h-0 overflow-y-auto flex flex-col justify-center py-4">{view}</main>
                         {status === "finished" && <Result room={room} me={me} opponent={opponent} coinsBefore={coinsBefore} coinsNow={coinsNow} onDone={done} />}
                     </>

@@ -1,6 +1,6 @@
 """E2E Duel (deux joueurs dans deux navigateurs) et Mode Infini.
 Usage: GTN_DB=/chemin/main.db python modes.py <dossier-captures>"""
-import os, re, sqlite3, sys
+import os, re, sqlite3, sys, time
 from playwright.sync_api import sync_playwright
 B = os.environ.get("GTN_WEB", "http://127.0.0.1:4173"); API = "http://127.0.0.1:8000"; DB = os.environ["GTN_DB"]; OUT = sys.argv[1]
 R = []
@@ -17,7 +17,7 @@ def wait_text(pg, s, timeout=9000):
 with sync_playwright() as p:
     b = p.chromium.launch()
     def player(w=1280, h=800):
-        ctx = b.new_context(viewport={"width": w, "height": h}, service_workers="block"); pg = ctx.new_page()
+        ctx = b.new_context(viewport={"width": w, "height": h}, service_workers="block"); ctx.set_default_timeout(15000); pg = ctx.new_page()
         pg.goto(B + "/"); pg.wait_for_load_state("networkidle"); pg.wait_for_timeout(500)
         return ctx, pg
     errs = []
@@ -26,33 +26,39 @@ with sync_playwright() as p:
 
     # ---------------- DUEL ----------------
     A.goto(B + "/duel"); A.wait_for_load_state("networkidle")
+    Bp.goto(B + "/duel"); Bp.wait_for_load_state("networkidle")
     rec("Duel: lobby shows create form", wait_text(A, "Créer une salle"))
+    rec("Duel: lobby socket is live ('En direct')", wait_text(A, "En direct", 4000) and wait_text(Bp, "En direct", 4000))
     A.get_by_label("Nom de la salle").fill("Duel e2e")
     A.get_by_role("group", name="Mise").get_by_role("button", name="100", exact=True).click()
     A.get_by_role("group", name="Le nombre est entre").get_by_role("button", name="10", exact=True).click()
+    t0 = time.time()
     A.get_by_role("button", name="Créer la salle").click()
     rec("Duel: host waits for an opponent", wait_text(A, "En attente d'un adversaire"))
-
-    Bp.goto(B + "/duel"); Bp.wait_for_load_state("networkidle")
-    rec("Duel: guest sees the open room", wait_text(Bp, "Duel e2e", 6000))
+    seen = wait_text(Bp, "Duel e2e", 6000); dt = time.time() - t0
+    rec("Duel: guest sees the new room pushed live (< 0.8 s)", seen and dt < 0.8, f"{dt*1000:.0f} ms")
     A.screenshot(path=OUT + "/duel-1-waiting.png"); Bp.screenshot(path=OUT + "/duel-2-lobby.png")
     Bp.get_by_role("button", name="Rejoindre").click()
     rec("Duel: guest waits while the host hides", wait_text(Bp, "choisit son nombre"))
-    rec("Duel: host is asked to hide a number (via polling)", wait_text(A, "Cache ton nombre"))
+    rec("Duel: host is asked to hide a number", wait_text(A, "Cache ton nombre"))
+    rec("Duel: room header shows the live connection and opponent online", wait_text(A, "En direct", 3000) and A.get_by_label("adversaire connecté").count() == 1)
 
     # un mauvais nombre est refuse par le serveur, un bon est accepte
     A.get_by_label("Ton nombre secret", exact=False).fill("99"); A.get_by_role("button", name="Cacher mon nombre").click()
     rec("Duel: out-of-range secret is rejected with a message", wait_text(A, "Choisis un nombre entre 1 et 10", 4000) and A.get_by_text("Cache ton nombre").count() == 1)
-    A.get_by_label("Ton nombre secret", exact=False).fill("7"); A.get_by_role("button", name="Cacher mon nombre").click()
-    rec("Duel: guest gets the guess panel", wait_text(Bp, "Trouve le nombre de"))
+    A.get_by_label("Ton nombre secret", exact=False).fill("7")
+    t0 = time.time(); A.get_by_role("button", name="Cacher mon nombre").click()
+    seen = wait_text(Bp, "Trouve le nombre de"); dt = time.time() - t0
+    rec("Duel: guest gets the guess panel pushed live (< 0.8 s)", seen and dt < 0.8, f"{dt*1000:.0f} ms")
     rec("Duel: host watches the opponent search", wait_text(A, "cherche ton nombre"))
     Bp.screenshot(path=OUT + "/duel-3-guess.png")
 
     def guess(pg, n):
         pg.locator("input[type=number]").first.fill(str(n)); pg.locator("button.guess-button").click(); pg.wait_for_timeout(500)
-    guess(Bp, 3)
+    t0 = time.time(); guess(Bp, 3)
     rec("Duel: wrong guess gives the 'Trop petit' hint", "Trop petit" in text(Bp))
-    rec("Duel: host sees 1 attempt and the feedback", wait_text(A, "Dernière proposition : trop petite"))
+    seen = wait_text(A, "Dernière proposition : trop petite"); dt = time.time() - t0
+    rec("Duel: host sees the opponent's guess live (< 1 s incl. the 0.5 s test pause)", seen and dt < 1.0, f"{dt*1000:.0f} ms")
     A.screenshot(path=OUT + "/duel-4-watch.png")
 
     # reprise apres rechargement de page (l'etat vient du serveur)
@@ -78,6 +84,36 @@ with sync_playwright() as p:
     rec("Duel: host can cancel a waiting room", wait_text(A, "Créer une salle"))
     Bp.get_by_role("button", name="Retour au lobby").click(); Bp.wait_for_timeout(3500)
     rec("Duel: cancelled room disappears for others", "Salle de" not in text(Bp) or Bp.get_by_role("button", name="Rejoindre").count() == 0)
+
+    # ---------------- PRESENCE ET REPLI ----------------
+    ctxD, D = player(); ctxE, E = player()
+    D.goto(B + "/duel"); D.wait_for_load_state("networkidle"); E.goto(B + "/duel"); E.wait_for_load_state("networkidle")
+    D.get_by_role("button", name="Créer la salle").click(); wait_text(D, "En attente d'un adversaire")
+    wait_text(E, "Rejoindre", 6000); E.get_by_role("button", name="Rejoindre").click()
+    ok = wait_text(D, "Cache ton nombre")
+    try: D.get_by_label("adversaire connecté").wait_for(timeout=3000)
+    except Exception: ok = False
+    rec("Presence: host sees the guest online", ok)
+    ctxE.close()                                      # le navigateur de l'invite disparait
+    seen = False
+    for _ in range(40):
+        if D.get_by_label("adversaire hors ligne").count() == 1: seen = True; break
+        D.wait_for_timeout(100)
+    rec("Presence: host sees the guest go offline within 4 s", seen)
+
+    # sockets bloquees (proxy, pare-feu...): toute connexion echoue tout de suite; le jeu doit continuer via le sondage HTTP
+    BLOCK = "window.WebSocket = class { static OPEN = 1; constructor() { setTimeout(() => this.onclose && this.onclose({ code: 1006 }), 20) } send() {} close() {} }"
+    ctxF, F = player(); ctxG, G = player()
+    for c in (ctxF, ctxG): c.add_init_script(BLOCK)
+    F.goto(B + "/duel"); F.wait_for_load_state("networkidle"); G.goto(B + "/duel"); G.wait_for_load_state("networkidle")
+    F.get_by_role("button", name="Créer la salle").click(); wait_text(F, "En attente d'un adversaire")
+    rec("Fallback: UI says it is reconnecting when sockets are blocked", wait_text(F, "Reconnexion", 4000))
+    rec("Fallback: lobby still lists rooms via polling", wait_text(G, "Rejoindre", 7000))
+    G.get_by_role("button", name="Rejoindre").click()
+    rec("Fallback: host still notified of the guest via polling", wait_text(F, "Cache ton nombre", 5000))
+    F.get_by_label("Ton nombre secret", exact=False).fill("5"); F.get_by_role("button", name="Cacher mon nombre").click()
+    rec("Fallback: guest still gets the guess panel via polling", wait_text(G, "Trouve le nombre de", 5000))
+    for c in (ctxD, ctxF, ctxG): c.close()
 
     # ---------------- INFINI ----------------
     ctxC, C = player(); C.goto(B + "/endless"); C.wait_for_load_state("networkidle")

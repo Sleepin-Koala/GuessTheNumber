@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react"
-import { FaCoins, FaPlay, FaSyncAlt } from "react-icons/fa"
+import { FaCoins, FaPlay } from "react-icons/fa"
 import api from "../../api/index"
 import { CartoonButton } from "../../components/assets"
+import useSocket from "../../hooks/useSocket"
 
 const BETS = [0, 50, 100, 250, 500]
 const RANGES = [10, 50, 100, 500]
@@ -14,21 +15,24 @@ export default function Lobby({ player, onJoined, onHosted, onBack }) {
     const [range, setRange] = useState(50)
     const [busy, setBusy] = useState(false)
 
-    // liste des salles ouvertes, rafraichie toutes les 3 s
+    // la liste arrive en direct par WebSocket; le sondage HTTP ne sert que de filet de securite
+    // (toutes les 15 s, ou toutes les 3 s tant que la socket est coupee)
+    const { connected } = useSocket("/game/duel/ws-lobby", (msg) => { if (msg.type === "lobby") { setRooms(msg.rooms); setError("") } })
+
     useEffect(() => {
         let alive = true
         const load = async () => {
             try {
                 const list = await api.get("/game/duel/rooms")
-                if (alive) setRooms(list)
+                if (alive) { setRooms(list); setError("") }
             } catch (e) {
                 if (alive) setError(e.message)
             }
         }
-        load()
-        const id = setInterval(() => { if (!document.hidden) load() }, 3000)
+        if (!connected) load()
+        const id = setInterval(() => { if (!document.hidden) load() }, connected ? 15000 : 3000)
         return () => { alive = false; clearInterval(id) }
-    }, [])
+    }, [connected])
 
     async function host(e) {
         e.preventDefault()
@@ -90,7 +94,10 @@ export default function Lobby({ player, onJoined, onHosted, onBack }) {
             <section className="candy-gloss candy-lip relative rounded-3xl bg-linear-to-b from-[#1f4e8c] to-[#14305a] border-2 border-white/25 p-5">
                 <div className="flex items-center justify-between gap-2">
                     <h2 className="text-3xl text-white">Salles ouvertes</h2>
-                    <FaSyncAlt className="text-white/60 animate-spin [animation-duration:3s]" aria-hidden="true" />
+                    <span className={`flex items-center gap-1.5 text-sm font-bold ${connected ? "text-emerald-300" : "text-amber-300"}`} role="status">
+                        <span className={`w-2.5 h-2.5 rounded-full ${connected ? "bg-emerald-400" : "bg-amber-400 animate-pulse"}`} aria-hidden="true" />
+                        {connected ? "En direct" : "Reconnexion…"}
+                    </span>
                 </div>
 
                 {rooms === null && <p className="mt-4 text-white/70 font-bold">Chargement…</p>}

@@ -234,3 +234,15 @@ Ce projet est distribué sous licence MIT. Vous êtes libre de l’utiliser, de 
 
 *Construit avec passion, itération après itération.*  
 **Game Designer / UIUX / Full‑stack** : un seul projet, trois plates‑formes.
+
+---
+
+## Temps réel (Duel)
+
+Le Duel est synchronisé par **WebSocket** : chaque action (créer / rejoindre une salle, cacher, deviner, annuler) reste une requête HTTP validée par le serveur, puis le nouvel état est **poussé** aux deux joueurs et au lobby.
+
+- Lancer le serveur avec la dépendance WebSocket : `pip install -r backend/requirements.txt` (installe `uvicorn[standard]`), puis `cd backend && uvicorn main:app --port 8000`. Sans cette bibliothèque, uvicorn refuse les sockets (`No supported WebSocket library detected`) ; le jeu continue alors grâce au sondage HTTP, mais sans temps réel.
+- Endpoints : `ws://…/game/duel/ws/{room_id}?player_id=…` (réservé aux deux joueurs de la salle) et `ws://…/game/duel/ws-lobby`. Messages : `room`, `lobby`, `presence` (qui est connecté), `pong`.
+- Côté client (`web/src/hooks/useSocket.js`) : reconnexion automatique (0,5 s doublée jusqu'à 8 s), ping toutes les 20 s, et sondage HTTP de secours (10 s si la socket marche, 1,5 s sinon).
+- Limite actuelle : l'annuaire de connexions est en mémoire, donc **un seul processus serveur**. Pour en lancer plusieurs, il faudra un bus (Redis pub/sub).
+- Tests : `pip install -r backend/requirements-dev.txt && pytest backend/tests` (30 tests dont le temps réel) ; e2e navigateur dans `web/e2e/`.

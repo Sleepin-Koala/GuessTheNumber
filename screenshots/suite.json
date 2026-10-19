@@ -3,12 +3,12 @@
   [
    "Home: player auto-created",
    "PASS",
-   "1505b57a-f21e-4192-8281-20cbaf408f4a"
+   "259c04c0-0529-452c-979a-3e6035f8a468"
   ],
   [
    "Home: starting wallet 500 coins / 5 gems / level 1",
    "PASS",
-   "{'id': '1505b57a-f21e-4192-8281-20cbaf408f4a', 'name': 'player_250061', 'gems': 5, 'coins': 500, 'xp': 0, 'level': 1}"
+   "{'id': '259c04c0-0529-452c-979a-3e6035f8a468', 'name': 'player_7917993923575984', 'gems': 5, 'coins': 500, 'xp': 0, 'level': 1}"
   ],
   [
    "Home: header shows player name",
@@ -113,7 +113,7 @@
   [
    "Classic: reward paid + level 2 unlocked",
    "PASS",
-   "{'id': '1505b57a-f21e-4192-8281-20cbaf408f4a', 'name': 'Tester42', 'gems': 6, 'coins': 768, 'xp': 44, 'level': 2}"
+   "{'id': '259c04c0-0529-452c-979a-3e6035f8a468', 'name': 'Tester42', 'gems': 6, 'coins': 766, 'xp': 43, 'level': 2}"
   ],
   [
    "Classic: game-over overlay after attempts exhausted",
@@ -148,7 +148,7 @@
   [
    "Shop: purchase debits coins",
    "PASS",
-   "768->648"
+   "766->646"
   ],
   [
    "Shop: header coins updated",

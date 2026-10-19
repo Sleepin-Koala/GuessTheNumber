@@ -1,5 +1,8 @@
 
-const SERVER = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000"
+export const SERVER = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000"
+
+// ws://... (ou wss://... si l'API est en https) pour les connexions temps reel
+export const wsUrl = (path) => SERVER.replace(/^http/, "ws") + path
 
 class ApiError extends Error {
   constructor(message, status) {

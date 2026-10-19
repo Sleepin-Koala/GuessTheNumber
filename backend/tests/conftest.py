@@ -18,7 +18,8 @@ import all as A
 
 @pytest.fixture(scope="session")
 def client():
-    return TestClient(app)
+    with TestClient(app) as c:         # `with` lance le lifespan (le hub temps reel s'attache a la boucle d'evenements)
+        yield c
 
 
 @pytest.fixture()

@@ -1,6 +1,6 @@
 # Tests e2e (Playwright, Python)
 
-Prerequis: `pip install playwright && playwright install chromium`, backend sur :8000 (base vierge),
+Prerequis: `pip install playwright && playwright install chromium`, backend sur :8000 (base vierge, lance avec `uvicorn[standard]` pour les WebSocket),
 `pnpm build && pnpm preview --port 4173`.
 
 ```bash
@@ -11,7 +11,7 @@ GTN_DB=/chemin/vers/backend/main.db python powerups.py ../screenshots/powerups  
 
 GTN_DB=/chemin/vers/backend/main.db python modes.py ../screenshots/modes        # Duel (2 navigateurs) + Mode Infini (30 verifications)
 
-# API (22 tests, base temporaire, aucun serveur a lancer):
+# API (30 tests, base temporaire, aucun serveur a lancer):
 pip install pytest httpx && pytest backend/tests
 ```
 

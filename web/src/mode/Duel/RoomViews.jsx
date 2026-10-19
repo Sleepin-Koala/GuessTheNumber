@@ -14,13 +14,20 @@ function Card({ children }) {
     )
 }
 
-export function RoomHeader({ room, opponent, round }) {
+export function RoomHeader({ room, opponent, round, live, opponentOnline }) {
     return (
         <div className="mx-auto w-full max-w-3xl px-3 pt-2 flex flex-wrap items-center justify-center gap-2 text-sm font-bold">
             <span className="px-3 py-1 rounded-full bg-black/40 text-white">{room.room_name}</span>
-            <span className="px-3 py-1 rounded-full bg-black/40 text-white">contre {opponent ?? "…"}</span>
+            <span className="px-3 py-1 rounded-full bg-black/40 text-white flex items-center gap-1.5">
+                {opponent && <span className={`w-2.5 h-2.5 rounded-full ${opponentOnline ? "bg-emerald-400" : "bg-slate-500"}`} role="img" aria-label={opponentOnline ? "adversaire connecté" : "adversaire hors ligne"} />}
+                contre {opponent ?? "…"}
+            </span>
             <span className="px-3 py-1 rounded-full bg-black/40 text-yellow-200 flex items-center gap-1"><FaCoins aria-hidden="true" />{room.bet_amount}</span>
             {round && <span className="px-3 py-1 rounded-full bg-yellow-400 text-black">Manche {round}/2</span>}
+            <span className={`px-3 py-1 rounded-full bg-black/40 flex items-center gap-1.5 ${live ? "text-emerald-300" : "text-amber-300"}`} role="status">
+                <span className={`w-2.5 h-2.5 rounded-full ${live ? "bg-emerald-400" : "bg-amber-400 animate-pulse"}`} aria-hidden="true" />
+                {live ? "En direct" : "Reconnexion…"}
+            </span>
         </div>
     )
 }
@@ -102,8 +109,10 @@ export function Guess({ room, me, opponent, round, attempts, onRoom, onHold }) {
             if (next.last_feedback === "OK") {
                 setFound(true)
                 // on laisse le bonbon eclater avant de changer d'ecran (le sondage du serveur est suspendu)
+                // l'etat suivant est mis en attente (les mises a jour en direct aussi) puis applique apres l'animation
                 onHold(true)
-                setTimeout(() => { onHold(false); onRoom(next) }, 1700)
+                onRoom(next)
+                setTimeout(() => onHold(false), 1700)
             } else {
                 setNumbers((prev) => [...prev, [n, next.last_feedback]].slice(-6)); setShake(true)
                 onRoom(next)
