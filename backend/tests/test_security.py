@@ -279,3 +279,36 @@ def test_connections_per_address_are_capped(client, two, monkeypatch):
          client.websocket_connect("/game/duel/ws-lobby", subprotocols=["gtn.v1", ht]) as w2:
         w1.receive_json(); w2.receive_json()
         ws_fails(client, "/game/duel/ws-lobby", 4429, subprotocols=["gtn.v1", ht])
+
+
+# ------------------------------------------------------------------ adresse du client derriere un proxy
+def _scope(xff=None, peer="10.0.0.1"):
+    headers = [(b"x-forwarded-for", xff.encode())] if xff else []
+    return {"headers": headers, "client": (peer, 1234)}
+
+
+def test_client_ip_ignores_forwarded_headers_unless_a_proxy_is_trusted(monkeypatch):
+    import security
+    monkeypatch.setattr(security, "TRUST_PROXY", False)
+    assert security.client_ip(_scope("6.6.6.6", peer="10.0.0.1")) == "10.0.0.1"
+
+
+def test_client_ip_cannot_be_spoofed_through_the_start_of_x_forwarded_for(monkeypatch):
+    import security
+    monkeypatch.setattr(security, "TRUST_PROXY", True)
+    monkeypatch.setattr(security, "PROXY_HOPS", 1)
+    # an attacker prepends a fake address; the trusted proxy appends the real one at the end
+    assert security.client_ip(_scope("6.6.6.6, 203.0.113.9")) == "203.0.113.9"
+    assert security.client_ip(_scope("203.0.113.9")) == "203.0.113.9"
+    assert security.client_ip(_scope(None, peer="10.0.0.1")) == "10.0.0.1"          # header missing: fall back to the peer
+    monkeypatch.setattr(security, "PROXY_HOPS", 2)                                # two trusted proxies in front
+    assert security.client_ip(_scope("6.6.6.6, 203.0.113.9, 172.16.0.5")) == "203.0.113.9"
+
+
+def test_the_database_location_comes_from_the_environment(tmp_path, monkeypatch):
+    import database
+    target = tmp_path / "volume" / "x.db"
+    target.parent.mkdir()
+    monkeypatch.setenv("GTN_DB_PATH", str(target))
+    database.make_db()
+    assert target.exists() and target.stat().st_size > 0

@@ -1,0 +1,23 @@
+# En-tetes servis par Cloudflare Pages (et Netlify). La Content-Security-Policy principale est dans index.html (generee au build);
+# frame-ancestors ne peut pas etre pose par une balise <meta>, d'ou cet en-tete.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Strict-Transport-Security: max-age=31536000
+  Content-Security-Policy: frame-ancestors 'none'
+
+# fichiers au nom hache (changent a chaque build): cache longue duree
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# fichiers qui doivent toujours etre revalides (mise a jour de l'appli et du service worker)
+/index.html
+  Cache-Control: no-cache
+/sw.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
+/offline.html
+  Cache-Control: no-cache

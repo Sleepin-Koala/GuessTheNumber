@@ -16,11 +16,12 @@ DEFAULT_ORIGINS = [
 ]
 ALLOWED_ORIGINS = DEFAULT_ORIGINS + [o.strip() for o in os.environ.get("GTN_ALLOWED_ORIGINS", "").split(",") if o.strip()]
 TRUST_PROXY = os.environ.get("GTN_TRUST_PROXY") == "1"     # derriere un reverse proxy de confiance: lire X-Forwarded-For
+PROXY_HOPS = int(os.environ.get("GTN_PROXY_HOPS", 1))      # nombre de proxys de confiance devant le serveur
 MAX_BODY = 16 * 1024                                       # octets
 
 # (methode, regex du chemin, nombre max, fenetre en secondes, cle) ; cle = "ip" ou "token"
 DEFAULT_RULES = [
-    ("POST", r"^/user/new_player$", 10, 3600, "ip"),         # creation de comptes
+    ("POST", r"^/user/new_player$", int(os.environ.get("GTN_NEW_ACCOUNTS_PER_HOUR", 10)), 3600, "ip"),   # creation de comptes (des testeurs sur un meme Wi-Fi partagent une adresse: augmenter si besoin)
     ("POST", r"^/user/claim$", 10, 600, "ip"),
     ("POST", r"^/game/guess$", 120, 60, "token"),
     ("POST", r"^/game/powerup$", 60, 60, "token"),
@@ -73,7 +74,11 @@ def client_ip(scope) -> str:
     if TRUST_PROXY:
         for k, v in scope["headers"]:
             if k == b"x-forwarded-for":
-                return v.decode().split(",")[0].strip()
+                # Chaque proxy AJOUTE l'adresse de son client a la fin de la liste. Le debut de la liste est
+                # fourni par le client (donc falsifiable): on lit l'entree ajoutee par NOTRE proxy, en partant de la fin.
+                hops = [h.strip() for h in v.decode().split(",") if h.strip()]
+                if len(hops) >= PROXY_HOPS:
+                    return hops[-PROXY_HOPS]
     return (scope.get("client") or ("unknown", 0))[0]
 
 

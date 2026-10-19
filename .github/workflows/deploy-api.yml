@@ -1,0 +1,18 @@
+name: Deploy API to Fly.io
+
+# Lancement MANUEL uniquement (onglet Actions > "Deploy API to Fly.io" > Run workflow).
+# Prerequis: secret FLY_API_TOKEN (voir DEPLOY.md).
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency: deploy-api          # jamais deux deploiements en meme temps
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only --ha=false
+        working-directory: backend
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

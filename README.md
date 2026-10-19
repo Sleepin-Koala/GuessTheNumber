@@ -43,10 +43,11 @@ backend/
   routes/            user, shop, game (+ game_mode/: classic, discovery, endless, duel), powerups,
                      auth (jetons), realtime (diffusion WebSocket)
   assets/Powerup.json  catalogue de la boutique
+  Dockerfile, fly.toml   image du serveur et configuration Fly.io (voir DEPLOY.md)
   tests/             tests de l'API (pytest)
 web/
   src/               pages (mode/), composants, hooks, API client
-  public/            manifeste, service worker, icônes
+  public/            manifeste, service worker, icônes, _headers / _redirects (hébergement)
   e2e/               tests navigateur (Playwright, Python)
 screenshots/         captures de vérification (responsive, modes, sécurité)
 PWA_RESPONSIVE_REPORT.md   rapport de vérification responsive / PWA / Lighthouse
@@ -79,7 +80,7 @@ pip install -r backend/requirements-dev.txt
 pytest backend/tests          # 77 tests de l'API (comptes, jeu, power-ups, duel, temps réel, abandon, sécurité)
 ```
 
-Tests navigateur (Playwright) : voir `web/e2e/README.md` — parcours complet de chaque mode, deux joueurs dans deux navigateurs, sons, PWA hors ligne, matrice responsive de 10 écrans × 8 tailles, sécurité.
+Tests navigateur (Playwright) : voir `web/e2e/README.md` (dont `smoke.py`, un test de fumée à lancer sur le site en ligne) — parcours complet de chaque mode, deux joueurs dans deux navigateurs, sons, PWA hors ligne, matrice responsive de 10 écrans × 8 tailles, sécurité.
 
 ## API (résumé)
 
@@ -159,7 +160,7 @@ Réglages (variables d'environnement du serveur, en secondes) :
 Fonctionnel et testé : les quatre modes, la boutique et les power-ups, les statistiques, le temps réel et la gestion des départs, l'authentification par jeton, la PWA, l'adaptation mobile/tablette/PC.
 
 À faire / limites connues :
-- **Déploiement** : pas encore hébergé. Prévoir HTTPS/WSS obligatoirement, une base persistante, un seul processus serveur (limitation de débit et annuaire de sockets en mémoire), `GTN_ALLOWED_ORIGINS` avec l'adresse du site.
+- **Déploiement** : prêt à publier (site sur Cloudflare Pages, serveur sur Fly.io avec volume persistant) mais pas encore en ligne : voir [DEPLOY.md](DEPLOY.md). Un seul processus serveur (limitation de débit et annuaire de sockets en mémoire).
 - Pas encore testé sur de vrais appareils iOS / Android (installation, encoche, cadence d'images de la 3D sur GPU mobile).
 - Pas de classement ni de liste d'amis, les gemmes ne servent encore à rien, une seule langue (français).
 - Le jeton de compte est dans `localStorage` ; pas d'expiration ni de rotation des jetons.

@@ -27,3 +27,8 @@ Sans GPU (SwiftShader, llvmpipe, Save-Data) l'accueil et le bonbon de jeu garden
 ce qui garde Lighthouse a ~95. Les scripts ci-dessus testent donc ce chemin. Pour tester la 3D en headless:
 `localStorage.setItem("force3d", "1")` (par ex. `context.add_init_script(...)`) et lancer Chromium avec
 `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader`.
+
+
+## Apres un deploiement
+
+`python smoke.py https://<site>.pages.dev` : 13 verifications sur le site en ligne (HTTPS, CORS, WebSocket, lien direct, CSP, PWA, hors ligne, duel complet entre deux navigateurs). Voir DEPLOY.md.

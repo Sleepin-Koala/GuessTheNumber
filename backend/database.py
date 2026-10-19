@@ -1,3 +1,4 @@
+import os
 
 from sqlalchemy.orm import declarative_base , relationship
 from sqlalchemy import Column , Integer , String ,Float, ForeignKey , create_engine
@@ -135,7 +136,10 @@ class PlayerItems(Base):
 
 
 def make_db():
-    engine = create_engine("sqlite:///main.db")
+    """Base SQLite. `GTN_DB_PATH` choisit l'emplacement du fichier (en ligne: un volume persistant, ex. /data/main.db);
+    par defaut `main.db` dans le dossier courant."""
+    path = os.environ.get("GTN_DB_PATH", "main.db")
+    engine = create_engine(f"sqlite:///{path}")
     Base.metadata.create_all(engine)
     _migrate(engine)
     return engine

@@ -1,0 +1,32 @@
+# Configuration Fly.io du serveur (API + WebSocket). Se lance depuis ce dossier (`cd backend && fly deploy`).
+# Premier deploiement: voir DEPLOY.md. Remplace `app` par un nom unique (il devient <app>.fly.dev).
+app = "plus-minus-api"
+primary_region = "cdg"            # Paris; liste des regions: `fly platform regions`
+
+[env]
+  GTN_DB_PATH = "/data/main.db"
+  GTN_TRUST_PROXY = "1"           # derriere le proxy Fly: l'adresse du joueur est lue dans X-Forwarded-For
+  GTN_PROXY_HOPS = "1"
+  # GTN_ALLOWED_ORIGINS (adresse du site Cloudflare Pages) se definit avec `fly secrets set`, voir DEPLOY.md
+
+[mounts]
+  source = "gtn_data"             # volume cree avec `fly volumes create gtn_data --size 1`
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"      # le serveur garde des connexions WebSocket et des compteurs en memoire: il doit rester allume
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/health"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "15s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

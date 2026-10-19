@@ -1,0 +1,9 @@
+tests/
+__pycache__/
+*.pyc
+*.db
+*.md
+requirements-dev.txt
+.gitignore
+Dockerfile
+.dockerignore
