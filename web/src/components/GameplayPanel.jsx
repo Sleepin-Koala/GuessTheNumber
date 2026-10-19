@@ -10,7 +10,7 @@ import MysteryOrb from "./MysteryOrb"
 
 export default function GameplayPanel(
     { isShaking, hint, range, localNumber, gameEnded = false, numbers,
-        onGuessr, NumberSetter, onGameEnded = null, distance, attempt , onPause,
+        onGuessr, NumberSetter, onGameEnded = null, distance, attempt , onPause, tray = null, infos = [],
     disabled = null, mode = "classic" }) {
 
     const inputRef = useRef(null)
@@ -116,6 +116,19 @@ export default function GameplayPanel(
                 {numbers.map((n, idx) =>
                     (<div key={idx}><GuessChip number={n[0]} status={n[1]} /></div>))}
             </div>
+
+            {(tray || infos.length > 0) && (
+                <div className="flex flex-col items-center gap-1.5 px-3 w-full" aria-live="polite">
+                    {tray}
+                    {infos.length > 0 && (
+                        <div className="flex flex-wrap justify-center gap-1">
+                            {infos.map((info, i) => (
+                                <span key={i} className={`px-2 py-0.5 rounded-full text-xs sm:text-sm font-bold ${info.error ? "bg-red-500/80 text-white" : "bg-white/90 text-indigo-950"}`}>{info.text}</span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
 
             <div>
 

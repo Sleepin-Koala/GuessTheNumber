@@ -1,34 +1,40 @@
-from math import sqrt
+from math import isqrt
+
 
 def pair_impair(nb_o):
-    if nb_o%2==0:
-        return "pair"
-    else:
-        return "impair"
+    return "pair" if nb_o % 2 == 0 else "impair"
+
+
+def is_prime(n: int) -> bool:
+    if n < 2:
+        return False
+    for d in range(2, isqrt(n) + 1):
+        if n % d == 0:
+            return False
+    return True
+
 
 def nb_premier(nb_o):
-    r = int(sqrt(nb_o))
-    for x in range(2,nb_o):
-        if nb_o%x==0:
-            return "pas premier"
-    return "premier"
+    return "premier" if is_prime(nb_o) else "pas premier"
+
 
 def nb_narcissique(nb_o):
-    nb_l = [int(e) for e in str(nb_o)]
-    som = 0
-    for i in nb_l:
-        som +=i**len(nb_l)
-    if som == nb_o:
-        return "narcissique"
-    else:
-        return "pas narcissique"
-    
+    digits = [int(e) for e in str(nb_o)]
+    return "narcissique" if sum(d ** len(digits) for d in digits) == nb_o else "pas narcissique"
+
+
+def is_perfect(n: int) -> bool:
+    """Parfait = egal a la somme de ses diviseurs propres (6, 28, 496...)."""
+    if n < 2:
+        return False
+    total = 1
+    for d in range(2, isqrt(n) + 1):
+        if n % d == 0:
+            total += d
+            if d != n // d:
+                total += n // d
+    return total == n
+
+
 def nb_parfait(nb_o):
-    l_d = []
-    for x in range(1,nb_o):
-        if nb_o%x==0:
-            l_d.append(x)
-    if sum(l_d)==nb_o:
-        return "parfait"
-    else:
-        return "pas parfait"
+    return "parfait" if is_perfect(nb_o) else "pas parfait"

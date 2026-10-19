@@ -99,6 +99,11 @@ class RenameData(BaseModel):
     player_id: str
     name: str
 
+class PowerupData(BaseModel):
+    session_id: str
+    player_id: str
+    item_id: int
+
 class BuyData(BaseModel):
     playerId: str
     itemId: int

@@ -4,6 +4,9 @@ import { motion } from "framer-motion"
 import GameplayPanel from "../../components/GameplayPanel";
 import { useNavigate } from "react-router-dom"
 import PauseOverlay from "../../components/PauseOverlay";
+import PowerUpTray from "../../components/PowerUpTray";
+import useInventory from "../../hooks/useInventory";
+import { describeEffect } from "../../assets/powerupMeta";
 
 
 
@@ -17,6 +20,20 @@ export default function Game({ stateHandler, session, PlayerId, range }) {
     const [distance, setDistance] = useState(0)
     const [isPaused, setIsPaused] = useState(false)
     const navigate = useNavigate()
+    const { items: inventory, refresh: refreshInventory } = useInventory(PlayerId)
+    const [usedPowerups, setUsedPowerups] = useState([])
+    const [infos, setInfos] = useState([])
+
+    async function applyPowerup(itemId) {
+        try {
+            const r = await api.post("/game/powerup", { session_id: session.session_id, player_id: PlayerId, item_id: itemId })
+            setUsedPowerups(u => [...u, itemId])
+            setInfos(i => [...i, { text: describeEffect(r) }])
+            refreshInventory()
+        } catch (e) {
+            setInfos(i => [...i, { text: e.message, error: true }])
+        }
+    }
     
 
 
@@ -71,6 +88,9 @@ export default function Game({ stateHandler, session, PlayerId, range }) {
 
             <div className={`flex flex-1 min-h-0 overflow-y-auto`}>
                 <GameplayPanel
+                    infos={infos}
+                    tray={<PowerUpTray ids={[1, 2, 4, 5, 6]} items={inventory} used={usedPowerups}
+                        onUse={applyPowerup} disabled={isPaused || gameEnded} />}
                     isShaking={isShaking}
                     hint={hint}
                     numbers={numbers}

@@ -3,6 +3,7 @@ from fastapi import APIRouter , HTTPException
 from all import *
 import engine
 from routes.utils import get_player_or_404 , get_owned_session , ensure_open
+from routes.powerups import ITEM_LIFE , ITEM_MULTIPLIER , LIFE_BONUS
 
 router = APIRouter(prefix="/classic")
 
@@ -30,6 +31,7 @@ def get_level(lvlData: LevelData):
         time_limit = instance.get_max_time(),
         max_attempt=instance.get_max_try(),
         attempt_left=instance.get_max_try(),
+        max_range=lvlData.level*10,
     )
     session.add(solo_sessson)
     session.commit()
@@ -70,7 +72,9 @@ def SessionFinished(ClassicEndLevelData :ClassicEndLevelData):
         raise HTTPException(status_code=403 , detail="Invalid level")
     L = engine.SoloMode(level)
     # la session doit correspondre au niveau annonce
-    if that_session.max_attempt != L.get_max_try() or that_session.number > level*10:
+    # les essais bonus (power-up "Vie bonus") sont ajoutes a max_attempt: on les retire pour verifier le niveau
+    extra_attempts = LIFE_BONUS * session.query(SessionPowerup).filter_by(session_id = that_session.id , item_id = ITEM_LIFE).count()
+    if that_session.max_attempt - extra_attempts != L.get_max_try() or that_session.number > level*10:
         raise HTTPException(status_code=409 , detail="Session does not match this level")
 
     inputs = [t.number for t in session.query(UserTries).filter_by(session_id = that_session.id).all()]
@@ -78,6 +82,8 @@ def SessionFinished(ClassicEndLevelData :ClassicEndLevelData):
         raise HTTPException(status_code=409 , detail="The number has not been found")
 
     coins = L.getRewardCoin(inputs , time_used , that_session.number)
+    if session.query(SessionPowerup).filter_by(session_id = that_session.id , item_id = ITEM_MULTIPLIER).count():
+        coins *= 2
     xp = L.getXP(inputs , time_used , that_session.number)
     stars = L.getStars(inputs , time_used , that_session.number)
 

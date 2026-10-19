@@ -4,13 +4,14 @@ import { FaFire, FaLightbulb, FaHeart, FaGift, FaRocket } from "react-icons/fa";
 import { CartoonButton } from "../../components/assets";
 import useGameSound from "../../hooks/SoundHooks";
 
+// Chaque bonus consomme un objet de l'inventaire (ids de la boutique)
 const bonusList = [
-  { id: "extraAttempt", icon: <FaHeart />, label: "+3 essais", description: "Augmente le nombre d'essais maximum" },
-  { id: "hint", icon: <FaLightbulb />, label: "Indice", description: "Reçois un indice après 3 erreurs" },
-  { id: "fire", icon: <FaFire />, label: "Rage", description: "Double les points de victoire" },
+  { id: 3, icon: <FaHeart />, label: "+3 essais", description: "Trois essais de plus" },
+  { id: 4, icon: <FaLightbulb />, label: "Indice", description: "Un conseil après 3 erreurs" },
+  { id: 8, icon: <FaFire />, label: "Rage", description: "Pièces x2 si tu gagnes" },
 ];
 
-export default function GamePreparationOverlay({ level, onStart, onCancel }) {
+export default function GamePreparationOverlay({ level, onStart, onCancel, inventory = {}, onShop }) {
   const [selectedBonuses, setSelectedBonuses] = useState([]);
   const { inGameSound } = useGameSound()
 
@@ -46,25 +47,38 @@ export default function GamePreparationOverlay({ level, onStart, onCancel }) {
         <div className="mt-6">
           <div className="flex gap-2 items-center justify-center text-2xl font-semibold mb-3 text-white"><FaGift /><p> Bonus disponibles :</p></div>
           <div className="flex flex-wrap justify-center gap-4">
-            {bonusList.map(b => (
-              <div
-                key={b.id}
-                onClick={() => toggleBonus(b.id)}
-                className={`cursor-pointer rounded-2xl p-3 w-28 text-center transition-all ${selectedBonuses.includes(b.id)
-                    ? "bg-yellow-400 text-black scale-105 shadow-lg"
-                    : "bg-white/20 text-white hover:bg-white/30"
-                  }`}
-              >
-                <div className="text-3xl flex justify-center">{b.icon}</div>
-                <div className="font-bold text-sm">{b.label}</div>
-                <div className="text-[10px] opacity-80">{b.description}</div>
-              </div>
-            ))}
+            {bonusList.map(b => {
+              const owned = inventory[b.id] ?? 0
+              return (
+                <button
+                  key={b.id}
+                  type="button"
+                  disabled={owned === 0}
+                  aria-pressed={selectedBonuses.includes(b.id)}
+                  onClick={() => toggleBonus(b.id)}
+                  className={`relative rounded-2xl p-3 w-28 text-center transition-all ${owned === 0
+                      ? "bg-white/10 text-white/40 cursor-not-allowed"
+                      : selectedBonuses.includes(b.id)
+                        ? "bg-yellow-400 text-black scale-105 shadow-lg"
+                        : "bg-white/20 text-white hover:bg-white/30"
+                    }`}
+                >
+                  <span className="absolute -top-2 -right-2 grid place-items-center min-w-6 h-6 px-1 rounded-full bg-black text-white text-xs font-bold">×{owned}</span>
+                  <div className="text-3xl flex justify-center">{b.icon}</div>
+                  <div className="font-bold text-sm">{b.label}</div>
+                  <div className="text-xs opacity-80">{b.description}</div>
+                </button>
+              )
+            })}
           </div>
         </div>
 
+        {bonusList.every(b => (inventory[b.id] ?? 0) === 0) && onShop && (
+          <p className="text-center text-white/80 mt-3">Aucun bonus en stock. <button type="button" onClick={onShop} className="underline font-bold text-yellow-200 min-h-11">Va à la boutique</button></p>
+        )}
+
         <div className="flex justify-center gap-4 mt-8">
-          <CartoonButton color="green" onClick={()=> {onStart();inGameSound.click()}}>
+          <CartoonButton color="green" onClick={()=> {onStart(selectedBonuses.filter(id => (inventory[id] ?? 0) > 0));inGameSound.click()}}>
             <div className="flex justify-center align-items gap-3"><FaRocket />GO !</div>
           </CartoonButton>
           <CartoonButton color="red" onClick={()=> {onCancel();inGameSound.click()}}>

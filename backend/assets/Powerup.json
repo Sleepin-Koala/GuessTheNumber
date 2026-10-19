@@ -1,4 +1,3 @@
-
 [
     {
         "name": "Nombre Pair",
@@ -17,14 +16,14 @@
     },
     {
         "name": "Vie bonus",
-        "description": "+1 tentative",
+        "description": "+3 essais (avant ou pendant la partie)",
         "price": 80,
         "id": 3,
         "currency": "coin"
     },
     {
         "name": "Conseiller IA",
-        "description": "Suggère un bon nombre",
+        "description": "Suggère le meilleur prochain nombre",
         "price": 120,
         "id": 4,
         "currency": "coin"
@@ -46,15 +45,15 @@
     {
         "id": 7,
         "name": "Ralenti",
-        "descritpion": "Double le temps restant (5s)",
         "price": 150,
-        "currency": "coin"
+        "currency": "coin",
+        "description": "Double le temps restant (au moins +5 s)"
     },
     {
         "id": 8,
         "name": "Multiplicateur x2",
-        "descritpion": "Gagne 2x de coins après victoire",
         "price": 200,
-        "currency": "coin"
+        "currency": "coin",
+        "description": "Double les pièces gagnées si tu gagnes (avant le 1er essai)"
     }
 ]

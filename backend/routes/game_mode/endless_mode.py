@@ -37,7 +37,8 @@ def start_endless(EndlessData: EndlessData):
         started_time = time.time(),
         ended_time = None,  
         player_id = EndlessData.player_id,
-        type = "endless"
+        type = "endless",
+        max_range = EndlessData.stage*10,
     )   
 
     session.add(endless_session)

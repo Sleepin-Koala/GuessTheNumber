@@ -33,6 +33,7 @@ class GameSession(Base):
     ended_time = Column(Float , nullable=True)
     player_id = Column(String , ForeignKey("player.id"))
     type = Column(String)
+    max_range = Column(Integer, nullable=True)   # plage du nombre mystere (pour les power-ups)
 
     __mapper_args__ = {
         'polymorphic_on' : type
@@ -107,6 +108,16 @@ class Items(Base):
     name = Column(String)
     price = Column(Integer)
 
+class SessionPowerup(Base):
+    """Un power-up utilise pendant une partie (au plus un de chaque sorte par partie)."""
+    __tablename__ = "session_powerups"
+    id = Column(String, primary_key=True)
+    session_id = Column(String, ForeignKey("sessions.id"))
+    player_id = Column(String, ForeignKey("player.id"))
+    item_id = Column(Integer)
+    created_at = Column(Float)
+
+
 class PlayerItems(Base):
     __tablename__ = "hold"
     id = Column(Integer , autoincrement=True , primary_key=True)
@@ -123,4 +134,13 @@ class PlayerItems(Base):
 def make_db():
     engine = create_engine("sqlite:///main.db")
     Base.metadata.create_all(engine)
+    _migrate(engine)
     return engine
+
+
+def _migrate(engine):
+    """Ajoute les colonnes apparues apres la creation d'une base existante (SQLite)."""
+    with engine.begin() as conn:
+        cols = [row[1] for row in conn.exec_driver_sql("PRAGMA table_info(sessions)")]
+        if "max_range" not in cols:
+            conn.exec_driver_sql("ALTER TABLE sessions ADD COLUMN max_range INTEGER")

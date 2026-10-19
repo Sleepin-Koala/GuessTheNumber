@@ -24,6 +24,7 @@ def start_discovery(DiscoverData: DiscoverData):
         ended_time = None,
         player_id = player.id,
         type = "discover",
+        max_range = DiscoverData.max_range,
     )
     
     session.add(new_session)

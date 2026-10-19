@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ShopCategory from "./ShopCategory";
 import powerUp from "../../assets/Powerup"
 import useGameSound from "../../hooks/SoundHooks"
+import useInventory from "../../hooks/useInventory"
 
 
 export function shop() {
@@ -66,6 +67,7 @@ export default function Shop() {
     const [activeCategory, setActiveCategory] = useState("hint");
     const [notification, setNotification] = useState(null);
     const {situationSound} = useGameSound()
+    const { items: inventory, refresh: refreshInventory } = useInventory(player.id)
 
     useEffect(() => {
         const fetchData = async () => {
@@ -97,6 +99,7 @@ export default function Shop() {
                 itemId: item.id,
             });
             setPlayer(res);
+            refreshInventory()
             situationSound.onBuy()
             setNotification({ type: "success", message: `${item.name} acheté !` });
             setTimeout(() => setNotification(null), 2000);
@@ -137,6 +140,7 @@ export default function Shop() {
                                     <ShopCard
                                         item={item}
                                         isAffordable={item.price <= player.coins}
+                                        owned={inventory[item.id] ?? 0}
                                         // quantity={inventory[item.id] || 0}
                                         onBuy={() => handleBuy(item)}
                                     // disabled={

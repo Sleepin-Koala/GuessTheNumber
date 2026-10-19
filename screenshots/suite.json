@@ -3,12 +3,12 @@
   [
    "Home: player auto-created",
    "PASS",
-   "5d1dacac-b975-45ff-8a40-b28a86645c2b"
+   "721b6706-4090-47f4-bd0d-78e7ea584475"
   ],
   [
    "Home: starting wallet 500 coins / 5 gems / level 1",
    "PASS",
-   "{'id': '5d1dacac-b975-45ff-8a40-b28a86645c2b', 'name': 'player_49590521352411', 'gems': 5, 'coins': 500, 'xp': 0, 'level': 1}"
+   "{'id': '721b6706-4090-47f4-bd0d-78e7ea584475', 'name': 'player_31561041480147', 'gems': 5, 'coins': 500, 'xp': 0, 'level': 1}"
   ],
   [
    "Home: header shows player name",
@@ -78,7 +78,7 @@
   [
    "Discovery: guesses recorded on server",
    "PASS",
-   "10"
+   "6"
   ],
   [
    "Classic: level grid shown, only level 1 unlocked",
@@ -103,7 +103,7 @@
   [
    "Classic: reward paid + level 2 unlocked",
    "PASS",
-   "{'id': '5d1dacac-b975-45ff-8a40-b28a86645c2b', 'name': 'Tester42', 'gems': 6, 'coins': 770, 'xp': 45, 'level': 2}"
+   "{'id': '721b6706-4090-47f4-bd0d-78e7ea584475', 'name': 'Tester42', 'gems': 6, 'coins': 772, 'xp': 46, 'level': 2}"
   ],
   [
    "Classic: game-over overlay after attempts exhausted",
@@ -138,7 +138,7 @@
   [
    "Shop: purchase debits coins",
    "PASS",
-   "770->650"
+   "772->652"
   ],
   [
    "Shop: header coins updated",

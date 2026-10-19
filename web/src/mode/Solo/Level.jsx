@@ -6,6 +6,9 @@ import GameplayPanel from "../../components/GameplayPanel";
 import WinOverlay from "./WinOverlay"
 import GameOverOverlay from "./GameOverOverlay"
 import StartGameOverlay from "./StartGameOverlay"
+import PowerUpTray from "../../components/PowerUpTray"
+import useInventory from "../../hooks/useInventory"
+import { ITEM, describeEffect } from "../../assets/powerupMeta"
 import { FaClock  , FaPause} from "react-icons/fa";
 import PauseOverlay from "../../components/PauseOverlay"
 import useGameSound from "../../hooks/SoundHooks";
@@ -70,6 +73,13 @@ export default function Level({ playerData, playerSetter, current_level, setLeve
   const timerRef = useRef(null)
   const navigate = useNavigate()
   const [isPaused , setIsPaused] = useState(false)
+  // power-ups: inventaire, ceux deja utilises dans cette partie, messages affiches, bonus choisis avant le depart
+  const { items: inventory, refresh: refreshInventory } = useInventory(playerData.id)
+  const [usedPowerups, setUsedPowerups] = useState([])
+  const [infos, setInfos] = useState([])
+  const pregame = useRef([])
+  const advisorArmed = useRef(false)
+  const wrongGuesses = useRef(0)
 
   const {inGameSound} = useGameSound()
 
@@ -99,6 +109,19 @@ export default function Level({ playerData, playerSetter, current_level, setLeve
     );
   }
 
+  async function applyPowerup(itemId, sessionId = session?.session_id) {
+    try {
+      const r = await api.post("/game/powerup", { session_id: sessionId, player_id: playerData.id, item_id: itemId })
+      setUsedPowerups(u => [...u, itemId])
+      setInfos(i => [...i, { text: describeEffect(r) }])
+      if (r.kind === "attempts") setSessionData(s => ({ ...s, attempt_left: r.attempt_left, max_attempt: r.max_attempt }))
+      if (r.kind === "time") setTimeLeft(t => (t ?? 0) + r.extra)
+      refreshInventory()
+    } catch (e) {
+      setInfos(i => [...i, { text: e.message, error: true }])
+    }
+  }
+
   async function onGuessr() {
     if (gameEnded || !session.session_id || !parseInt(localNumber)) return;
     try {
@@ -122,14 +145,17 @@ export default function Level({ playerData, playerSetter, current_level, setLeve
         return
       }
 
-      else if (res.result === "PLUS") {
+      else if (res.result === "PLUS" || res.result === "MOINS") {
         setNumbers(prev => [...prev, [parseInt(localNumber), res.result]])
         setIsShaking(true)
         inGameSound.isFalse()
-      } else if (res.result === "MOINS") {
-        setNumbers(prev => [...prev, [parseInt(localNumber), res.result]])
-        setIsShaking(true)
-        inGameSound.isFalse()
+
+        // bonus "Indice": le conseil arrive apres 3 erreurs
+        wrongGuesses.current += 1
+        if (advisorArmed.current && wrongGuesses.current >= 3) {
+          advisorArmed.current = false
+          applyPowerup(ITEM.ADVISOR, session.session_id)
+        }
       }
 
 
@@ -166,11 +192,18 @@ export default function Level({ playerData, playerSetter, current_level, setLeve
           <GameplayPanel hint={hint} distance={distance} numbers={numbers} isShaking={isShaking}
             range={10 * Number(current_level)} localNumber={localNumber}
             onGuessr={onGuessr} NumberSetter={setLocalNumber} attempt={numbers.length} 
-            onPause={HandlePause} disabled={isPaused}/>
+            onPause={HandlePause} disabled={isPaused}
+            infos={infos}
+            tray={<PowerUpTray
+              ids={advisorArmed.current ? [1, 2, 3, 5, 6, 7] : [1, 2, 3, 4, 5, 6, 7]}
+              items={inventory} used={usedPowerups} onUse={applyPowerup}
+              disabled={isPaused || gameEnded || !session} />}/>
         </div>
 
         {!isReady && <StartGameOverlay level={current_level}
-          onStart={() => setReady(true)}
+          inventory={inventory}
+          onShop={() => navigate("/shop")}
+          onStart={(selected = []) => { pregame.current = selected; setReady(true) }}
           onCancel={() => setLevelPlaying(null)} />}
 
         {isPaused && <PauseOverlay onResume={HandlePause}
@@ -193,6 +226,10 @@ export default function Level({ playerData, playerSetter, current_level, setLeve
     setLocalNumber("")
     setTimeLeft(null)
     setNumbers([])
+    setUsedPowerups([])
+    setInfos([])
+    wrongGuesses.current = 0
+    advisorArmed.current = false
     setGameEnded(false) 
   }, [])
 
@@ -234,6 +271,15 @@ export default function Level({ playerData, playerSetter, current_level, setLeve
         if (res.time_limit && res.time_limit > 0) {
           setTimeLeft(res.time_limit)
         }
+
+        // bonus choisis avant le depart: "+3 essais" et "Rage" s'appliquent tout de suite, "Indice" s'arme
+        const chosen = pregame.current
+        pregame.current = []
+        advisorArmed.current = chosen.includes(ITEM.ADVISOR)
+        for (const id of [ITEM.LIFE, ITEM.MULTIPLIER]) {
+          if (chosen.includes(id)) await applyPowerup(id, res.session_id)
+        }
+        if (advisorArmed.current) setInfos(i => [...i, { text: "Indice armé : un conseil arrivera après 3 erreurs" }])
       } catch (e) {
         // niveau verrouille / joueur inconnu: retour a la selection
         console.error(e)

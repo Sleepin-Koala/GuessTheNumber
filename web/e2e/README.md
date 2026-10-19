@@ -7,6 +7,10 @@ Prerequis: `pip install playwright && playwright install chromium`, backend sur 
 GTN_DB=/chemin/vers/backend/main.db python suite.py ../screenshots      # fonctionnel (38 verifications)
 python matrix.py ../screenshots/final final                              # 9 ecrans x 8 viewports
 python pwa.py ../screenshots                                             # manifest, service worker, hors ligne
+GTN_DB=/chemin/vers/backend/main.db python powerups.py ../screenshots/powerups   # boutique -> inventaire -> bonus -> parties (18 verifications)
+
+# API (14 tests, base temporaire, aucun serveur a lancer):
+pip install pytest httpx && pytest backend/tests
 ```
 
 ## Scenes 3D

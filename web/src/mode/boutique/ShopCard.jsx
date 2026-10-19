@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, useAnimationControls } from "framer-motion";
 import { FaCoins, FaLock, FaCheck, FaBolt, FaHourglassHalf, FaGem, FaHeart } from "react-icons/fa";
 import { GiCrystalEye } from "react-icons/gi";
+import { POWERUPS } from "../../assets/powerupMeta";
 
 
 // Mapping des icônes selon le type de power-up (à adapter à tes données)
@@ -13,7 +14,7 @@ const getIcon = (name) => {
   return <FaBolt />; // Défaut
 };
 
-export default function ShopCard({ item, isAffordable, onBuy }) {
+export default function ShopCard({ item, isAffordable, onBuy, owned = 0 }) {
   const controls = useAnimationControls()
   const [floaters, setFloaters] = useState([])
 
@@ -36,10 +37,13 @@ export default function ShopCard({ item, isAffordable, onBuy }) {
           : 'bg-linear-to-b from-[#2b2447] to-[#1c1733] border-white/10 saturate-50 opacity-80'
         }`}
     >
+      {owned > 0 && (
+        <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-black/50 text-yellow-200 text-sm font-bold" aria-label={`${owned} en stock`}>×{owned}</span>
+      )}
       <div className="flex flex-col items-center gap-2 text-center">
         <div className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl ring-4 shadow-[inset_0_-5px_0_rgba(0,0,0,.2)]
                     ${isAffordable ? 'bg-linear-to-b from-yellow-300 to-orange-400 ring-white/40 text-amber-900' : 'bg-slate-700 ring-white/10 text-slate-400'}`}>
-          {getIcon(item.name)}
+          {POWERUPS[item.id]?.icon ?? getIcon(item.name)}
         </div>
         <h3 className="text-2xl text-white leading-tight">{item.name}</h3>
       </div>

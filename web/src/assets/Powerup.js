@@ -18,7 +18,7 @@ export default [
     },
     {
         "name": "Vie bonus",
-        "description": "+1 tentative",
+        "description": "+3 essais (avant ou pendant la partie)",
         "price": 80,
         "id": 3,
         "currency": "coin" ,
@@ -26,7 +26,7 @@ export default [
     },
     {
         "name": "Conseiller IA",
-        "description": "Suggère un bon nombre",
+        "description": "Suggère le meilleur prochain nombre",
         "price": 120,
         "id": 4,
         "currency": "coin",
@@ -51,7 +51,7 @@ export default [
     {
         "id": 7,
         "name": "Ralenti",
-        "description": "Double le temps restant (5s)",
+        "description": "Double le temps restant (au moins +5 s)",
         "price": 150,
         "currency": "coin",
         "category" : "help"
@@ -59,7 +59,7 @@ export default [
     {
         "id": 8,
         "name": "Multiplicateur x2",
-        "description": "Gagne 2x de coins après victoire",
+        "description": "Double les pièces gagnées si tu gagnes (avant le 1er essai)",
         "price": 200,
         "currency": "coin",
         "category" : "bonus"

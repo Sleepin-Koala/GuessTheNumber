@@ -65,3 +65,13 @@ def getCount(data: BuyData):
     holding = _holding(player.id , item.id)
 
     return holding.amount or 0 if holding else 0
+
+
+@router.get("/inventory/{player_id}")
+def getInventory(player_id: str):
+    player = session.query(Player).filter_by(id = player_id).first()
+    if not player:
+        raise HTTPException(404 , "not found")
+
+    rows = session.query(PlayerItems).filter_by(playerId = player.id).all()
+    return {"items": {str(r.itemId): r.amount for r in rows if (r.amount or 0) > 0}}

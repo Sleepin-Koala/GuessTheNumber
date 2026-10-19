@@ -7,6 +7,7 @@ from routes.game_mode.endless_mode import router as endless_mode_router
 from routes.game_mode.discovery_mode import router as discovery_mode_router
 from routes.game_mode.classic_mode import router as classic_mode_router
 from routes.game_mode.duel_mode import router as duel_mode_router
+from routes.powerups import router as powerups_router
 
 
 
@@ -18,6 +19,7 @@ router.include_router(endless_mode_router)
 router.include_router(discovery_mode_router)
 router.include_router(classic_mode_router)
 router.include_router(duel_mode_router)
+router.include_router(powerups_router)
 
 # quand le joueur tente de guess
 @router.post("/guess")
