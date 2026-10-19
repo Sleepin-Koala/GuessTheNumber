@@ -1,6 +1,6 @@
 # Configuration Fly.io du serveur (API + WebSocket). Se lance depuis ce dossier (`cd backend && fly deploy`).
 # Premier deploiement: voir DEPLOY.md. Remplace `app` par un nom unique (il devient <app>.fly.dev).
-app = "plus-minus-api"
+app = "plus-minus-api-4221"
 primary_region = "cdg"            # Paris; liste des regions: `fly platform regions`
 
 [env]
