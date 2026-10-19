@@ -332,6 +332,8 @@ def sweep(now: float = None):
         except BaseException:
             session.rollback()
             raise
+        finally:
+            session.rollback()       # relache la connexion (voir db_guard)
 
 
 async def sweeper():
@@ -357,6 +359,8 @@ def _start_grace(room_id: str , player_id: str):
         except BaseException:
             session.rollback()
             raise
+        finally:
+            session.rollback()       # relache la connexion (voir db_guard)
 
 
 # ---------------------------------------------------------------------------
@@ -378,6 +382,8 @@ def _room_snapshot(room_id: str , player_id: str):
         except BaseException:
             session.rollback()
             raise
+        finally:
+            session.rollback()       # relache la connexion (voir db_guard)
 
 
 def _lobby_snapshot():
@@ -387,6 +393,8 @@ def _lobby_snapshot():
         except BaseException:
             session.rollback()
             raise
+        finally:
+            session.rollback()       # relache la connexion (voir db_guard)
 
 
 _detached: set = set()

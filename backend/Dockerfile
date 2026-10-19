@@ -18,8 +18,9 @@ RUN useradd --create-home app && mkdir -p /data && chown -R app:app /app /data
 USER app
 
 EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=5s --start-period=15s \
-  CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=4).status == 200 else 1)"
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
+  CMD python -c "import os,sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:%s/health' % os.environ.get('PORT', '8080'), timeout=4).status == 200 else 1)"
 
 # UN SEUL processus: la limitation de debit et les connexions WebSocket sont gardees en memoire
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+# $PORT: le port impose par l'hebergeur (Render); 8080 par defaut (Fly, local)
+CMD ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}"]

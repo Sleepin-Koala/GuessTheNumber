@@ -18,7 +18,7 @@ from starlette.requests import HTTPConnection
 from all import *
 
 PUBLIC = {
-    ("GET", "/health"), ("GET", "/whatsup"),
+    ("GET", "/health"), ("GET", "/whatsup"), ("GET", "/whoami"),
     ("POST", "/user/new_player"), ("POST", "/user/claim"),
     ("GET", "/docs"), ("GET", "/redoc"), ("GET", "/openapi.json"),
 }
@@ -77,6 +77,5 @@ def ws_player_id(ws):
         try:
             player = player_for_token(token)
             return player.id if player else None
-        except BaseException:
-            session.rollback()
-            raise
+        finally:
+            session.rollback()       # relache la connexion (voir db_guard)

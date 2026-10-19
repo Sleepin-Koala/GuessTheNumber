@@ -1,0 +1,21 @@
+# Blueprint Render: le serveur (API + WebSocket) sur l'offre GRATUITE. La base est chez Neon (gratuit aussi), le site chez
+# Cloudflare Pages. Voir DEPLOY.md. Les valeurs secretes se saisissent dans le tableau de bord Render (sync: false).
+services:
+  - type: web
+    name: plus-minus-api
+    runtime: docker
+    plan: free
+    region: frankfurt                 # la plus proche de Paris
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: GTN_DATABASE_URL         # adresse de connexion donnee par Neon (postgresql://...)
+        sync: false
+      - key: GTN_ALLOWED_ORIGINS      # adresse du site Cloudflare Pages (https://<projet>.pages.dev)
+        sync: false
+      - key: GTN_TRUST_PROXY
+        value: "1"
+      - key: GTN_PROXY_HOPS           # nombre de proxys devant le serveur: a verifier avec /whoami (voir DEPLOY.md)
+        value: "1"

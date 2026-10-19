@@ -43,4 +43,9 @@ def db_guard(conn: HTTPConnection):
         raise
     finally:
         current.player_id = None
-        db_lock.release()
+        # relache la connexion a la base (sinon une simple lecture la garde "en transaction", et un hebergeur qui met la
+        # base en veille quand elle est inactive ne pourrait plus le faire)
+        try:
+            session.rollback()
+        finally:
+            db_lock.release()

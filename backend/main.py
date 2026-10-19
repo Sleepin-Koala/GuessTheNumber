@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from routes.realtime import hub
 from routes.auth import authenticate
-from security import SecurityMiddleware, ALLOWED_ORIGINS
+from security import SecurityMiddleware, ALLOWED_ORIGINS, client_ip
 from routes.game_mode.duel_mode import sweeper
 from all import db_guard
 from fastapi.middleware.cors import CORSMiddleware
@@ -53,6 +53,13 @@ app.include_router(shop_router)
 @app.get('/health')
 def getHealth():
     return "En Bonne Sante"
+
+@app.get('/whoami')
+def whoami(request: Request):
+    """Adresse que le serveur croit etre celle de l'appelant. Sert a verifier le reglage GTN_PROXY_HOPS apres un deploiement
+    derriere un proxy: l'adresse affichee doit etre la tienne (ex. celle donnee par https://ifconfig.me)."""
+    return {"ip": client_ip(request.scope)}
+
 
 @app.get('/whatsup')
 def getStatus():

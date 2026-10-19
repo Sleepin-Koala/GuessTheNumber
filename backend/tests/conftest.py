@@ -7,6 +7,9 @@ from pathlib import Path
 
 BACKEND = Path(__file__).resolve().parents[1]
 os.environ["GTN_RATE_LIMIT"] = "off"       # les tests creent beaucoup de comptes; test_security.py reactive la limitation
+# Pour tester sur une vraie base Postgres: GTN_TEST_DATABASE_URL=postgresql://user:mdp@hote/base pytest backend/tests
+if os.environ.get("GTN_TEST_DATABASE_URL"):
+    os.environ["GTN_DATABASE_URL"] = os.environ["GTN_TEST_DATABASE_URL"]
 os.environ["DUEL_SWEEP_INTERVAL"] = "3600"  # les tests appellent sweep() eux-memes: pas de balayeur concurrent
 _tmp = tempfile.mkdtemp(prefix="gtn-tests-")
 os.chdir(_tmp)                      # `sqlite:///main.db` est relatif au dossier courant
@@ -19,6 +22,13 @@ from fastapi.testclient import TestClient
 
 from main import app
 import all as A
+
+if os.environ.get("GTN_TEST_DATABASE_URL"):
+    # une base partagee garde les donnees d'un lancement a l'autre: on repart de zero (et on recharge le catalogue)
+    from routes.shop import fillItems
+    A.Base.metadata.drop_all(A.db)
+    A.Base.metadata.create_all(A.db)
+    fillItems()
 
 
 UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")

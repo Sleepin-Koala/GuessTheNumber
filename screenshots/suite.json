@@ -3,12 +3,12 @@
   [
    "Home: player auto-created",
    "PASS",
-   "bbe7b080-f281-45fc-b3a1-4de10fd8acc3"
+   "7058ca74-9f81-480a-8d4c-6bb024fa80f2"
   ],
   [
    "Home: starting wallet 500 coins / 5 gems / level 1",
    "PASS",
-   "{'id': 'bbe7b080-f281-45fc-b3a1-4de10fd8acc3', 'name': 'player_0', 'gems': 5, 'coins': 500, 'xp': 0, 'level': 1}"
+   "{'id': '7058ca74-9f81-480a-8d4c-6bb024fa80f2', 'name': 'player_468169', 'gems': 5, 'coins': 500, 'xp': 0, 'level': 1}"
   ],
   [
    "Home: header shows player name",
@@ -113,7 +113,7 @@
   [
    "Classic: reward paid + level 2 unlocked",
    "PASS",
-   "{'id': 'bbe7b080-f281-45fc-b3a1-4de10fd8acc3', 'name': 'Tester42', 'gems': 6, 'coins': 766, 'xp': 43, 'level': 2}"
+   "{'id': '7058ca74-9f81-480a-8d4c-6bb024fa80f2', 'name': 'Tester42', 'gems': 6, 'coins': 766, 'xp': 43, 'level': 2}"
   ],
   [
    "Classic: game-over overlay after attempts exhausted",

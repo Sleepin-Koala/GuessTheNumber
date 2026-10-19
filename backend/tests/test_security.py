@@ -309,6 +309,65 @@ def test_the_database_location_comes_from_the_environment(tmp_path, monkeypatch)
     import database
     target = tmp_path / "volume" / "x.db"
     target.parent.mkdir()
+    monkeypatch.delenv("GTN_DATABASE_URL", raising=False)     # (un lancement sur Postgres le definit)
     monkeypatch.setenv("GTN_DB_PATH", str(target))
     database.make_db()
     assert target.exists() and target.stat().st_size > 0
+
+
+@pytest.mark.parametrize("given,expected", [
+    ("postgres://u:p@host/db", "postgresql+psycopg://u:p@host/db"),                            # forme donnee par certains hebergeurs
+    ("postgresql://u:p@host/db?sslmode=require", "postgresql+psycopg://u:p@host/db?sslmode=require"),   # forme donnee par Neon
+    ("postgresql+psycopg://u:p@host/db", "postgresql+psycopg://u:p@host/db"),                 # deja complete: inchangee
+    ("sqlite:///autre.db", "sqlite:///autre.db"),
+])
+def test_database_urls_are_normalised_for_the_postgres_driver(monkeypatch, given, expected):
+    import database
+    monkeypatch.setenv("GTN_DATABASE_URL", given)
+    assert database.database_url() == expected
+
+
+def test_the_url_wins_over_the_sqlite_path_and_the_default_is_a_local_file(monkeypatch):
+    import database
+    monkeypatch.delenv("GTN_DATABASE_URL", raising=False)
+    monkeypatch.delenv("GTN_DB_PATH", raising=False)
+    assert database.database_url() == "sqlite:///main.db"
+    monkeypatch.setenv("GTN_DB_PATH", "/data/main.db")
+    assert database.database_url() == "sqlite:////data/main.db"
+    monkeypatch.setenv("GTN_DATABASE_URL", "postgres://u:p@h/d")
+    assert database.database_url().startswith("postgresql+psycopg://")
+
+
+def test_money_columns_hold_more_than_a_32_bit_integer(client):
+    """Postgres limite un Integer a ~2,1 milliards: les pieces / mises doivent etre en 64 bits."""
+    pid = new_player(client)
+    with db() as s:
+        s.query(A.Player).filter_by(id=pid).first().coins = 5 * 10 ** 12
+    assert client.get("/user/me").json()["coins"] == 5 * 10 ** 12
+
+
+def test_endless_rewards_are_capped_so_nothing_can_overflow():
+    import engine
+    assert engine.EndlessMode.getRoundReward(100, 10 ** 9) == engine.MAX_REWARD
+    assert engine.EndlessMode.getRoundReward(3, 100) == 195
+
+
+def test_whoami_reports_the_address_the_server_sees(anon, monkeypatch):
+    import security
+    r = anon.get("/whoami")
+    assert r.status_code == 200 and r.json()["ip"] == "testclient"
+    monkeypatch.setattr(security, "TRUST_PROXY", True)
+    monkeypatch.setattr(security, "PROXY_HOPS", 1)
+    assert anon.get("/whoami", headers={"X-Forwarded-For": "6.6.6.6, 203.0.113.7"}).json()["ip"] == "203.0.113.7"
+
+
+def test_no_request_leaves_the_shared_session_inside_a_transaction(client, anon):
+    """Une lecture ne doit pas garder une connexion ouverte "en transaction" (une base hebergee ne pourrait plus se mettre en veille)."""
+    client.get("/user/me")
+    anon.get("/health")
+    with A.db_lock:
+        assert not A.session.in_transaction()
+    pid = new_player(client)
+    client.get(f"/shop/inventory/{pid}")
+    with A.db_lock:
+        assert not A.session.in_transaction()

@@ -28,6 +28,11 @@ export async function quietly(fn) {
   try { return await fn() } finally { quietDepth-- }
 }
 
+// Serveur gratuit endormi: sa premiere reponse peut prendre jusqu'a une minute. Au-dela de 5 s on le signale
+// (NetworkStatus affiche "Le serveur se reveille").
+let slowCount = 0
+const SLOW_AFTER_MS = 5000
+
 async function request(method, path, { params, body } = {}) {
 
   // Build URL with optional query params
@@ -51,10 +56,26 @@ async function request(method, path, { params, body } = {}) {
     options.body = JSON.stringify(body);
   }
 
+  let slow = false
+  const slowTimer = setTimeout(() => {
+    slow = true
+    slowCount++
+    window.dispatchEvent(new CustomEvent('gtn:api-slow', { detail: slowCount }))
+  }, SLOW_AFTER_MS)
+  const done = () => {
+    clearTimeout(slowTimer)
+    if (slow) {
+      slowCount--
+      window.dispatchEvent(new CustomEvent('gtn:api-slow', { detail: slowCount }))
+    }
+  }
+
   let res;
   try {
     res = await fetch(url, options);
+    done()
   } catch (e) {
+    done()
     // Network error (backend not running, CORS preflight fail, etc.)
     throw new ApiError(
       `Cannot reach the server. Is the backend running at ${SERVER}? (${e.message})`,

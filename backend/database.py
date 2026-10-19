@@ -1,7 +1,7 @@
 import os
 
 from sqlalchemy.orm import declarative_base , relationship
-from sqlalchemy import Column , Integer , String ,Float, ForeignKey , create_engine
+from sqlalchemy import Column , Integer , BigInteger , String ,Float, ForeignKey , create_engine
 from typing import Optional
 
 Base = declarative_base()
@@ -11,10 +11,10 @@ class Player(Base):
     id = Column(String , primary_key=True)
     name = Column(String)
     level = Column(Integer , default=1)
-    created_at = Column(Integer)
-    xp = Column(Integer , default=0)
-    coins = Column(Integer , default=500)
-    gems = Column(Integer , default=10)
+    created_at = Column(Float)                         # time.time(): une date en secondes avec decimales
+    xp = Column(BigInteger , default=0)                # BigInteger: Postgres limite Integer a ~2,1 milliards
+    coins = Column(BigInteger , default=500)
+    gems = Column(BigInteger , default=10)
     token_hash = Column(String , nullable=True, index=True)    # sha256 du jeton secret du joueur (le jeton lui-meme n'est jamais stocke)
 
     # Relationships
@@ -44,7 +44,7 @@ class GameSession(Base):
 class EndlessSession(GameSession):
     __tablename__ = "endless"
     id = Column(String  , ForeignKey("sessions.id"),primary_key=True)
-    bet = Column(Integer , default=None , nullable=True)
+    bet = Column(BigInteger , default=None , nullable=True)
     stage =  Column(Integer)
     max_attempt = Column(Integer)
     attempt_left = Column(Integer)
@@ -84,11 +84,11 @@ class UserTries(Base):
 
 class Duel(Base):
     __tablename__ = "duel"
-    id = Column(String ,ForeignKey("sessions.id") ,primary_key=True)
+    id = Column(String , primary_key=True)             # (n'est PAS une session: Postgres verifie les cles etrangeres)
     host_id = Column(String , ForeignKey("player.id"))
     guest_id = Column(String ,ForeignKey("player.id"), nullable=True , default=None)
     room_name = Column(String)
-    bet_amount = Column(Integer)
+    bet_amount = Column(BigInteger)
     status = Column(String)
     max_range = Column(Integer)
     hider_number = Column(Integer , nullable=True , default=None)
@@ -135,13 +135,32 @@ class PlayerItems(Base):
 
 
 
+def database_url() -> str:
+    """Adresse de la base. `GTN_DATABASE_URL` (ex. Postgres heberge: postgresql://user:mdp@hote/base) prend le dessus;
+    sinon un fichier SQLite (`GTN_DB_PATH`, par defaut `main.db`)."""
+    url = os.environ.get("GTN_DATABASE_URL")
+    if url:
+        # les hebergeurs donnent postgres:// ou postgresql://; SQLAlchemy doit savoir quel pilote utiliser (psycopg 3)
+        for prefix in ("postgres://", "postgresql://"):
+            if url.startswith(prefix):
+                return "postgresql+psycopg://" + url[len(prefix):]
+        return url
+    return f"sqlite:///{os.environ.get('GTN_DB_PATH', 'main.db')}"
+
+
 def make_db():
-    """Base SQLite. `GTN_DB_PATH` choisit l'emplacement du fichier (en ligne: un volume persistant, ex. /data/main.db);
-    par defaut `main.db` dans le dossier courant."""
-    path = os.environ.get("GTN_DB_PATH", "main.db")
-    engine = create_engine(f"sqlite:///{path}")
+    url = database_url()
+    if url.startswith("sqlite"):
+        engine = create_engine(url)
+    else:
+        # pre_ping: un hebergeur gratuit coupe les connexions inactives (la base se met en veille); on verifie avant usage
+        engine = create_engine(url , pool_pre_ping=True , pool_recycle=240 , pool_size=3 , max_overflow=2 ,
+                               # prepare_threshold=None: pas de requetes preparees cote serveur (incompatibles avec le "pooler"
+                               # des hebergeurs en mode transaction); connect_timeout: une base en veille met un instant a repondre
+                               connect_args={"prepare_threshold": None , "connect_timeout": 20})
     Base.metadata.create_all(engine)
-    _migrate(engine)
+    if engine.dialect.name == "sqlite":
+        _migrate(engine)       # anciennes bases SQLite uniquement: Postgres est cree d'un coup avec toutes les colonnes
     return engine
 
 

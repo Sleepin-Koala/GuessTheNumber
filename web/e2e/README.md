@@ -31,4 +31,4 @@ ce qui garde Lighthouse a ~95. Les scripts ci-dessus testent donc ce chemin. Pou
 
 ## Apres un deploiement
 
-`python smoke.py https://<site>.pages.dev` : 13 verifications sur le site en ligne (HTTPS, CORS, WebSocket, lien direct, CSP, PWA, hors ligne, duel complet entre deux navigateurs). Voir DEPLOY.md.
+`python smoke.py https://<site>.pages.dev` : 15 verifications sur le site en ligne (HTTPS, CORS, WebSocket, lien direct, CSP, PWA, hors ligne, duel complet entre deux navigateurs). Voir DEPLOY.md.

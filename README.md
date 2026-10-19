@@ -30,7 +30,7 @@ Chaque objet s'utilise une fois par partie et est consommé de l'inventaire ; to
 ## Technologies
 
 - **Web** : React 19, Vite 7, Tailwind CSS 4, React Router, Framer Motion, **Three.js** (`@react-three/fiber`) pour le bonbon mystère et le décor de l'accueil (chargés à la demande, remplacés par un décor léger sans GPU), Recharts, Howler (sons chargés au premier usage), polices Lilita One et Nunito auto-hébergées. PWA : manifeste, service worker maison (shell + fichiers du build en cache, page hors ligne, invite de mise à jour).
-- **Serveur** : Python, FastAPI, SQLAlchemy 2, SQLite (`main.db`), uvicorn[standard] (WebSocket).
+- **Serveur** : Python, FastAPI, SQLAlchemy 2, uvicorn[standard] (WebSocket). Base **SQLite** (`main.db`) par défaut, **PostgreSQL** (Neon, etc.) avec `GTN_DATABASE_URL`.
 
 ## Structure
 
@@ -43,7 +43,8 @@ backend/
   routes/            user, shop, game (+ game_mode/: classic, discovery, endless, duel), powerups,
                      auth (jetons), realtime (diffusion WebSocket)
   assets/Powerup.json  catalogue de la boutique
-  Dockerfile, fly.toml   image du serveur et configuration Fly.io (voir DEPLOY.md)
+  Dockerfile, fly.toml   image du serveur et variante Fly.io (voir DEPLOY.md)
+render.yaml          Blueprint Render (offre gratuite)
   tests/             tests de l'API (pytest)
 web/
   src/               pages (mode/), composants, hooks, API client
@@ -77,7 +78,8 @@ Pour un autre serveur d'API : `VITE_API_URL=https://api.exemple.com pnpm build` 
 
 ```bash
 pip install -r backend/requirements-dev.txt
-pytest backend/tests          # 77 tests de l'API (comptes, jeu, power-ups, duel, temps réel, abandon, sécurité)
+pytest backend/tests          # 89 tests de l'API (comptes, jeu, power-ups, duel, temps réel, abandon, sécurité)
+GTN_TEST_DATABASE_URL=postgresql://user:mdp@hote/base pytest backend/tests   # les mêmes tests sur PostgreSQL (la base est vidée !)
 ```
 
 Tests navigateur (Playwright) : voir `web/e2e/README.md` (dont `smoke.py`, un test de fumée à lancer sur le site en ligne) — parcours complet de chaque mode, deux joueurs dans deux navigateurs, sons, PWA hors ligne, matrice responsive de 10 écrans × 8 tailles, sécurité.
@@ -150,6 +152,10 @@ Réglages (variables d'environnement du serveur, en secondes) :
 | `GTN_RATE_LIMIT` | actif | `off` désactive la limitation (tests) |
 | `GTN_MAX_WS_PER_IP` | 30 | connexions WebSocket simultanées par adresse |
 | `GTN_DOCS` | – | `1` active `/docs` |
+| `GTN_DATABASE_URL` | – | adresse PostgreSQL (`postgresql://…`) ; sinon fichier SQLite |
+| `GTN_DB_PATH` | `main.db` | emplacement du fichier SQLite (ex. `/data/main.db` sur un volume) |
+| `GTN_PROXY_HOPS` | 1 | nombre de proxys de confiance (avec `GTN_TRUST_PROXY=1`) ; `GET /whoami` sert à le vérifier |
+| `GTN_NEW_ACCOUNTS_PER_HOUR` | 10 | comptes créables par heure et par adresse |
 
 **Limites connues** : le jeton est dans `localStorage` (lisible par un script s'il y avait une faille XSS, d'où la CSP) ; limitation de débit et annuaire de sockets en mémoire (un seul processus) ; **il faut servir l'API et le site en HTTPS/WSS** en production (sinon le jeton circule en clair) ; pas de rotation ni d'expiration des jetons, pas de blocage après échecs répétés d'un même jeton (le jeton fait 256 bits, la devinette est hors de portée, mais pas la limitation de débit par adresse) ; la taille est contrôlée sur `Content-Length` seulement.
 
@@ -160,7 +166,7 @@ Réglages (variables d'environnement du serveur, en secondes) :
 Fonctionnel et testé : les quatre modes, la boutique et les power-ups, les statistiques, le temps réel et la gestion des départs, l'authentification par jeton, la PWA, l'adaptation mobile/tablette/PC.
 
 À faire / limites connues :
-- **Déploiement** : prêt à publier (site sur Cloudflare Pages, serveur sur Fly.io avec volume persistant) mais pas encore en ligne : voir [DEPLOY.md](DEPLOY.md). Un seul processus serveur (limitation de débit et annuaire de sockets en mémoire).
+- **Déploiement** : prêt à publier **gratuitement** (site sur Cloudflare Pages, serveur sur Render, base sur Neon ; variante Fly.io payante) mais pas encore en ligne : voir [DEPLOY.md](DEPLOY.md). Un seul processus serveur (limitation de débit et annuaire de sockets en mémoire) ; le serveur gratuit s'endort après 15 min d'inactivité.
 - Pas encore testé sur de vrais appareils iOS / Android (installation, encoche, cadence d'images de la 3D sur GPU mobile).
 - Pas de classement ni de liste d'amis, les gemmes ne servent encore à rien, une seule langue (français).
 - Le jeton de compte est dans `localStorage` ; pas d'expiration ni de rotation des jetons.

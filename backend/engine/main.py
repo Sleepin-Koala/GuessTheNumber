@@ -2,6 +2,9 @@ import random as rd
 import math
 from typing import List
 
+MAX_REWARD = 10 ** 12      # plafond d'une recompense (evite tout depassement de colonne)
+
+
 class GameMode:
 
     WIN = "win"
@@ -139,7 +142,7 @@ class EndlessMode(GameMode):
     
     @staticmethod
     def getRoundReward(stage: int , bet : int) -> int:
-        return int(bet * EndlessMode.getMultiplier(stage))
+        return min(int(bet * EndlessMode.getMultiplier(stage)) , MAX_REWARD)
 
 
 def checkResult(real_number , nb_user):
