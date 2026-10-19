@@ -2,7 +2,7 @@ import json, sys, sqlite3
 from playwright.sync_api import sync_playwright
 B="http://127.0.0.1:4173"; OUT=sys.argv[1]; TAG=sys.argv[2] if len(sys.argv)>2 else "run"
 VPS=[("360x640",360,640),("390x844",390,844),("430x932",430,932),("768x1024",768,1024),("1024x768",1024,768),("1280x800",1280,800),("1920x1080",1920,1080),("844x390-landscape",844,390)]
-PAGES=["/","/discovery","/classic","/shop","/stats","/duel","classic-game","discovery-game","settings"]
+PAGES=["/","/discovery","/classic","/shop","/stats","/duel","/endless","classic-game","discovery-game","settings"]
 JS_AUDIT="""()=>{
  const W=innerWidth,H=innerHeight; const out={scrollW:document.documentElement.scrollWidth,W,H,scrollH:document.documentElement.scrollHeight,off:[],small:[],smallInputs:[]};
  const clipped=(el)=>{for(let p=el.parentElement;p&&p!==document.body;p=p.parentElement){const o=getComputedStyle(p);if(/(hidden|clip|auto|scroll)/.test(o.overflowX)){const r=p.getBoundingClientRect();if(r.right<=W+1&&r.left>=-1)return true}}return false};
@@ -36,7 +36,7 @@ with sync_playwright() as p:
                     pg.get_by_text("JOUER").click(timeout=4000); pg.wait_for_timeout(1200)
                 elif pageid=="settings":
                     pg.goto(B+"/"); pg.wait_for_load_state("networkidle"); pg.wait_for_timeout(800)
-                    for _ in range(3): pg.keyboard.press("ArrowRight"); pg.wait_for_timeout(200)
+                    for _ in range(4): pg.keyboard.press("ArrowRight"); pg.wait_for_timeout(200)
                     pg.keyboard.press("Enter"); pg.wait_for_timeout(900)
             except Exception as e:
                 state="STATE-FAIL "+str(e).splitlines()[0][:80]

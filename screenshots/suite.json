@@ -3,12 +3,12 @@
   [
    "Home: player auto-created",
    "PASS",
-   "721b6706-4090-47f4-bd0d-78e7ea584475"
+   "1505b57a-f21e-4192-8281-20cbaf408f4a"
   ],
   [
    "Home: starting wallet 500 coins / 5 gems / level 1",
    "PASS",
-   "{'id': '721b6706-4090-47f4-bd0d-78e7ea584475', 'name': 'player_31561041480147', 'gems': 5, 'coins': 500, 'xp': 0, 'level': 1}"
+   "{'id': '1505b57a-f21e-4192-8281-20cbaf408f4a', 'name': 'player_250061', 'gems': 5, 'coins': 500, 'xp': 0, 'level': 1}"
   ],
   [
    "Home: header shows player name",
@@ -18,27 +18,37 @@
   [
    "Home: carousel can open /discovery",
    "PASS",
-   "{0: '/discovery', 1: '/classic', 2: '/', 3: '/', 4: '/shop', 5: '/stats', 6: '/discovery', 7: '/classic'}"
+   "{0: '/discovery', 1: '/classic', 2: '/endless', 3: '/duel', 4: '/', 5: '/shop', 6: '/stats', 7: '/discovery'}"
   ],
   [
    "Home: carousel can open /classic",
    "PASS",
-   "{0: '/discovery', 1: '/classic', 2: '/', 3: '/', 4: '/shop', 5: '/stats', 6: '/discovery', 7: '/classic'}"
+   "{0: '/discovery', 1: '/classic', 2: '/endless', 3: '/duel', 4: '/', 5: '/shop', 6: '/stats', 7: '/discovery'}"
+  ],
+  [
+   "Home: carousel can open /endless",
+   "PASS",
+   "{0: '/discovery', 1: '/classic', 2: '/endless', 3: '/duel', 4: '/', 5: '/shop', 6: '/stats', 7: '/discovery'}"
+  ],
+  [
+   "Home: carousel can open /duel",
+   "PASS",
+   "{0: '/discovery', 1: '/classic', 2: '/endless', 3: '/duel', 4: '/', 5: '/shop', 6: '/stats', 7: '/discovery'}"
   ],
   [
    "Home: carousel can open Settings overlay (no navigation)",
    "PASS",
-   "{0: '/discovery', 1: '/classic', 2: '/', 3: '/', 4: '/shop', 5: '/stats', 6: '/discovery', 7: '/classic'}"
+   "{0: '/discovery', 1: '/classic', 2: '/endless', 3: '/duel', 4: '/', 5: '/shop', 6: '/stats', 7: '/discovery'}"
   ],
   [
    "Home: carousel can reach /shop",
    "PASS",
-   "{0: '/discovery', 1: '/classic', 2: '/', 3: '/', 4: '/shop', 5: '/stats', 6: '/discovery', 7: '/classic'}"
+   "{0: '/discovery', 1: '/classic', 2: '/endless', 3: '/duel', 4: '/', 5: '/shop', 6: '/stats', 7: '/discovery'}"
   ],
   [
    "Home: carousel can reach /stats",
    "PASS",
-   "{0: '/discovery', 1: '/classic', 2: '/', 3: '/', 4: '/shop', 5: '/stats', 6: '/discovery', 7: '/classic'}"
+   "{0: '/discovery', 1: '/classic', 2: '/endless', 3: '/duel', 4: '/', 5: '/shop', 6: '/stats', 7: '/discovery'}"
   ],
   [
    "Home: Settings overlay opens",
@@ -78,7 +88,7 @@
   [
    "Discovery: guesses recorded on server",
    "PASS",
-   "6"
+   "2"
   ],
   [
    "Classic: level grid shown, only level 1 unlocked",
@@ -103,7 +113,7 @@
   [
    "Classic: reward paid + level 2 unlocked",
    "PASS",
-   "{'id': '721b6706-4090-47f4-bd0d-78e7ea584475', 'name': 'Tester42', 'gems': 6, 'coins': 772, 'xp': 46, 'level': 2}"
+   "{'id': '1505b57a-f21e-4192-8281-20cbaf408f4a', 'name': 'Tester42', 'gems': 6, 'coins': 768, 'xp': 44, 'level': 2}"
   ],
   [
    "Classic: game-over overlay after attempts exhausted",
@@ -138,7 +148,7 @@
   [
    "Shop: purchase debits coins",
    "PASS",
-   "772->652"
+   "768->648"
   ],
   [
    "Shop: header coins updated",
@@ -171,9 +181,9 @@
    ""
   ],
   [
-   "Duel (web): page has content",
+   "Duel (web): lobby is shown",
    "PASS",
-   "route is an empty stub"
+   ""
   ],
   [
    "API: negative endless bet rejected",

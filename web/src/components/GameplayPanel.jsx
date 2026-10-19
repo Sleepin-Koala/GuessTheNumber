@@ -10,7 +10,7 @@ import MysteryOrb from "./MysteryOrb"
 
 export default function GameplayPanel(
     { isShaking, hint, range, localNumber, gameEnded = false, numbers,
-        onGuessr, NumberSetter, onGameEnded = null, distance, attempt , onPause, tray = null, infos = [],
+        onGuessr, NumberSetter, onGameEnded = null, distance, attempt , onPause, tray = null, infos = [], showPause = true,
     disabled = null, mode = "classic" }) {
 
     const inputRef = useRef(null)
@@ -64,13 +64,13 @@ export default function GameplayPanel(
             animate={isShaking ? { x: getShakeIntensity(distance, range) } : null} transition={{ duration: 0.2 }}
         >
 
-            <button
-                onClick={()=>{inGameSound.click() ; onPause()}}
-                
-                className="cursor-pointer absolute left-2 top-2 sm:left-3 sm:top-3 z-10 bg-black/40 hover:bg-black/60 rounded-full p-3 text-white text-xl"
-            >
-                <FaPause/>
-            </button>
+            {showPause && (            <button
+                    onClick={()=>{inGameSound.click() ; onPause()}}
+                    
+                    className="cursor-pointer absolute left-2 top-2 sm:left-3 sm:top-3 z-10 bg-black/40 hover:bg-black/60 rounded-full p-3 text-white text-xl"
+                >
+                    <FaPause/>
+                </button>)}
             <div className="flex bg-cartoon-blue w-full rounded-t-3xl" >
                 <div className="flex-1">
                     <div className="flex items-center gap-3 w-full justify-center">

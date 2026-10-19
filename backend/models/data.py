@@ -76,6 +76,11 @@ class RoomData(BaseModel) :
     round1_attempts_used : Optional[int]
     round2_attempts_used : Optional[int]
     winner_id : Optional[str]
+    host_name : Optional[str] = None
+    guest_name : Optional[str] = None
+
+class LeaveData(BaseModel):
+    player_id: str
 
 class HostRoomData(BaseModel) :
     host_id: str

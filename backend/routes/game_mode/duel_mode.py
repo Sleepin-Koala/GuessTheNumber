@@ -8,8 +8,15 @@ from routes.utils import get_player_or_404
 
 router = APIRouter(prefix="/duel")
 
+def _name(player_id):
+    player = session.query(Player).filter_by(id = player_id).first() if player_id else None
+    return player.name if player else None
+
+
 def create_room(room: Duel):
     return RoomData(
+        host_name = _name(room.host_id),
+        guest_name = _name(room.guest_id),
         room_id =  room.id,
         host_id =  room.host_id ,
         guest_id  = room.guest_id,
@@ -50,11 +57,15 @@ def hostServer(HostRoomData: HostRoomData):
     if not 1 <= HostRoomData.max_range <= MAX_DUEL_RANGE:
         raise HTTPException(status_code=422, detail=f"max_range doit etre entre 1 et {MAX_DUEL_RANGE}")
 
+    # une seule salle en attente par joueur: l'ancienne est annulee
+    for old in session.query(Duel).filter_by(host_id = host.id , status = "waiting").all():
+        old.status = "cancelled"
+
     new_game = Duel(
         id = str(uuid4()), 
         host_id = host.id,
         guest_id = None,
-        room_name = HostRoomData.name,
+        room_name = HostRoomData.name.strip()[:30] or "Salle",
         bet_amount = HostRoomData.amount,
         status = "waiting",
         max_range = HostRoomData.max_range,
@@ -168,6 +179,21 @@ def GuessNumber(GuessNumberData : HidenGuessNumberData, roomId: str):
 
             room.status = "finished"
 
+    session.commit()
+
+    return create_room(room)
+
+
+@router.post("/rooms/{roomId}/leave")
+def leaveRoom(LeaveData : LeaveData, roomId: str):
+    """Annule une salle encore en attente. (L'abandon d'une partie en cours n'est pas gere ici.)"""
+    room = get_room_or_404(roomId)
+    if LeaveData.player_id not in (room.host_id , room.guest_id):
+        raise HTTPException(status_code=403, detail="Tu ne fais pas partie de cette salle")
+    if room.status != "waiting":
+        raise HTTPException(status_code=409, detail="La partie est deja commencee")
+
+    room.status = "cancelled"
     session.commit()
 
     return create_room(room)

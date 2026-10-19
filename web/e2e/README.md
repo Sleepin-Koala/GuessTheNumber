@@ -9,7 +9,9 @@ python matrix.py ../screenshots/final final                              # 9 ecr
 python pwa.py ../screenshots                                             # manifest, service worker, hors ligne
 GTN_DB=/chemin/vers/backend/main.db python powerups.py ../screenshots/powerups   # boutique -> inventaire -> bonus -> parties (18 verifications)
 
-# API (14 tests, base temporaire, aucun serveur a lancer):
+GTN_DB=/chemin/vers/backend/main.db python modes.py ../screenshots/modes        # Duel (2 navigateurs) + Mode Infini (30 verifications)
+
+# API (22 tests, base temporaire, aucun serveur a lancer):
 pip install pytest httpx && pytest backend/tests
 ```
 

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { GiCompass, GiGearHammer, GiShop } from "react-icons/gi";
 import { FaStairs } from "react-icons/fa6";
 import { GiSwordClash } from "react-icons/gi";
-import { FaBullseye, FaChevronRight, FaChevronLeft } from "react-icons/fa";
+import { FaBullseye, FaChevronRight, FaChevronLeft, FaInfinity } from "react-icons/fa";
 import useGameSound from "../hooks/SoundHooks"
 
 const CATEGORIES = [
@@ -36,10 +36,19 @@ const CATEGORIES = [
         path: "/classic",
     },
     {
+        id: "endless",
+        name: "Mode Infini",
+        icon: FaInfinity,
+        color: "from-fuchsia-500 to-purple-700",
+        description: "Mise tes pièces et grimpe palier après palier. Encaisse ou remise tout !",
+        buttonColor: "bg-purple-500",
+        path: "/endless",
+    },
+    {
         id: "duel",
         name: "Mode Duel",
         icon: GiSwordClash,
-        color: "from-orange-400/20 to-red-600/20",
+        color: "from-orange-400 to-red-600",
         description: "Affronte un autre joueur au tour par tour.",
         buttonColor: "bg-orange-500",
         path: "/duel",

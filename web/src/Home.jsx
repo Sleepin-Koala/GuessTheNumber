@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import useGameSound from "./hooks/SoundHooks"
 
 
-const CTA = { discovery: "Apprendre", classic: "Jouer", duel: "Bientôt", settings: "Régler", sells: "Ouvrir", statictics: "Voir" }
+const CTA = { discovery: "Apprendre", classic: "Jouer", duel: "Affronter", endless: "Tenter", settings: "Régler", sells: "Ouvrir", statictics: "Voir" }
 
 function Home() {
   const [showSettings, setShowSettings] = useState(false);
@@ -62,13 +62,12 @@ function Home() {
             itemsPerView={3}
             itemWidth={320}
             gap={20}
-            onEnter={(e) => e.path == "/duel" ? null : e.path == "/settings" ? setShowSettings(true) : navigate(e.path)}
+            onEnter={(e) => e.path == "/settings" ? setShowSettings(true) : navigate(e.path)}
             renderItem={(cat, idx) => (
               <div
                 className={`rounded-3xl cursor-pointer bg-linear-to-br ${cat.color} border-4 border-white/50 transition-all duration-200 h-full`}
                 onClick={() => {
                   inGameSound.click()
-                  if (cat.id === "duel") return;
                   cat.id === "settings" ? setShowSettings(true) : navigate(cat.path);
                 }}
               >
@@ -79,11 +78,7 @@ function Home() {
                   <h2 className="text-2xl sm:text-4xl text-white drop-shadow-md">{cat.name}</h2>
                   <p className="text-white/90 text-sm sm:text-xl font-bold leading-snug max-w-[22rem]">{cat.description}</p>
                   <span className="mt-1 sm:mt-2 inline-flex items-center justify-center min-h-11 px-6 rounded-full bg-white text-black font-game text-lg shadow-[0_4px_0_rgba(0,0,0,.3)]">{CTA[cat.id]}</span>
-                  {cat.id === "duel" && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-3xl">
-                      <span className="bg-white text-black px-4 py-2 rounded-full font-bold">🚧 Bientôt</span>
-                    </div>
-                  )}
+                  
                 </div>
               </div>
             )}

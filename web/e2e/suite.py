@@ -39,13 +39,13 @@ with sync_playwright() as p:
             reach[k]=pg.url.replace(B,"") or "/"
         print("carousel reach:", reach)
         got=set(reach.values())
-        for path in ["/discovery","/classic"]:
+        for path in ["/discovery","/classic","/endless","/duel"]:
             rec(f"Home: carousel can open {path}", path in got, str(reach))
         rec("Home: carousel can open Settings overlay (no navigation)", True, str(reach))
         rec("Home: carousel can reach /shop", "/shop" in got, str(reach))
         rec("Home: carousel can reach /stats", "/stats" in got, str(reach))
         pg.goto(B+"/"); pg.wait_for_timeout(800)
-        for _ in range(3): pg.keyboard.press("ArrowRight"); pg.wait_for_timeout(250)
+        for _ in range(4): pg.keyboard.press("ArrowRight"); pg.wait_for_timeout(250)
         pg.keyboard.press("Enter"); pg.wait_for_timeout(600)
         rec("Home: Settings overlay opens", pg.get_by_text("Paramètres").count()>0)
         run(settings, "Settings")
@@ -135,7 +135,7 @@ with sync_playwright() as p:
 
     def duel():
         pg.goto(B+"/duel"); pg.wait_for_load_state("networkidle"); pg.wait_for_timeout(600)
-        rec("Duel (web): page has content", len(pg.locator("body").inner_text().strip())>0, "route is an empty stub")
+        rec("Duel (web): lobby is shown", pg.get_by_text("Créer une salle").count()>0)
     run(duel,"Duel")
 
     def api_security():
