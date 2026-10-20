@@ -49,6 +49,7 @@ export default function Game({ stateHandler, session, PlayerId, range }) {
             // Gestion du résultat
             if (res.result === "OK") {
                 setGameEnded(true);
+                api.post("/game/discovery/end_session", { session_id: session.session_id, player_id: PlayerId, status: "win", ended: Date.now() / 1000 }).catch(() => {})
             } else if (res.result === "PLUS") {
                 setNumbers([...numbers, [parseInt(localNumber), res.result]])
                 setIsShaking(true)

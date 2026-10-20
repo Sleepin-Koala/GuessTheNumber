@@ -12,6 +12,8 @@ export function saveAccount({ id, token }) {
 export async function createAccount() {
     const player = await api.post("/user/new_player")
     saveAccount(player)
+    try { sessionStorage.setItem("gtn:new-account", "1") } catch { /* stockage indisponible */ }
+    window.dispatchEvent(new Event("gtn:new-account"))
     return player
 }
 

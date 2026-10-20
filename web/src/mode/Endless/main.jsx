@@ -12,10 +12,13 @@ import useCountUp from "../../hooks/useCountUp"
 import { describeEffect } from "../../assets/powerupMeta"
 
 const GROWTH = 1.25            // meme formule que le serveur (EndlessMode.GROWTH_RATE)
-const reward = (stage, bet) => Math.floor(bet * GROWTH ** stage)
+// meme calcul que le serveur: essais = un de moins que la dichotomie parfaite, gain plafonne a 95 % de l'esperance
+const attemptsFor = (stage) => Math.max(1, Math.ceil(Math.log2(stage * 10 + 1)) - 1)
+const winOdds = (stage) => Math.min(1, (2 ** attemptsFor(stage) - 1) / (stage * 10))
+const reward = (stage, bet) => Math.min(Math.floor(bet * GROWTH ** stage), Math.floor(bet * 0.95 / winOdds(stage)))
 const QUICK_BETS = [10, 50, 100, 250]
 
-// Mode Infini: on mise, on a 5 essais par palier. Un palier gagne rapporte mise x 1,25^palier,
+// Mode Infini: on mise, le nombre d'essais depend du palier. Un palier gagne rapporte mise x 1,25^palier,
 // puis on encaisse ou on remise tout au palier suivant. Perdre fait perdre la mise du palier.
 export default function Endless() {
     const navigate = useNavigate()
@@ -39,6 +42,7 @@ export default function Endless() {
     const [infos, setInfos] = useState([])
     const [usedPowerups, setUsedPowerups] = useState([])
     const finished = useRef(false)
+    const resumed = useRef(false)
 
     const { items: inventory, refresh: refreshInventory } = useInventory(player?.id)
 
@@ -48,6 +52,22 @@ export default function Endless() {
         try { setPlayer(await api.get(`/user/${id}`)) } catch (e) { setError(e.message) }
     }
     useEffect(() => { loadPlayer() }, [])
+
+    // reprise d'un palier interrompu (rechargement, onglet ferme): la mise a deja ete debitee, on la rend jouable
+    useEffect(() => {
+        if (!player?.id || resumed.current) return
+        resumed.current = true
+        api.get(`/game/endless/active?player_id=${player.id}`).then(async (a) => {
+            if (!a) return
+            setSession(a); setStage(a.stage); setStake(a.bet); setNumbers(a.tries.slice(-6))
+            setPlayer((p) => ({ ...p, coins: a.coins }))
+            finished.current = false
+            if (a.solved) {
+                const paid = await endStageFor(a.session_id, "win")
+                setWon(paid); setBest(a.stage); setPhase("cleared")
+            } else setPhase("playing")
+        }).catch(() => {})
+    }, [player?.id])
     useEffect(() => { const t = setTimeout(() => setShake(false), 350); return () => clearTimeout(t) }, [shake])
 
     async function startStage(nextStage, nextBet) {
@@ -63,11 +83,13 @@ export default function Endless() {
         } catch (e) { setError(e.message) } finally { setBusy(false) }
     }
 
-    async function endStage(status) {
+    async function endStage(status) { return endStageFor(session.session_id, status) }
+
+    async function endStageFor(sessionId, status) {
         if (finished.current) return 0
         finished.current = true
         try {
-            const r = await api.post("/game/endless/end_session", { session_id: session.session_id, player_id: player.id, status, ended: Date.now() / 1000 })
+            const r = await api.post("/game/endless/end_session", { session_id: sessionId, player_id: player.id, status, ended: Date.now() / 1000 })
             await loadPlayer()
             return r
         } catch (e) { setError(e.message); return 0 }
@@ -121,7 +143,7 @@ export default function Endless() {
                         <section className="candy-gloss candy-lip relative w-full max-w-lg rounded-3xl bg-linear-to-b from-[#7a2d99] to-[#3d1560] border-2 border-white/25 p-6 text-center flex flex-col items-center gap-4">
                             <FaInfinity className="text-6xl text-white" aria-hidden="true" />
                             <h1 className="text-4xl text-white">Mode Infini</h1>
-                            <p className="text-white/85 font-bold">Trouve le nombre en 5 essais. Chaque palier gagné rapporte ta mise × 1,25 par palier : encaisse, ou remise tout pour monter. Un échec fait perdre la mise du palier.</p>
+                            <p className="text-white/85 font-bold">Trouve le nombre en un nombre d'essais limité (de moins en moins nombreux). Un palier gagné rapporte plus que ta mise : encaisse, ou remise tout pour monter. Un échec fait perdre la mise du palier.</p>
 
                             <div className="w-full">
                                 <label htmlFor="bet" className="block text-white font-bold mb-1">Ta mise (pièces)</label>
@@ -185,7 +207,7 @@ export default function Endless() {
                         <section className="candy-gloss candy-lip relative w-full max-w-md rounded-3xl bg-linear-to-b from-[#8a1f3a] to-[#4d0d1d] border-2 border-white/25 p-6 text-center flex flex-col items-center gap-3" role="status">
                             <FaHeartBroken className="text-6xl text-rose-200" aria-hidden="true" />
                             <h1 className="text-4xl text-white">Perdu au palier {stage}</h1>
-                            <p className="text-white/85 font-bold">Le nombre était hors de portée en 5 essais. Tu perds ta mise de {stake} pièces.{best > 0 && ` Meilleur palier réussi cette série : ${best}.`}</p>
+                            <p className="text-white/85 font-bold">Le nombre était hors de portée en {session?.max_attempt ?? 5} essais. Tu perds ta mise de {stake} pièces.{best > 0 && ` Meilleur palier réussi cette série : ${best}.`}</p>
                             <CartoonButton className="min-h-11 px-6 py-3 text-xl" onClick={() => { setPhase("setup"); setBest(0); setBet(Math.max(1, Math.min(50, coins))) }}>Rejouer</CartoonButton>
                             <CartoonButton className="min-h-11 px-6 py-2 text-lg" onClick={() => navigate("/")}>Accueil</CartoonButton>
                         </section>

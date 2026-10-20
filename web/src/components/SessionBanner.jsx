@@ -8,6 +8,16 @@ export default function SessionBanner() {
     const [code, setCode] = useState("")
     const [error, setError] = useState("")
     const [busy, setBusy] = useState(false)
+    const [fresh_, setFresh] = useState(false)
+
+    useEffect(() => {
+        const show = () => setFresh(true)
+        try { if (sessionStorage.getItem("gtn:new-account")) show() } catch { /* ignore */ }
+        window.addEventListener("gtn:new-account", show)
+        const t = setTimeout(() => setFresh(false), 12000)
+        return () => { window.removeEventListener("gtn:new-account", show); clearTimeout(t) }
+    }, [])
+    const dismissNew = () => { setFresh(false); try { sessionStorage.removeItem("gtn:new-account") } catch { /* ignore */ } }
 
     useEffect(() => {
         const on = () => setLost(true)
@@ -15,7 +25,12 @@ export default function SessionBanner() {
         return () => window.removeEventListener("gtn:auth-lost", on)
     }, [])
 
-    if (!lost) return null
+    if (!lost) return fresh_ ? (
+        <div role="status" className="pointer-events-none fixed top-14 inset-x-3 z-[150] mx-auto max-w-md rounded-2xl bg-indigo-900/95 border-2 border-yellow-400 p-3 text-white text-sm font-bold flex items-start gap-3">
+            <p>Nouveau compte créé sur cet appareil. Si tu avais déjà joué ici, ta progression est sur l'ancien compte : restaure-la avec ton code de récupération (Réglages). Note aussi ce code pour ce compte.</p>
+            <button type="button" onClick={dismissNew} className="pointer-events-auto min-h-11 px-3 rounded-xl bg-yellow-400 text-black">OK</button>
+        </div>
+    ) : null
 
     async function restore(e) {
         e.preventDefault(); setBusy(true); setError("")

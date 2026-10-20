@@ -4,7 +4,7 @@ import math
 from fastapi import APIRouter , HTTPException
 from all import *
 import engine
-from routes.utils import get_player_or_404 , get_owned_session , ensure_open
+from routes.utils import get_player_or_404 , get_owned_session , ensure_open , OPEN_STATES
 
 
 
@@ -22,6 +22,33 @@ def attempts_for(stage: int) -> int:
 
 def win_probability(stage: int) -> float:
     return min(1.0 , (2 ** attempts_for(stage) - 1) / (stage * 10))
+
+RESUME_WINDOW = 24 * 3600
+
+
+@router.get("/active")
+def active_endless(player_id: str):
+    """Palier en cours de ce joueur (rechargement de page, onglet ferme...), pour reprendre ou il s'etait arrete."""
+    user = get_player_or_404(player_id)
+    that = (session.query(EndlessSession)
+            .filter(EndlessSession.player_id == user.id , EndlessSession.status.in_(OPEN_STATES) , EndlessSession.started_time > time.time() - RESUME_WINDOW)
+            .order_by(EndlessSession.started_time.desc()).first())
+    if not that:
+        return None
+    tries = [t.number for t in session.query(UserTries).filter_by(session_id = that.id).all()]
+    solved = that.number in tries
+    if that.attempt_left <= 0 and not solved:
+        that.status = engine.EndlessMode.LOSE
+        that.ended_time = time.time()
+        session.commit()
+        return None
+    return {
+        "session_id": that.id , "max_attempt": that.max_attempt , "attempt_left": that.attempt_left ,
+        "max_range": that.max_range , "bet": that.bet , "stage": that.stage , "coins": user.coins ,
+        "solved": solved ,
+        "tries": [[n , engine.checkResult(that.number , n)] for n in tries] ,
+    }
+
 
 @router.post("/start")
 def start_endless(EndlessData: EndlessData):
