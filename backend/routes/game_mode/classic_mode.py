@@ -8,6 +8,8 @@ from routes.powerups import ITEM_LIFE , ITEM_MULTIPLIER , LIFE_BONUS
 router = APIRouter(prefix="/classic")
 
 MAX_LEVEL = 1000
+PAUSE_GRACE = 120       # secondes tolerees au-dela du temps imparti (la pause est geree cote client)
+REPLAY_COIN_SHARE = 5   # un niveau deja franchi rapporte 1/5 des pieces et aucun diamant
 
 @router.post("/level")
 def get_level(lvlData: LevelData):
@@ -74,8 +76,11 @@ def SessionFinished(ClassicEndLevelData :ClassicEndLevelData):
     # la session doit correspondre au niveau annonce
     # les essais bonus (power-up "Vie bonus") sont ajoutes a max_attempt: on les retire pour verifier le niveau
     extra_attempts = LIFE_BONUS * session.query(SessionPowerup).filter_by(session_id = that_session.id , item_id = ITEM_LIFE).count()
-    if that_session.max_attempt - extra_attempts != L.get_max_try() or that_session.number > level*10:
+    if level * 10 != that_session.max_range or that_session.max_attempt - extra_attempts != L.get_max_try() or that_session.number > level*10:
         raise HTTPException(status_code=409 , detail="Session does not match this level")
+
+    if that_session.time_limit and time_used > that_session.time_limit + PAUSE_GRACE:
+        raise HTTPException(status_code=409 , detail="Time limit exceeded")
 
     inputs = [t.number for t in session.query(UserTries).filter_by(session_id = that_session.id).all()]
     if that_session.number not in inputs:
@@ -84,6 +89,9 @@ def SessionFinished(ClassicEndLevelData :ClassicEndLevelData):
     coins = L.getRewardCoin(inputs , time_used , that_session.number)
     if session.query(SessionPowerup).filter_by(session_id = that_session.id , item_id = ITEM_MULTIPLIER).count():
         coins *= 2
+    replay = level < user.level
+    if replay:
+        coins //= REPLAY_COIN_SHARE
     xp = L.getXP(inputs , time_used , that_session.number)
     stars = L.getStars(inputs , time_used , that_session.number)
 
@@ -91,7 +99,8 @@ def SessionFinished(ClassicEndLevelData :ClassicEndLevelData):
     that_session.ended_time = ended
     user.xp += xp
     user.coins += coins
-    user.gems += L.getDaimond(inputs , time_used , that_session.number)
+    if not replay:
+        user.gems += L.getDaimond(inputs , time_used , that_session.number)
     if user.level == level :
         user.level += 1
 

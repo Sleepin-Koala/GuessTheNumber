@@ -80,6 +80,7 @@ export default function Level({ playerData, playerSetter, current_level, setLeve
   const pregame = useRef([])
   const advisorArmed = useRef(false)
   const wrongGuesses = useRef(0)
+  const guessing = useRef(false)
 
   const {inGameSound} = useGameSound()
 
@@ -123,7 +124,8 @@ export default function Level({ playerData, playerSetter, current_level, setLeve
   }
 
   async function onGuessr() {
-    if (gameEnded || !session.session_id || !parseInt(localNumber)) return;
+    if (gameEnded || guessing.current || !session?.session_id || Number.isNaN(parseInt(localNumber))) return;
+    guessing.current = true
     try {
       const res = await api.post("/game/guess", { session_id: session.session_id, player_id: playerData.id, number: parseInt(localNumber) });
       setSessionData({ ... session, attempt_left: res.attempt_left })
@@ -136,7 +138,7 @@ export default function Level({ playerData, playerSetter, current_level, setLeve
         setShowConfetti(true);
         setWon(true)
         setTimeout(() => setShowConfetti(false), 4000);
-
+        return
       }
 
       if (res.attempt_left == 0) {
@@ -164,6 +166,8 @@ export default function Level({ playerData, playerSetter, current_level, setLeve
 
     } catch (error) {
       console.error(error);
+    } finally {
+      guessing.current = false
     }
   }
 

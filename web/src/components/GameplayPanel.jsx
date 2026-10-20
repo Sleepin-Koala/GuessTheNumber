@@ -136,7 +136,7 @@ export default function GameplayPanel(
                     placeholder={`entre 1 et ${range}`}
                     value={localNumber}
                     onChange={handleNumberChange}
-                    onKeyDown={(ev) => { ev.key === "Enter" && onGuessr() }}
+                    onKeyDown={(ev) => { ev.key === "Enter" && !ev.repeat && onGuessr() }}
                     disabled={gameEnded || disabled}
                     className="w-full px-4 py-2.5 text-2xl sm:text-3xl text-center text-white font-black focus:outline-5 focus:outline-cartoon-blue rounded-xl" />
 

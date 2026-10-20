@@ -74,7 +74,7 @@ export default function Discover() {
             className="flex-1 flex flex-col justify-center items-center gap-8 z-10 px-4"
           >
             <div className="flex flex-col backdrop-blur-md bg-white/10 p-6 rounded-3xl gap-3">
-              <h1 className="text-3xl font-black text-white">Selectionner le niveau</h1>
+              <h1 className="text-3xl font-black text-white">Sélectionner le niveau</h1>
               <div className="text-white text-xl mb-2 text-center">Entre 1 et {maxRange}</div>
 
               <CustomSlider value = {maxRange} onChange={HandleInputChange}/>

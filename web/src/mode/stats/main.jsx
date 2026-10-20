@@ -62,7 +62,7 @@ function LastGameTable({ data }) {
                 ) :
                   session.result === "lose" ? (
                     <span className="text-red-400">Défaite</span>
-                  ) : (<span className="text-yellow-400">Abandone</span>)
+                  ) : (<span className="text-yellow-400">Abandonné</span>)
 
                 }
               </td>
@@ -96,7 +96,7 @@ export default function stats() {
     setWinRateData([
       { name: "Gagne", value: stats.winGames },
       { name: "Perdu", value: stats.endedGames - stats.winGames },
-      { name: "Abandone", value: stats.TotalGames - stats.endedGames }
+      { name: "Abandonné", value: stats.TotalGames - stats.endedGames }
     ])
   }, [stats])
 

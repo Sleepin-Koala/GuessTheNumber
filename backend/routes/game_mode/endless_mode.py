@@ -1,5 +1,6 @@
 # type: ignore
 
+import math
 from fastapi import APIRouter , HTTPException
 from all import *
 import engine
@@ -11,6 +12,16 @@ from routes.utils import get_player_or_404 , get_owned_session , ensure_open
 router = APIRouter(prefix="/endless")
 
 MAX_STAGE = 100
+HOUSE_EDGE = 0.95   # esperance de gain maximale d'un joueur optimal (recherche dichotomique) = 95 % de la mise
+
+
+def attempts_for(stage: int) -> int:
+    # une recherche dichotomique parfaite doit pouvoir echouer: un essai de moins que le minimum garanti
+    return max(1 , math.ceil(math.log2(stage * 10 + 1)) - 1)
+
+
+def win_probability(stage: int) -> float:
+    return min(1.0 , (2 ** attempts_for(stage) - 1) / (stage * 10))
 
 @router.post("/start")
 def start_endless(EndlessData: EndlessData):
@@ -28,8 +39,8 @@ def start_endless(EndlessData: EndlessData):
 
     endless_session = EndlessSession(
         id = str(uuid4()),
-        max_attempt = 5,
-        attempt_left= 5,
+        max_attempt = attempts_for(EndlessData.stage),
+        attempt_left= attempts_for(EndlessData.stage),
         bet = EndlessData.bet,
         stage = EndlessData.stage,
         number=engine.EndlessMode.newSession(EndlessData.stage),
@@ -73,6 +84,7 @@ def SessionFinished(EndlessEndSessionData :EndlessEndSessionData):
             raise HTTPException(status_code=409 , detail="The number has not been found")
         that_session.status = engine.EndlessMode.STAGEPASSED
         reward = engine.EndlessMode.getRoundReward(int(that_session.stage) , that_session.bet)
+        reward = min(reward , int(that_session.bet * HOUSE_EDGE / win_probability(int(that_session.stage))))
         user.coins += reward
     elif EndlessEndSessionData.status == str(engine.EndlessMode.LOSE):
         that_session.status = engine.EndlessMode.LOSE

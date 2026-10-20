@@ -39,7 +39,7 @@ export default function Game({ stateHandler, session, PlayerId, range }) {
 
 
     async function onGuessr() {
-        if (gameEnded || !session.session_id || !parseInt(localNumber)) return;
+        if (gameEnded || !session.session_id || Number.isNaN(parseInt(localNumber))) return;
         try {
             const res = await api.post("/game/guess", { session_id: session.session_id, player_id: PlayerId, number: parseInt(localNumber) });
             setHint(res.result);

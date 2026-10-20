@@ -61,7 +61,7 @@ with sync_playwright() as p:
 
     def discovery():
         pg.goto(B+"/discovery"); pg.wait_for_load_state("networkidle"); pg.wait_for_timeout(600)
-        rec("Discovery: setup screen", pg.get_by_text("Selectionner le niveau").count()==1)
+        rec("Discovery: setup screen", pg.get_by_text("Sélectionner le niveau").count()==1)
         pg.get_by_text("JOUER").click(); pg.wait_for_timeout(1200)
         rec("Discovery: game starts (input visible)", pg.locator("input[type=number]").count()==1)
         n=answer(); wrong=1 if n!=1 else 2
