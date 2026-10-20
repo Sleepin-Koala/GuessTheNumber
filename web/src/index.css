@@ -95,3 +95,8 @@ h1, h2, h3, .font-game, .title-ingame, .fun-title, .guess-button {
 
 @keyframes coin-rise { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-46px) scale(1.25); } }
 .animate-coin-rise { animation: coin-rise .9s ease-out forwards; }
+
+/* Discovery win: confettis */
+@keyframes dw-fall { 0% { transform: translateY(-12vh) rotate(0); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(105vh) rotate(540deg); opacity: .9; } }
+.dw-confetti { position: absolute; top: 0; border-radius: 2px; opacity: 0; animation-name: dw-fall; animation-timing-function: cubic-bezier(.3,.6,.5,1); animation-fill-mode: both; }
+@media (prefers-reduced-motion: reduce) { .dw-confetti { display: none; } }

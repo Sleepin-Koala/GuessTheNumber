@@ -26,7 +26,7 @@ export default function SessionBanner() {
     }, [])
 
     if (!lost) return fresh_ ? (
-        <div role="status" className="pointer-events-none fixed top-14 inset-x-3 z-[150] mx-auto max-w-md rounded-2xl bg-indigo-900/95 border-2 border-yellow-400 p-3 text-white text-sm font-bold flex items-start gap-3">
+        <div role="status" className="pointer-events-none fixed top-14 inset-x-3 z-30 mx-auto max-w-md rounded-2xl bg-indigo-900/95 border-2 border-yellow-400 p-3 text-white text-sm font-bold flex items-start gap-3">
             <p>Nouveau compte créé sur cet appareil. Si tu avais déjà joué ici, ta progression est sur l'ancien compte : restaure-la avec ton code de récupération (Réglages). Note aussi ce code pour ce compte.</p>
             <button type="button" onClick={dismissNew} className="pointer-events-auto min-h-11 px-3 rounded-xl bg-yellow-400 text-black">OK</button>
         </div>

@@ -7,6 +7,7 @@ import PauseOverlay from "../../components/PauseOverlay";
 import PowerUpTray from "../../components/PowerUpTray";
 import useInventory from "../../hooks/useInventory";
 import { describeEffect } from "../../assets/powerupMeta";
+import DiscoveryWin from "./DiscoveryWin";
 
 
 
@@ -23,6 +24,7 @@ export default function Game({ stateHandler, session, PlayerId, range }) {
     const { items: inventory, refresh: refreshInventory } = useInventory(PlayerId)
     const [usedPowerups, setUsedPowerups] = useState([])
     const [infos, setInfos] = useState([])
+    const [history, setHistory] = useState([])
 
     async function applyPowerup(itemId) {
         try {
@@ -45,6 +47,7 @@ export default function Game({ stateHandler, session, PlayerId, range }) {
             setHint(res.result);
             setDistance(res.distance)
             setAttempt(attempt + 1)
+            setHistory(h => [...h, [parseInt(localNumber), res.result]])
 
             // Gestion du résultat
             if (res.result === "OK") {
@@ -106,6 +109,9 @@ export default function Game({ stateHandler, session, PlayerId, range }) {
                     onPause={HandlePause}
                     disabled={isPaused} />
             </div>
+
+            {gameEnded && history.length > 0 && history[history.length - 1][1] === "OK" &&
+                <DiscoveryWin history={history} range={Number(range)} onReplay={() => stateHandler("not_begin")} onHome={() => navigate("/")} />}
 
             {isPaused && <PauseOverlay onResume={HandlePause}
                 onRestart={EndGame}
