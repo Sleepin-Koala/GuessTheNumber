@@ -93,7 +93,7 @@ with sync_playwright() as p:
         n=answer(); w=[x for x in range(1,11) if x!=n]
         for x in w[:4]: guess(pg,x)
         pg.wait_for_timeout(1200)
-        rec("Classic: game-over overlay after attempts exhausted", pg.get_by_text("Échec").count()>0 or pg.get_by_text("Temps").count()>0)
+        rec("Classic: game-over overlay after attempts exhausted", pg.get_by_text("Plus d.essais").count()>0 or pg.get_by_text("Temps").count()>0)
         c=sqlite3.connect(DB); st=c.execute("select status from sessions where type='solo' order by started_time desc limit 1").fetchone()[0]; c.close()
         rec("Classic: lose recorded server-side", st=="lose", st)
         pg.screenshot(path=SS+"/classic-lose.png")

@@ -330,7 +330,7 @@ export default function Level({ playerData, playerSetter, current_level, setLeve
           playerSetter={playerSetter}
           sessionInfo={session}
           player_data={playerData}
-          reason={"gameover"}
+          reason={gameOver}
           level={current_level}
           onRetry={handleRetry}
           onHome={() => setLevelPlaying(null)}

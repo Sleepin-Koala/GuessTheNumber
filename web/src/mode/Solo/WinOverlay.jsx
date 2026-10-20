@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import api from "../../api"
-import { FaTrophy, FaHome, FaCoins, FaStar } from "react-icons/fa";
-import { HoverButton } from "../../components/assets";
+import { FaHome, FaCoins, FaStar, FaArrowRight, FaRedoAlt } from "react-icons/fa";
 import { motion } from "framer-motion";
 import useCountUp from "../../hooks/useCountUp";
 
@@ -38,58 +37,59 @@ export default function WinOverlay({ level, onNext, onHome, player_data, playerS
         EndLevel()
     }, [])
 
-    return (
-        <motion.div className="fixed inset-0 z-50 flex flex-col gap-5 items-center justify-center bg-black/80 backdrop-filter"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.85, duration: 0.3 }}>
+    const stars = reward?.stars ?? 0
+    const replay = player_data.level === level
 
-            <div className="animate-pop-in border-2 backdrop-filter bg-[rgba(255,255,255,0.12)] rounded-3xl p-8 flex flex-col items-center gap-5 max-w-sm w-[90%] text-center">
-                <div className="text-6xl animate-float text-amber-400"><FaTrophy /></div>
-                <h2 className="font-game text-white text-3xl font-bold">Niveau {level} terminé !</h2>
-                <p className="font-body text-white/70 text-sm">Tu as trouvé le nombre mystère</p>
-                <div className="flex items-end gap-2" aria-label={reward ? `${reward.stars} étoile${reward.stars > 1 ? "s" : ""} sur 3` : undefined}>
+    return (
+        <motion.section role="dialog" aria-modal="true" aria-labelledby="win-title"
+            className="fixed inset-0 z-50 overflow-y-auto bg-[radial-gradient(ellipse_at_50%_28%,#5b2a9e_0%,#2a1060_55%,#14062e_100%)] text-white"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.85, duration: 0.3 }}>
+            <div className="mx-auto flex min-h-full w-full max-w-md flex-col items-center justify-center gap-5 px-5 py-8">
+                <h1 id="win-title" className="font-game text-2xl text-yellow-200/90 tracking-wide">Niveau {level} terminé</h1>
+
+                <motion.div initial={{ scale: 0.4, rotate: -8, opacity: 0 }} animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 15, delay: 1 }}
+                    className="relative grid h-44 w-44 place-items-center rounded-full bg-linear-to-b from-[#ffe27a] via-[#ffc233] to-[#e8890c] shadow-[inset_0_-12px_0_rgba(0,0,0,.18),0_12px_0_rgba(0,0,0,.3),0_0_60px_rgba(255,200,60,.5)]">
+                    <span aria-hidden="true" className="absolute inset-x-5 top-3 h-1/3 rounded-full bg-linear-to-b from-white/70 to-transparent" />
+                    <span className="font-game text-[4.5rem] leading-none text-[#4a2200] drop-shadow-[0_3px_0_rgba(255,255,255,.55)] tabular-nums">{level}</span>
+                </motion.div>
+
+                <div className="flex items-end gap-2" role="img" aria-label={reward ? `${stars} étoile${stars > 1 ? "s" : ""} sur 3` : "Calcul de tes étoiles"}>
                     {[0, 1, 2].map((i) => {
-                        const earned = reward && i < reward.stars
+                        const earned = reward && i < stars
                         return (
-                            <motion.div key={i}
-                                initial={{ scale: 0, rotate: -40, opacity: 0 }}
+                            <motion.div key={i} initial={{ scale: 0, rotate: -40, opacity: 0 }}
                                 animate={reward ? { scale: earned ? 1 : 0.8, rotate: 0, opacity: 1 } : {}}
                                 transition={{ delay: 0.25 + i * 0.22, type: "spring", stiffness: 380, damping: 12 }}
-                                className={`text-5xl ${i === 1 ? "mb-3" : ""} ${earned ? "text-amber-300 drop-shadow-[0_0_12px_rgba(252,211,77,.8)]" : "text-white/20"}`}>
+                                className={`text-5xl ${i === 1 ? "mb-3" : ""} ${earned ? "text-yellow-300 drop-shadow-[0_0_12px_rgba(252,211,77,.85)]" : "text-white/20"}`}>
                                 <FaStar />
                             </motion.div>
                         )
                     })}
                 </div>
-                <div className="flex gap-3 w-full">
 
-                    <HoverButton onClick={player_data.level === level ? onRetry : onNext}>
-                        {player_data.level === level ? "Rejouer" : `Niveau ${level + 1} →`}
-                    </HoverButton>
+                <div className="grid w-full grid-cols-2 gap-3 rounded-3xl bg-black/25 p-4 ring-1 ring-white/15">
+                    <div className="flex items-center gap-3">
+                        <FaCoins aria-hidden="true" className="text-3xl text-yellow-300" />
+                        <div><div className="text-sm font-bold text-white/70">Pièces</div><div className="font-game text-3xl tabular-nums">+{reward ? coins : "…"}</div></div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <FaStar aria-hidden="true" className="text-3xl text-cartoon-purple" />
+                        <div><div className="text-sm font-bold text-white/70">XP</div><div className="font-game text-3xl tabular-nums">+{reward ? xp : "…"}</div></div>
+                    </div>
+                </div>
 
-                    <button onClick={onHome}
-                        className="border-2 bg-[rgba(255,255,255,0.07)] backdrop-filter font-body text-white/70 px-4 rounded-2xl hover:text-white transition-colors">
-                        <FaHome className="text-3xl" />
+                <div className="flex w-full gap-3">
+                    <button type="button" onClick={replay ? onRetry : onNext}
+                        className="flex min-h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-linear-to-b from-[#7cf29a] to-[#27b35a] font-game text-2xl text-[#073b1a] shadow-[0_6px_0_rgba(0,0,0,.3)] active:translate-y-0.5 focus-visible:outline-4 focus-visible:outline-white">
+                        {replay ? <><FaRedoAlt aria-hidden="true" className="text-xl" />Rejouer</> : <>Niveau {level + 1}<FaArrowRight aria-hidden="true" /></>}
+                    </button>
+                    <button type="button" onClick={onHome} aria-label="Retour à l'accueil"
+                        className="grid min-h-14 w-16 place-items-center rounded-2xl bg-white/12 text-2xl ring-1 ring-white/25 focus-visible:outline-4 focus-visible:outline-white">
+                        <FaHome aria-hidden="true" />
                     </button>
                 </div>
             </div>
-
-            <div className="flex gap-4 mt-4">
-                <div className="bg-linear-to-br from-amber-400 to-yellow-600 rounded-2xl p-4 flex items-center gap-3 shadow-lg">
-                    <FaCoins className="text-4xl text-white drop-shadow" />
-                    <div>
-                        <div className="text-xs text-white/80 uppercase">Gagné</div>
-                        <div className="text-3xl font-black text-white">+{reward ? coins : '??'}</div>
-                    </div>
-                </div>
-                <div className="bg-linear-to-br from-purple-500 to-indigo-700 rounded-2xl p-4 flex items-center gap-3 shadow-lg">
-                    <div className="text-5xl font-black text-white"><FaStar /></div>
-                    <div>
-                        <div className="text-xs text-white/80 uppercase">XP</div>
-                        <div className="text-3xl font-black text-white">+{reward ? xp : '??'}</div>
-                    </div>
-                </div>
-            </div>
-
-        </motion.div>
+        </motion.section>
     )
 }
