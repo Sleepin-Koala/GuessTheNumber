@@ -33,7 +33,14 @@ export default function GameplayPanel(
         const [n, res] = last
         setZone((z) => res === "MOINS" ? { ...z, lo: Math.max(z.lo, n + 1) } : res === "PLUS" ? { ...z, hi: Math.min(z.hi, n - 1) } : z)
     }, [numbers, range])
-    const locked = gameEnded || !!disabled
+    // pendant l'aller-retour serveur: retour immediat sur le bouton et touches bloquees (evite les doubles envois)
+    const [sending, setSending] = useState(false)
+    const send = async () => {
+        if (sending) return
+        setSending(true)
+        try { await onGuessr() } finally { setSending(false) }
+    }
+    const locked = gameEnded || !!disabled || sending
     const coarse = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches
     const press = (d) => {
         const typed = localNumber === "" ? "" : String(localNumber)
@@ -191,7 +198,7 @@ export default function GameplayPanel(
                     placeholder={`entre 1 et ${range}`}
                     value={localNumber}
                     onChange={handleNumberChange}
-                    onKeyDown={(ev) => { ev.key === "Enter" && !ev.repeat && onGuessr() }}
+                    onKeyDown={(ev) => { ev.key === "Enter" && !ev.repeat && send() }}
                     disabled={gameEnded || disabled}
                     readOnly={coarse} inputMode={coarse ? "none" : "numeric"}
                     className="min-w-0 flex-1 px-3 py-1.5 text-3xl sm:text-4xl text-center text-yellow-200 placeholder:text-white/35 placeholder:text-base font-black bg-black/35 ring-2 ring-white/20 focus:ring-4 focus:ring-yellow-300 focus:outline-none rounded-2xl tabular-nums" />
@@ -208,7 +215,7 @@ export default function GameplayPanel(
 
             <div className="w-full px-4 pb-4 [@media(max-height:900px)]:pb-2.5">
                 <button className="guess-button w-full py-3 [@media(max-height:900px)]:py-2 text-[#073b1a] bg-linear-to-b from-[#7cf29a] to-[#27b35a] text-2xl sm:text-3xl rounded-2xl font-bold shadow-[0_5px_0_rgba(0,0,0,.3)] active:translate-y-0.5 focus-visible:outline-4 focus-visible:outline-white"
-                    onClick={gameEnded ? onGameEnded : onGuessr}>{hint === "OK" ? "Recommencer" : "Deviner !"}
+                    onClick={gameEnded ? onGameEnded : send}>{hint === "OK" ? "Recommencer" : sending ? "Envoi…" : "Deviner !"}
                 </button>
             </div>
 

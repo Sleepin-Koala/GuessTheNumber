@@ -161,8 +161,8 @@ function Orb({ heat, hint, shaking, reduced }) {
 
 export default function OrbScene({ heat, hint, shaking, reduced }) {
     return (
-        <Canvas dpr={[1, 1.75]} camera={{ position: [0, 0.1, 4.6], fov: 38 }}
-            frameloop={reduced ? "demand" : "always"} gl={{ antialias: true, alpha: true }}
+        <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0.1, 4.6], fov: 38 }}
+            frameloop={reduced ? "demand" : "always"} gl={{ antialias: false, alpha: true, powerPreference: "high-performance" }}
             style={{ touchAction: "pan-y" }}>
             <Studio />
             <ambientLight intensity={0.22} />

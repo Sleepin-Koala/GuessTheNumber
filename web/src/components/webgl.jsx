@@ -15,6 +15,8 @@ export function gpuAccelerated() {
     try {
         if (localStorage.getItem("force3d") === "1") return true
         if (navigator.connection?.saveData) return false
+        // telephones d'entree de gamme: la scene 3D (rendu continu) fait saccader tout le jeu -> decor leger
+        if ((navigator.hardwareConcurrency ?? 8) <= 4 || (navigator.deviceMemory ?? 8) <= 4) return false
         const gl = document.createElement("canvas").getContext("webgl2") || document.createElement("canvas").getContext("webgl")
         if (!gl) return false
         const info = gl.getExtension("WEBGL_debug_renderer_info")
