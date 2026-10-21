@@ -46,8 +46,9 @@ export default function GameplayPanel(
     const mood = { kind: stop[1] > 100 ? "ice" : "fire", label: hint === "OK" ? "Brûlant !" : stop[2], color: `hsl(${stop[1]} 95% 58%)`, from: `hsl(${stop[1] + 25} 95% 52%)` }
     const pct = (n) => (range <= 1 ? 0 : ((n - 1) / (range - 1)) * 100)
 
+    // Focus automatique seulement avec une souris/clavier: sur telephone il ouvrirait le clavier a chaque essai
     useEffect(() => {
-        inputRef.current.focus()
+        if (window.matchMedia("(pointer: fine)").matches) inputRef.current?.focus()
     }, [isShaking, hint, gameEnded])
 
     function GuessChip({ number, status }) {
