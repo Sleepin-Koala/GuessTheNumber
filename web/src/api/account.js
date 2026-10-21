@@ -36,8 +36,33 @@ export async function ensureAccount() {
             return player
         } catch (e) { if (e.status !== 409) throw e }      // 409: deja reclame par quelqu'un d'autre ou inconnu
     }
-    return createAccount()
+    if (localStorage.getItem("gtn:auto-guest")) return createAccount()     // reserve aux tests automatises: pas d'ecran d'inscription
+    return awaitAuth()       // rien en memoire: on affiche l'ecran d'inscription / connexion (ou "jouer en invite")
 }
+
+// ---- Ecran d'inscription: ensureAccount attend que le joueur choisisse (e-mail, Google ou invite)
+let waiter = null
+export const isAwaitingAuth = () => waiter !== null
+export function awaitAuth() {
+    return new Promise((resolve) => {
+        waiter = resolve
+        window.dispatchEvent(new Event("gtn:need-auth"))
+    })
+}
+export function finishAuth(player) {
+    saveAccount(player)
+    const done = waiter; waiter = null
+    if (done) done(player)
+    else window.location.reload()      // connexion depuis les reglages: on recharge avec le nouveau jeton
+}
+export async function playAsGuest() { finishAuth(await createAccount()) }
+
+// reponse d'inscription/connexion: `token` absent = le compte invite en cours a ete rattache (on garde son jeton)
+const adopt = (p) => (p.token ? p : { ...p, token: getToken() })
+export const registerEmail = (email, password) => quietly(() => api.post("/auth/register", { email, password })).then(adopt)
+export const loginEmail = (email, password) => quietly(() => api.post("/auth/login", { email, password }))
+export const loginGoogle = (credential) => quietly(() => api.post("/auth/google", { credential })).then(adopt)
+export const authConfig = () => api.get("/auth/config").catch(() => ({ google_client_id: null }))
 
 // Restaure un compte a partir d'un code de recuperation (= le jeton). Rien n'est modifie si le code est refuse.
 export async function restoreWithToken(code) {

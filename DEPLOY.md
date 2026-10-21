@@ -109,6 +109,17 @@ python smoke.py https://<project>.pages.dev
 
 15 checks over the real internet: account creation, CORS, WebSockets, direct links, the security policy, offline mode, the "server waking up" message and a complete duel between two browsers. Then try by hand on a phone: open the site, **install it** (browser menu → *Add to home screen* / *Install app*), and play each mode.
 
+## Sign-in with Google (optional)
+
+Players can sign up with email + password with no setup. The "Continue with Google" button appears only once the API knows your Google client ID:
+
+1. Open <https://console.cloud.google.com/apis/credentials>, create a project if needed, then **Create credentials → OAuth client ID → Web application**.
+2. Under **Authorised JavaScript origins** add your site, e.g. `https://guess-it.nassroullah11.workers.dev` (and `http://localhost:5173` to try it locally). No redirect URI is needed.
+3. Copy the **Client ID** (it looks like `123…apps.googleusercontent.com`; it is public, not a secret).
+4. In Render → your service → **Environment**, add `GOOGLE_CLIENT_ID` = that value and save (the API restarts). The site reads it from `/auth/config`, so no new web build is needed.
+
+A guest who links Google or an email from Settings keeps their coins and level. Logging in on another device issues a new key and signs the old device out.
+
 ## Sharing with testers
 
 Send the `https://<project>.pages.dev` address. Tell them:

@@ -12,6 +12,7 @@ const Stat = lazy(() => import("./mode/stats/main.jsx"))
 import NetworkStatus from "./components/NetworkStatus"
 import SessionBanner from "./components/SessionBanner"
 import AccountGate from "./components/AccountGate"
+import { AuthGate } from "./components/AuthScreen"
 
 export default function App(){
   
@@ -20,6 +21,7 @@ export default function App(){
       <BrowserRouter>
         <NetworkStatus />
         <SessionBanner />
+        <AuthGate />
         <Suspense fallback={null}>
         <Routes>
           <Route path="/" element = {<Home/>}/>

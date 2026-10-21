@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 ##"routes"
 from routes.user import router as user_router
+from routes.accounts import router as accounts_router
 from routes.game import router as game_router
 from routes.shop import router as shop_router
 
@@ -45,6 +46,7 @@ app.add_middleware(CORSMiddleware,                          # exterieur: ajoute 
 
 
 app.include_router(user_router)
+app.include_router(accounts_router)
 app.include_router(game_router)
 app.include_router(shop_router)
 

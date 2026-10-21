@@ -33,12 +33,13 @@ function csp(apiOrigin) {
   const ws = apiOrigin.replace(/^http/, 'ws')
   const policy = [
     "default-src 'self'",
-    "script-src 'self'",
-    "style-src 'self' 'unsafe-inline'",
+    "script-src 'self' https://accounts.google.com/gsi/client",
+    "style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style",
+    "frame-src https://accounts.google.com/gsi/",
     "img-src 'self' data: blob:",
     "media-src 'self' data: blob:",
     "font-src 'self' data:",
-    `connect-src 'self' ${apiOrigin} ${ws}`,
+    `connect-src 'self' ${apiOrigin} ${ws} https://accounts.google.com/gsi/`,
     "worker-src 'self'",
     "manifest-src 'self'",
     "object-src 'none'",

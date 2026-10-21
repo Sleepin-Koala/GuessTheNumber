@@ -6,6 +6,7 @@ import { BiSolidJoystick } from "react-icons/bi"
 import { Toggle } from "../components/assets";
 import useGameSound from "../hooks/SoundHooks";
 import AccountRecovery from "../components/AccountRecovery";
+import AuthScreen from "../components/AuthScreen";
 
 export default function Settings({ settingsSetter, player, playerSetter }) {
     const [soundEnabled, setSoundEnabled] = useState(() => {
@@ -14,6 +15,7 @@ export default function Settings({ settingsSetter, player, playerSetter }) {
     });
 
     const [tempUsername, setTempUsername] = useState(player.name || "");
+    const [linking, setLinking] = useState(false)
     const {inGameSound} = useGameSound()
 
     const [isSaving, setIsSaving] = useState(false);
@@ -90,6 +92,13 @@ export default function Settings({ settingsSetter, player, playerSetter }) {
                     </div> </Toggle>
 
 
+
+                    <div className="rounded-xl bg-black/25 p-3 text-white">
+                        {player?.email
+                            ? <p className="font-bold">Compte lié : <span className="text-yellow-200">{player.email}</span>{player.google_linked ? " (Google)" : ""}</p>
+                            : <button type="button" onClick={() => setLinking(true)} className="min-h-11 w-full rounded-xl bg-white/15 font-bold ring-1 ring-white/25">Lier un e-mail ou Google à ce compte</button>}
+                    </div>
+                    {linking && <AuthScreen linking onClose={() => setLinking(false)} />}
 
                     <AccountRecovery />
 

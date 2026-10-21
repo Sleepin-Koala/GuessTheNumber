@@ -1,6 +1,7 @@
 """Test de fumee d'un site DEJA en ligne (ou local): `python smoke.py https://mon-site.pages.dev`.
 Ne touche pas a la base: il cree deux comptes jetables et joue un duel complet entre deux navigateurs.
 Verifie ce qui casse typiquement au premier deploiement: HTTPS/WSS, CORS, origines, liens directs, CSP, PWA."""
+import _guest  # noqa: F401
 import sys
 from playwright.sync_api import sync_playwright
 SITE = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:4173").rstrip("/")

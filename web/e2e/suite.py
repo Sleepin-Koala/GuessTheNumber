@@ -1,3 +1,4 @@
+import _guest  # noqa: F401
 import sqlite3, json, sys
 from playwright.sync_api import sync_playwright, expect
 B=__import__("os").environ.get("GTN_WEB","http://127.0.0.1:4173"); API="http://127.0.0.1:8000"

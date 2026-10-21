@@ -23,6 +23,8 @@ MAX_BODY = 16 * 1024                                       # octets
 DEFAULT_RULES = [
     ("POST", r"^/user/new_player$", int(os.environ.get("GTN_NEW_ACCOUNTS_PER_HOUR", 10)), 3600, "ip"),   # creation de comptes (des testeurs sur un meme Wi-Fi partagent une adresse: augmenter si besoin)
     ("POST", r"^/user/claim$", 10, 600, "ip"),
+    ("POST", r"^/auth/(register|google)$", 20, 3600, "ip"),
+    ("POST", r"^/auth/login$", 10, 600, "ip"),                # freine les essais de mots de passe
     ("POST", r"^/game/guess$", 120, 60, "token"),
     ("POST", r"^/game/powerup$", 60, 60, "token"),
     ("POST", r"^/game/duel/host$", 15, 60, "token"),

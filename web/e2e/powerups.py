@@ -1,5 +1,6 @@
 """E2E des power-ups: boutique -> inventaire -> bonus avant depart -> utilisation en partie (Classic + Discovery).
 Usage: GTN_DB=/chemin/main.db python powerups.py <dossier-captures>"""
+import _guest  # noqa: F401
 import os, sqlite3, sys
 from playwright.sync_api import sync_playwright
 B = os.environ.get("GTN_WEB", "http://127.0.0.1:4173"); API = "http://127.0.0.1:8000"; DB = os.environ["GTN_DB"]; OUT = sys.argv[1]

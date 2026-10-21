@@ -1,6 +1,7 @@
 """E2E des joueurs qui partent. Le backend doit tourner avec des delais courts:
   DUEL_DISCONNECT_GRACE=4 DUEL_TURN_TIMEOUT=12 DUEL_WAIT_TIMEOUT=8 DUEL_SWEEP_INTERVAL=0.5 uvicorn main:app --port 8000
 Usage: python abandon.py <dossier-captures>"""
+import _guest  # noqa: F401
 import os, sys, time
 from playwright.sync_api import sync_playwright
 B = os.environ.get("GTN_WEB", "http://127.0.0.1:4173"); API = "http://127.0.0.1:8000"; OUT = sys.argv[1]

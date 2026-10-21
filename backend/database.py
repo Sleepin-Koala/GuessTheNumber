@@ -16,6 +16,9 @@ class Player(Base):
     xp = Column(BigInteger , default=0)                # BigInteger: Postgres limite Integer a ~2,1 milliards
     coins = Column(BigInteger , default=500)
     gems = Column(BigInteger , default=10)
+    email = Column(String , nullable=True, unique=True, index=True)       # adresse en minuscules; absente pour un compte invite
+    password_hash = Column(String , nullable=True)                         # scrypt (jamais le mot de passe)
+    google_sub = Column(String , nullable=True, unique=True, index=True)   # identifiant Google stable du compte lie
     token_hash = Column(String , nullable=True, index=True)    # sha256 du jeton secret du joueur (le jeton lui-meme n'est jamais stocke)
 
     # Relationships
@@ -183,6 +186,9 @@ def make_db():
 _NEW_COLUMNS = [
     ("sessions", "max_range", "INTEGER"),
     ("player", "token_hash", "VARCHAR"),
+    ("player", "email", "VARCHAR"),
+    ("player", "password_hash", "VARCHAR"),
+    ("player", "google_sub", "VARCHAR"),
     ("duel", "updated_at", "FLOAT"),
     ("duel", "end_reason", "VARCHAR"),
 ]
@@ -195,3 +201,5 @@ def _migrate(engine):
             cols = [row[1] for row in conn.exec_driver_sql(f"PRAGMA table_info({table})")]
             if cols and column not in cols:
                 conn.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN {column} {sql_type}")
+        for column in ("email", "google_sub"):   # unicite sur les anciennes bases (les colonnes ajoutees n'ont pas la contrainte)
+            conn.exec_driver_sql(f"CREATE UNIQUE INDEX IF NOT EXISTS ux_player_{column} ON player ({column})")

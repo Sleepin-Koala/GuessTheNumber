@@ -14,6 +14,8 @@ def _public(user, token=None):
     data = PlayerData(id = user.id , name = user.name , gems = user.gems , coins = user.coins , xp = user.xp , level = user.level).model_dump() # type: ignore
     if token:
         data["token"] = token
+    data["email"] = getattr(user , "email", None)
+    data["google_linked"] = bool(getattr(user , "google_sub", None))
     return data
 
 
@@ -22,24 +24,30 @@ def _give_starting_items(user):
         session.add(PlayerItems(playerId = user.id , itemId = items_id))
 
 
-@router.post("/new_player")
-def new_player():
-    """Cree un compte. Le jeton secret n'est renvoye qu'ici: le client doit le garder (seule son empreinte est stockee)."""
+def create_player(**extra):
+    """Cree un joueur (500 pieces, objets de depart) et renvoie (joueur, jeton secret). Le jeton n'est renvoye qu'ici:
+    le client doit le garder (seule son empreinte est stockee)."""
     token = new_token()
     user = Player(
-            name = gen.getName() , 
+            name = gen.getName() ,
             id =  str(uuid4()),
             level = 1,
             created_at = time.time(),
             xp = 0,
             coins = 500,
             gems = 5,
-            token_hash = hash_token(token))
-    
+            token_hash = hash_token(token),
+            **extra)
+
     session.add(user)
     _give_starting_items(user)
     session.commit()
+    return user , token
 
+
+@router.post("/new_player")
+def new_player():
+    user , token = create_player()
     return _public(user , token)
 
 

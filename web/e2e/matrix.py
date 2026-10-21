@@ -1,3 +1,4 @@
+import _guest  # noqa: F401
 import json, sys, sqlite3
 from playwright.sync_api import sync_playwright
 B="http://127.0.0.1:4173"; OUT=sys.argv[1]; TAG=sys.argv[2] if len(sys.argv)>2 else "run"

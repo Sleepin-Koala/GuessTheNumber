@@ -17,5 +17,7 @@ services:
         sync: false
       - key: GTN_TRUST_PROXY
         value: "1"
+      - key: GOOGLE_CLIENT_ID          # "Continuer avec Google" (voir DEPLOY.md, section Google); vide = bouton masque
+        sync: false
       - key: GTN_PROXY_HOPS           # proxys devant le serveur (Cloudflare + Render): 3, verifie avec /whoami (voir DEPLOY.md)
         value: "3"

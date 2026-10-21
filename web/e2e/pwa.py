@@ -1,3 +1,4 @@
+import _guest  # noqa: F401
 import json, sys
 from playwright.sync_api import sync_playwright
 B="http://127.0.0.1:4173"; R={}

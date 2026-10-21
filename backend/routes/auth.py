@@ -20,6 +20,7 @@ from all import *
 PUBLIC = {
     ("GET", "/health"), ("GET", "/whatsup"), ("GET", "/whoami"),
     ("POST", "/user/new_player"), ("POST", "/user/claim"),
+    ("POST", "/auth/register"), ("POST", "/auth/login"), ("POST", "/auth/google"), ("GET", "/auth/config"),
     ("GET", "/docs"), ("GET", "/redoc"), ("GET", "/openapi.json"),
 }
 WS_SUBPROTOCOL = "gtn.v1"
