@@ -20,6 +20,26 @@ export default function GameplayPanel(
 
 
 
+    // zone de recherche: reduite a chaque indice. `numbers` est tronque par les ecrans, donc on cumule ici.
+    const [zone, setZone] = useState({ lo: 1, hi: range })
+    const lastSeen = useRef(null)
+    useEffect(() => { setZone({ lo: 1, hi: range }); lastSeen.current = null }, [range])
+    useEffect(() => {
+        if (!numbers.length) { setZone({ lo: 1, hi: range }); lastSeen.current = null; return }
+        const last = numbers[numbers.length - 1]
+        if (last === lastSeen.current) return
+        lastSeen.current = last
+        const [n, res] = last
+        setZone((z) => res === "MOINS" ? { ...z, lo: Math.max(z.lo, n + 1) } : res === "PLUS" ? { ...z, hi: Math.min(z.hi, n - 1) } : z)
+    }, [numbers, range])
+    const tried = new Map(numbers.map(([n, res]) => [n, res]))
+    const current = Number.isInteger(Number(localNumber)) && localNumber !== "" ? Number(localNumber) : null
+    const step = (d) => {
+        const base = current ?? Math.floor((zone.lo + zone.hi) / 2) - d
+        NumberSetter(Math.min(range, Math.max(1, base + d)))
+    }
+    const pct = (n) => (range <= 1 ? 0 : ((n - 1) / (range - 1)) * 100)
+
     useEffect(() => {
         inputRef.current.focus()
     }, [isShaking, hint, gameEnded])
@@ -76,12 +96,15 @@ export default function GameplayPanel(
                         <span className="title-ingame text-xl sm:text-3xl text-white font-black uppercase py-3 pl-14 pr-20 sm:p-3 text-center [@media(max-height:520px)]:text-lg [@media(max-height:520px)]:py-1">Devine le Nombre mystère</span>
                     </div>
 
-                    <div className={`text-xl sm:text-3xl [@media(max-height:520px)]:text-lg [@media(max-height:520px)]:p-1 font-bold text-white text-center ${hint === "MOINS" ? "bg-cartoon-red" : hint === "PLUS" ? "bg-cartoon-green" : "bg-cartoon-yellow"} p-3 drop-shadow-lg`}>
-                        {hint === "MOINS" ? <div className="flex justify-center items-center"><FaArrowDown /><div>Trop petit !</div></div> :
+                    <div role="status" className={`relative mx-3 mb-3 overflow-hidden rounded-2xl px-3 py-2.5 text-xl sm:text-3xl [@media(max-height:520px)]:text-lg [@media(max-height:520px)]:py-1 font-bold text-white text-center backdrop-blur-md ring-1 shadow-[0_8px_24px_rgba(0,0,0,.25),inset_0_1px_0_rgba(255,255,255,.45)] transition-colors duration-300 ${hint === "MOINS" ? "bg-rose-500/35 ring-rose-200/50" : hint === "PLUS" ? "bg-emerald-400/30 ring-emerald-100/50" : hint === "OK" ? "bg-yellow-300/35 ring-yellow-100/60" : "bg-white/12 ring-white/30"}`}>
+                        <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-linear-to-b from-white/25 to-transparent" />
+                        <span className="relative drop-shadow-[0_2px_4px_rgba(0,0,0,.35)]">
+                        {hint === "MOINS" ? <div className="flex justify-center items-center gap-1"><FaArrowDown /><div>Trop petit !</div></div> :
                             hint === "USED" ? "Nombre deja utilisé" :
-                                hint === "PLUS" ? <div className="flex justify-center items-center"><FaArrowUp /><div>Trop Grand !</div></div> :
+                                hint === "PLUS" ? <div className="flex justify-center items-center gap-1"><FaArrowUp /><div>Trop Grand !</div></div> :
                                     hint === "OK" ? <div className="flex justify-center items-center gap-1"><PiConfetti /><div>Bravo ! Nombre trouvé !</div></div>
-                                        : "..."}
+                                        : <span className="text-white/80 text-lg sm:text-2xl">À toi de jouer</span>}
+                        </span>
                     </div>
                 </div>
 
@@ -116,6 +139,18 @@ export default function GameplayPanel(
                     (<div key={idx}><GuessChip number={n[0]} status={n[1]} /></div>))}
             </div>
 
+            <div className="w-full px-4" aria-label={`Zone de recherche : entre ${zone.lo} et ${zone.hi}`} role="group">
+                <div className="mb-1 flex items-center justify-between text-sm font-bold text-white/80">
+                    <span className="grid h-7 min-w-7 place-items-center rounded-full bg-cartoon-blue/90 px-2 text-xs text-white">{zone.lo}</span>
+                    <span>Zone de recherche</span>
+                    <span className="grid h-7 min-w-7 place-items-center rounded-full bg-cartoon-pink px-2 text-xs text-white">{zone.hi}</span>
+                </div>
+                <div className="relative h-4 rounded-full bg-black/35 ring-1 ring-white/15 overflow-hidden">
+                    <motion.div className="absolute inset-y-0 rounded-full bg-linear-to-r from-cartoon-blue via-[#b57bff] to-cartoon-pink"
+                        animate={{ left: `${pct(zone.lo)}%`, width: `${Math.max(2, pct(zone.hi) - pct(zone.lo))}%` }} transition={{ type: "spring", stiffness: 170, damping: 22 }} />
+                </div>
+            </div>
+
             {(tray || infos.length > 0) && (
                 <div className="flex flex-col items-center gap-1.5 px-3 w-full" aria-live="polite">
                     {tray}
@@ -129,23 +164,39 @@ export default function GameplayPanel(
                 </div>
             )}
 
-            <div className="w-full px-4">
-
+            <div className="flex w-full items-stretch gap-3 px-4">
+                <button type="button" onClick={() => step(-1)} disabled={gameEnded || disabled} aria-label="Moins un"
+                    className="grid w-14 shrink-0 place-items-center rounded-2xl bg-linear-to-b from-[#ff9a3c] to-[#e8630a] text-3xl text-white font-game shadow-[0_6px_0_rgba(0,0,0,.3)] active:translate-y-0.5 focus-visible:outline-4 focus-visible:outline-white">−</button>
                 <input type="number" ref={inputRef}
                     placeholder={`entre 1 et ${range}`}
                     value={localNumber}
                     onChange={handleNumberChange}
                     onKeyDown={(ev) => { ev.key === "Enter" && !ev.repeat && onGuessr() }}
                     disabled={gameEnded || disabled}
-                    className="w-full px-4 py-3 text-3xl sm:text-4xl text-center text-yellow-200 placeholder:text-white/35 placeholder:text-xl font-black bg-black/35 ring-2 ring-white/20 focus:ring-4 focus:ring-yellow-300 focus:outline-none rounded-2xl tabular-nums" />
-
+                    className="min-w-0 flex-1 px-3 py-3 text-3xl sm:text-4xl text-center text-yellow-200 placeholder:text-white/35 placeholder:text-lg font-black bg-black/35 ring-2 ring-white/20 focus:ring-4 focus:ring-yellow-300 focus:outline-none rounded-2xl tabular-nums" />
+                <button type="button" onClick={() => step(1)} disabled={gameEnded || disabled} aria-label="Plus un"
+                    className="grid w-14 shrink-0 place-items-center rounded-2xl bg-linear-to-b from-[#3fe08f] to-[#14a35e] text-3xl text-white font-game shadow-[0_6px_0_rgba(0,0,0,.3)] active:translate-y-0.5 focus-visible:outline-4 focus-visible:outline-white">+</button>
             </div>
 
-            <button className="guess-button w-full py-4 text-[#073b1a] bg-linear-to-b from-[#7cf29a] to-[#27b35a] text-2xl sm:text-3xl rounded-b-3xl font-bold active:brightness-95 focus-visible:outline-4 focus-visible:outline-white"
-                style={{ boxShadow: `0 6px 0 rgba(0,0,0,.25), 0 8px 24px rgba(0,0,0,.2)` }}
-                onClick={gameEnded ? onGameEnded : onGuessr}>{hint === "OK" ? "Recommencer" : "Deviner !"}
-            </button>
+            <div className="w-full px-4">
+                <button className="guess-button w-full py-4 text-[#073b1a] bg-linear-to-b from-[#7cf29a] to-[#27b35a] text-2xl sm:text-3xl rounded-2xl font-bold shadow-[0_6px_0_rgba(0,0,0,.3)] active:translate-y-0.5 focus-visible:outline-4 focus-visible:outline-white"
+                    onClick={gameEnded ? onGameEnded : onGuessr}>{hint === "OK" ? "Recommencer" : "Deviner !"}
+                </button>
+            </div>
 
+            {range <= 40 && (
+                <div className="grid w-full grid-cols-5 gap-2 px-4 pb-5" role="group" aria-label="Choisir un nombre">
+                    {Array.from({ length: range }, (_, k) => k + 1).map((n) => {
+                        const out = n < zone.lo || n > zone.hi
+                        const res = tried.get(n)
+                        return (
+                            <button key={n} type="button" disabled={gameEnded || disabled || out} onClick={() => NumberSetter(n)} aria-pressed={current === n}
+                                className={`min-h-10 rounded-xl font-game text-lg tabular-nums ring-1 transition-colors focus-visible:outline-3 focus-visible:outline-white
+                                    ${current === n ? "bg-yellow-300 text-[#4a2200] ring-yellow-100" : out ? "bg-black/20 text-white/25 ring-white/5 line-through" : res ? "bg-white/10 text-white/60 ring-white/15" : "bg-white/15 text-white ring-white/25 hover:bg-white/25"}`}>{n}</button>
+                        )
+                    })}
+                </div>
+            )}
 
         </motion.div>
     )
