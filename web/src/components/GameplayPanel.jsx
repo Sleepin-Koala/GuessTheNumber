@@ -38,6 +38,11 @@ export default function GameplayPanel(
         const base = current ?? Math.floor((zone.lo + zone.hi) / 2) - d
         NumberSetter(Math.min(range, Math.max(1, base + d)))
     }
+    // temperature de la partie: plus la zone est etroite, plus on "brule"
+    const warmth = range <= 1 ? 1 : Math.min(1, Math.max(0, 1 - (zone.hi - zone.lo + 1) / range))
+    const STOPS = [[0, 205, "Glacé"], [0.3, 175, "Froid"], [0.55, 48, "Tiède"], [0.78, 22, "Chaud"], [0.93, 4, "Brûlant"]]
+    const stop = [...STOPS].reverse().find(([t]) => warmth >= t) ?? STOPS[0]
+    const mood = { label: hint === "OK" ? "Brûlant !" : stop[2], color: `hsl(${stop[1]} 95% 58%)`, from: `hsl(${stop[1] + 25} 95% 52%)` }
     const pct = (n) => (range <= 1 ? 0 : ((n - 1) / (range - 1)) * 100)
 
     useEffect(() => {
@@ -139,15 +144,22 @@ export default function GameplayPanel(
                     (<div key={idx}><GuessChip number={n[0]} status={n[1]} /></div>))}
             </div>
 
-            <div className="w-full px-4" aria-label={`Zone de recherche : entre ${zone.lo} et ${zone.hi}`} role="group">
-                <div className="mb-1 flex items-center justify-between text-sm font-bold text-white/80">
-                    <span className="grid h-7 min-w-7 place-items-center rounded-full bg-cartoon-blue/90 px-2 text-xs text-white">{zone.lo}</span>
-                    <span>Zone de recherche</span>
-                    <span className="grid h-7 min-w-7 place-items-center rounded-full bg-cartoon-pink px-2 text-xs text-white">{zone.hi}</span>
+            <div className="w-full px-4" role="group" aria-label={`Zone de recherche : entre ${zone.lo} et ${zone.hi}. ${mood.label}`}>
+                <div className="mb-1.5 flex items-center justify-between text-sm font-bold">
+                    <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-white/90 ring-1 ring-white/25 backdrop-blur-sm tabular-nums">{zone.lo}</span>
+                    <span className="font-game text-lg tracking-wide drop-shadow-[0_0_8px_var(--glow)]" style={{ color: mood.color, "--glow": mood.color }}>{mood.label}</span>
+                    <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-white/90 ring-1 ring-white/25 backdrop-blur-sm tabular-nums">{zone.hi}</span>
                 </div>
-                <div className="relative h-4 rounded-full bg-black/35 ring-1 ring-white/15 overflow-hidden">
-                    <motion.div className="absolute inset-y-0 rounded-full bg-linear-to-r from-cartoon-blue via-[#b57bff] to-cartoon-pink"
-                        animate={{ left: `${pct(zone.lo)}%`, width: `${Math.max(2, pct(zone.hi) - pct(zone.lo))}%` }} transition={{ type: "spring", stiffness: 170, damping: 22 }} />
+                <div className="flex items-center">
+                    {/* bulbe du thermometre: sa couleur monte avec la temperature */}
+                    <span aria-hidden="true" className="relative z-10 -mr-3 h-9 w-9 shrink-0 rounded-full ring-2 ring-white/30 transition-all duration-500"
+                        style={{ background: `radial-gradient(circle at 35% 30%, #fff8 0, transparent 35%), ${mood.color}`, boxShadow: `0 0 ${8 + warmth * 22}px ${mood.color}, inset 0 -4px 0 rgba(0,0,0,.25)` }} />
+                    <div className="relative h-4 flex-1 overflow-hidden rounded-r-full bg-black/45 ring-1 ring-white/20"
+                        style={{ backgroundImage: "repeating-linear-gradient(90deg, rgba(255,255,255,.14) 0 1px, transparent 1px 10%)" }}>
+                        <motion.div className="absolute inset-y-0 rounded-full"
+                            style={{ background: `linear-gradient(90deg, ${mood.from}, ${mood.color})`, boxShadow: `0 0 ${6 + warmth * 18}px ${mood.color}` }}
+                            animate={{ left: `${pct(zone.lo)}%`, width: `${Math.max(2, pct(zone.hi) - pct(zone.lo))}%` }} transition={{ type: "spring", stiffness: 170, damping: 22 }} />
+                    </div>
                 </div>
             </div>
 
