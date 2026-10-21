@@ -177,8 +177,7 @@ def make_db():
                                # des hebergeurs en mode transaction); connect_timeout: une base en veille met un instant a repondre
                                connect_args={"prepare_threshold": None , "connect_timeout": 20})
     Base.metadata.create_all(engine)
-    if engine.dialect.name == "sqlite":
-        _migrate(engine)       # anciennes bases SQLite uniquement: Postgres est cree d'un coup avec toutes les colonnes
+    _migrate(engine)           # bases creees avant certaines colonnes (SQLite ou Postgres): create_all n'ajoute pas de colonnes
     return engine
 
 
@@ -195,11 +194,14 @@ _NEW_COLUMNS = [
 
 
 def _migrate(engine):
-    """Ajoute les colonnes apparues apres la creation d'une base existante (SQLite)."""
+    """Ajoute les colonnes apparues apres la creation d'une base existante (SQLite et Postgres)."""
+    from sqlalchemy import inspect
+    insp = inspect(engine)
     with engine.begin() as conn:
         for table, column, sql_type in _NEW_COLUMNS:
-            cols = [row[1] for row in conn.exec_driver_sql(f"PRAGMA table_info({table})")]
-            if cols and column not in cols:
+            if not insp.has_table(table):
+                continue
+            if column not in [c["name"] for c in insp.get_columns(table)]:
                 conn.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN {column} {sql_type}")
         for column in ("email", "google_sub"):   # unicite sur les anciennes bases (les colonnes ajoutees n'ont pas la contrainte)
             conn.exec_driver_sql(f"CREATE UNIQUE INDEX IF NOT EXISTS ux_player_{column} ON player ({column})")
