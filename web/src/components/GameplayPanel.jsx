@@ -1,6 +1,6 @@
 import { motion } from "framer-motion"
 import { Suspense, lazy, useEffect, useRef, useState, useCallback } from "react"
-import { FaArrowDown, FaArrowUp , FaPause } from "react-icons/fa"
+import { FaArrowDown, FaArrowUp , FaPause, FaBackspace, FaTimes } from "react-icons/fa"
 import { PiConfetti } from "react-icons/pi"
 import useGameSound from "../hooks/SoundHooks"
 import MysteryOrb from "./MysteryOrb"
@@ -33,11 +33,17 @@ export default function GameplayPanel(
         const [n, res] = last
         setZone((z) => res === "MOINS" ? { ...z, lo: Math.max(z.lo, n + 1) } : res === "PLUS" ? { ...z, hi: Math.min(z.hi, n - 1) } : z)
     }, [numbers, range])
-    const tried = new Map(numbers.map(([n, res]) => [n, res]))
-    const current = Number.isInteger(Number(localNumber)) && localNumber !== "" ? Number(localNumber) : null
-    const step = (d) => {
-        const base = current ?? Math.floor((zone.lo + zone.hi) / 2) - d
-        NumberSetter(Math.min(range, Math.max(1, base + d)))
+    const locked = gameEnded || !!disabled
+    const coarse = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches
+    const press = (d) => {
+        const typed = localNumber === "" ? "" : String(localNumber)
+        const next = typed === "0" ? d : typed + d
+        if (next.length > String(range).length || Number(next) > range) return
+        NumberSetter(Number(next))
+    }
+    const backspace = () => {
+        const typed = String(localNumber)
+        NumberSetter(typed.length <= 1 ? "" : Number(typed.slice(0, -1)))
     }
     // temperature de la partie: plus la zone est etroite, plus on "brule"
     const warmth = range <= 1 ? 1 : Math.min(1, Math.max(0, 1 - (zone.hi - zone.lo + 1) / range))
@@ -86,7 +92,7 @@ export default function GameplayPanel(
 
 
     return (
-        <motion.div className="m-auto min-w-[20rem] w-[90%] max-w-2xl gap-3 rounded-3xl relative flex flex-col justify-between items-center backdrop-blur-md  shadow-[0_18px_0_rgba(0,0,0,.28),0_30px_50px_rgba(0,0,0,.4)] ring-1 ring-white/20 bg-linear-to-b from-[#3a1a78]/90 to-[#170838]/95"
+        <motion.div className="m-auto min-w-[18rem] w-[92%] max-w-2xl gap-3 [@media(max-height:900px)]:gap-1.5 rounded-3xl relative flex flex-col justify-between items-center backdrop-blur-md  shadow-[0_18px_0_rgba(0,0,0,.28),0_30px_50px_rgba(0,0,0,.4)] ring-1 ring-white/20 bg-linear-to-b from-[#3a1a78]/90 to-[#170838]/95"
             animate={isShaking ? { x: getShakeIntensity(distance, range) } : null} transition={{ duration: 0.2 }}
         >
 
@@ -100,10 +106,10 @@ export default function GameplayPanel(
             <div className="flex bg-linear-to-b from-[#7b4bd6] to-[#4b24a0] w-full rounded-t-3xl shadow-[inset_0_-4px_0_rgba(0,0,0,.2)]" >
                 <div className="flex-1">
                     <div className="flex items-center gap-3 w-full justify-center">
-                        <span className="title-ingame text-xl sm:text-3xl text-white font-black uppercase py-3 pl-14 pr-20 sm:p-3 text-center [@media(max-height:520px)]:text-lg [@media(max-height:520px)]:py-1">Devine le Nombre mystère</span>
+                        <span className="title-ingame text-xl sm:text-3xl [@media(max-height:900px)]:text-base text-white font-black uppercase py-3 [@media(max-height:900px)]:py-1.5 pl-14 pr-20 sm:p-3 text-center [@media(max-height:520px)]:text-lg [@media(max-height:520px)]:py-1">Devine le Nombre mystère</span>
                     </div>
 
-                    <div role="status" className={`relative mx-3 mb-3 overflow-hidden rounded-2xl px-3 py-2.5 text-xl sm:text-3xl [@media(max-height:520px)]:text-lg [@media(max-height:520px)]:py-1 font-bold text-white text-center backdrop-blur-md ring-1 shadow-[0_8px_24px_rgba(0,0,0,.25),inset_0_1px_0_rgba(255,255,255,.45)] transition-colors duration-300 ${hint === "MOINS" ? "bg-rose-500/35 ring-rose-200/50" : hint === "PLUS" ? "bg-emerald-400/30 ring-emerald-100/50" : hint === "OK" ? "bg-yellow-300/35 ring-yellow-100/60" : "bg-white/12 ring-white/30"}`}>
+                    <div role="status" className={`relative mx-3 mb-3 [@media(max-height:900px)]:mb-2 overflow-hidden rounded-2xl px-3 py-2.5 [@media(max-height:900px)]:py-1 text-xl sm:text-3xl [@media(max-height:520px)]:text-lg [@media(max-height:520px)]:py-1 font-bold text-white text-center backdrop-blur-md ring-1 shadow-[0_8px_24px_rgba(0,0,0,.25),inset_0_1px_0_rgba(255,255,255,.45)] transition-colors duration-300 ${hint === "MOINS" ? "bg-rose-500/35 ring-rose-200/50" : hint === "PLUS" ? "bg-emerald-400/30 ring-emerald-100/50" : hint === "OK" ? "bg-yellow-300/35 ring-yellow-100/60" : "bg-white/12 ring-white/30"}`}>
                         <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-linear-to-b from-white/25 to-transparent" />
                         <span className="relative drop-shadow-[0_2px_4px_rgba(0,0,0,.35)]">
                         {hint === "MOINS" ? <div className="flex justify-center items-center gap-1"><FaArrowDown /><div>Trop petit !</div></div> :
@@ -116,8 +122,8 @@ export default function GameplayPanel(
                 </div>
 
                 <div className="absolute right-2 top-2 sm:right-10 sm:top-5 flex flex-col justify-center bg-linear-to-b from-[#ffe27a] to-[#ffb62e] px-3 py-1 shadow-[0_5px_0_rgba(0,0,0,.3)] rounded-2xl items-center text-[#4a2200]">
-                    <div className="uppercase text-xs sm:text-base">essais</div>
-                    <div className="text-4xl sm:text-7xl [@media(max-height:520px)]:text-3xl font-black">{attempt}</div>
+                    <div className="uppercase text-xs sm:text-base [@media(max-height:900px)]:hidden">essais</div>
+                    <div className="text-4xl sm:text-7xl [@media(max-height:900px)]:text-3xl font-black">{attempt}</div>
                 </div>
             </div>
 
@@ -147,7 +153,7 @@ export default function GameplayPanel(
             </div>
 
             <div className="w-full px-4" role="group" aria-label={`Zone de recherche : entre ${zone.lo} et ${zone.hi}. ${mood.label}`}>
-                <div className="mb-1.5 flex items-center justify-between text-sm font-bold">
+                <div className="mb-1.5 [@media(max-height:900px)]:mb-0.5 flex items-center justify-between text-sm font-bold">
                     <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-white/90 ring-1 ring-white/25 backdrop-blur-sm tabular-nums">{zone.lo}</span>
                     <span className="font-game text-lg tracking-wide drop-shadow-[0_0_8px_var(--glow)]" style={{ color: mood.color, "--glow": mood.color }}>{mood.label}</span>
                     <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-white/90 ring-1 ring-white/25 backdrop-blur-sm tabular-nums">{zone.hi}</span>
@@ -178,39 +184,33 @@ export default function GameplayPanel(
                 </div>
             )}
 
-            <div className="flex w-full items-stretch gap-3 px-4">
-                <button type="button" onClick={() => step(-1)} disabled={gameEnded || disabled} aria-label="Moins un"
-                    className="grid w-14 shrink-0 place-items-center rounded-2xl bg-linear-to-b from-[#ff9a3c] to-[#e8630a] text-3xl text-white font-game shadow-[0_6px_0_rgba(0,0,0,.3)] active:translate-y-0.5 focus-visible:outline-4 focus-visible:outline-white">−</button>
+            <div className="flex w-full items-stretch gap-2 px-4">
+                <button type="button" onClick={backspace} disabled={locked || localNumber === ""} aria-label="Effacer le dernier chiffre"
+                    className="grid w-12 shrink-0 place-items-center rounded-2xl bg-linear-to-b from-[#ff9a3c] to-[#e8630a] text-xl text-white shadow-[0_4px_0_rgba(0,0,0,.3)] active:translate-y-0.5 disabled:opacity-40 focus-visible:outline-4 focus-visible:outline-white"><FaBackspace aria-hidden="true" /></button>
                 <input type="number" ref={inputRef}
                     placeholder={`entre 1 et ${range}`}
                     value={localNumber}
                     onChange={handleNumberChange}
                     onKeyDown={(ev) => { ev.key === "Enter" && !ev.repeat && onGuessr() }}
                     disabled={gameEnded || disabled}
-                    className="min-w-0 flex-1 px-3 py-3 text-3xl sm:text-4xl text-center text-yellow-200 placeholder:text-white/35 placeholder:text-lg font-black bg-black/35 ring-2 ring-white/20 focus:ring-4 focus:ring-yellow-300 focus:outline-none rounded-2xl tabular-nums" />
-                <button type="button" onClick={() => step(1)} disabled={gameEnded || disabled} aria-label="Plus un"
-                    className="grid w-14 shrink-0 place-items-center rounded-2xl bg-linear-to-b from-[#3fe08f] to-[#14a35e] text-3xl text-white font-game shadow-[0_6px_0_rgba(0,0,0,.3)] active:translate-y-0.5 focus-visible:outline-4 focus-visible:outline-white">+</button>
+                    readOnly={coarse} inputMode={coarse ? "none" : "numeric"}
+                    className="min-w-0 flex-1 px-3 py-1.5 text-3xl sm:text-4xl text-center text-yellow-200 placeholder:text-white/35 placeholder:text-base font-black bg-black/35 ring-2 ring-white/20 focus:ring-4 focus:ring-yellow-300 focus:outline-none rounded-2xl tabular-nums" />
+                <button type="button" onClick={() => NumberSetter("")} disabled={locked || localNumber === ""} aria-label="Tout effacer"
+                    className="grid w-12 shrink-0 place-items-center rounded-2xl bg-white/12 text-xl text-white ring-1 ring-white/25 active:translate-y-0.5 disabled:opacity-40 focus-visible:outline-4 focus-visible:outline-white"><FaTimes aria-hidden="true" /></button>
             </div>
 
-            <div className="w-full px-4">
-                <button className="guess-button w-full py-4 text-[#073b1a] bg-linear-to-b from-[#7cf29a] to-[#27b35a] text-2xl sm:text-3xl rounded-2xl font-bold shadow-[0_6px_0_rgba(0,0,0,.3)] active:translate-y-0.5 focus-visible:outline-4 focus-visible:outline-white"
+            <div className="grid w-full grid-cols-5 gap-1.5 px-4" role="group" aria-label="Clavier numérique">
+                {["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map((d) => (
+                    <button key={d} type="button" disabled={locked} onClick={() => press(d)}
+                        className="min-h-10 [@media(max-height:900px)]:min-h-9 rounded-xl bg-white/15 font-game text-xl text-white tabular-nums ring-1 ring-white/25 shadow-[0_3px_0_rgba(0,0,0,.25)] active:translate-y-0.5 active:bg-yellow-300 active:text-[#4a2200] disabled:opacity-40 focus-visible:outline-3 focus-visible:outline-white">{d}</button>
+                ))}
+            </div>
+
+            <div className="w-full px-4 pb-4 [@media(max-height:900px)]:pb-2.5">
+                <button className="guess-button w-full py-3 [@media(max-height:900px)]:py-2 text-[#073b1a] bg-linear-to-b from-[#7cf29a] to-[#27b35a] text-2xl sm:text-3xl rounded-2xl font-bold shadow-[0_5px_0_rgba(0,0,0,.3)] active:translate-y-0.5 focus-visible:outline-4 focus-visible:outline-white"
                     onClick={gameEnded ? onGameEnded : onGuessr}>{hint === "OK" ? "Recommencer" : "Deviner !"}
                 </button>
             </div>
-
-            {range <= 40 && (
-                <div className="grid w-full grid-cols-5 gap-2 px-4 pb-5" role="group" aria-label="Choisir un nombre">
-                    {Array.from({ length: range }, (_, k) => k + 1).map((n) => {
-                        const out = n < zone.lo || n > zone.hi
-                        const res = tried.get(n)
-                        return (
-                            <button key={n} type="button" disabled={gameEnded || disabled || out} onClick={() => NumberSetter(n)} aria-pressed={current === n}
-                                className={`min-h-10 rounded-xl font-game text-lg tabular-nums ring-1 transition-colors focus-visible:outline-3 focus-visible:outline-white
-                                    ${current === n ? "bg-yellow-300 text-[#4a2200] ring-yellow-100" : out ? "bg-black/20 text-white/25 ring-white/5 line-through" : res ? "bg-white/10 text-white/60 ring-white/15" : "bg-white/15 text-white ring-white/25 hover:bg-white/25"}`}>{n}</button>
-                        )
-                    })}
-                </div>
-            )}
 
         </motion.div>
     )

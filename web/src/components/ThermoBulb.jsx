@@ -37,7 +37,7 @@ export default function ThermoBulb({ kind, warmth, color }) {
     const k = Math.min(1, 0.55 + warmth * 0.65)       // la flamme grandit avec la temperature
 
     return (
-        <span ref={root} aria-hidden="true" className="relative z-10 -mr-3 grid h-11 w-11 shrink-0 place-items-center rounded-full ring-2 ring-white/30 transition-[box-shadow,background] duration-500"
+        <span ref={root} aria-hidden="true" className="relative z-10 -mr-3 grid h-11 w-11 [@media(max-height:900px)]:h-9 [@media(max-height:900px)]:w-9 shrink-0 place-items-center rounded-full ring-2 ring-white/30 transition-[box-shadow,background] duration-500"
             style={{ background: kind === "ice" ? "radial-gradient(circle at 35% 28%, #fff9 0, transparent 38%), #1b4f9c" : "radial-gradient(circle at 35% 28%, #fff6 0, transparent 38%), #4a1208",
                      boxShadow: `0 0 ${10 + warmth * 24}px ${color}, inset 0 -4px 0 rgba(0,0,0,.25)` }}>
             {kind === "ice" ? (

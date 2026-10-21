@@ -24,8 +24,8 @@ export function TimerRing({ total, left }) {
   
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: 72, height: 72 }}>
-      <svg width="72" height="72" viewBox="0 0 100 100">
+    <div className="relative flex items-center justify-center" style={{ width: "clamp(48px, 8dvh, 72px)", height: "clamp(48px, 8dvh, 72px)" }}>
+      <svg width="100%" height="100%" viewBox="0 0 100 100">
         {/* Fond du cercle */}
         <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="8" />
         {/* Arc qui se vide */}
