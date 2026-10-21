@@ -1,9 +1,10 @@
 import { motion } from "framer-motion"
-import { useEffect, useRef, useState, useCallback } from "react"
+import { Suspense, lazy, useEffect, useRef, useState, useCallback } from "react"
 import { FaArrowDown, FaArrowUp , FaPause } from "react-icons/fa"
 import { PiConfetti } from "react-icons/pi"
 import useGameSound from "../hooks/SoundHooks"
 import MysteryOrb from "./MysteryOrb"
+const ThermoBulb = lazy(() => import("./ThermoBulb"))
   
 
 
@@ -42,7 +43,7 @@ export default function GameplayPanel(
     const warmth = range <= 1 ? 1 : Math.min(1, Math.max(0, 1 - (zone.hi - zone.lo + 1) / range))
     const STOPS = [[0, 205, "Glacé"], [0.3, 175, "Froid"], [0.55, 48, "Tiède"], [0.78, 22, "Chaud"], [0.93, 4, "Brûlant"]]
     const stop = [...STOPS].reverse().find(([t]) => warmth >= t) ?? STOPS[0]
-    const mood = { label: hint === "OK" ? "Brûlant !" : stop[2], color: `hsl(${stop[1]} 95% 58%)`, from: `hsl(${stop[1] + 25} 95% 52%)` }
+    const mood = { kind: stop[1] > 100 ? "ice" : "fire", label: hint === "OK" ? "Brûlant !" : stop[2], color: `hsl(${stop[1]} 95% 58%)`, from: `hsl(${stop[1] + 25} 95% 52%)` }
     const pct = (n) => (range <= 1 ? 0 : ((n - 1) / (range - 1)) * 100)
 
     useEffect(() => {
@@ -151,9 +152,9 @@ export default function GameplayPanel(
                     <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-white/90 ring-1 ring-white/25 backdrop-blur-sm tabular-nums">{zone.hi}</span>
                 </div>
                 <div className="flex items-center">
-                    {/* bulbe du thermometre: sa couleur monte avec la temperature */}
-                    <span aria-hidden="true" className="relative z-10 -mr-3 h-9 w-9 shrink-0 rounded-full ring-2 ring-white/30 transition-all duration-500"
-                        style={{ background: `radial-gradient(circle at 35% 30%, #fff8 0, transparent 35%), ${mood.color}`, boxShadow: `0 0 ${8 + warmth * 22}px ${mood.color}, inset 0 -4px 0 rgba(0,0,0,.25)` }} />
+                    <Suspense fallback={<span aria-hidden="true" className="-mr-3 h-11 w-11 shrink-0 rounded-full" style={{ background: mood.color }} />}>
+                        <ThermoBulb kind={mood.kind} warmth={warmth} color={mood.color} />
+                    </Suspense>
                     <div className="relative h-4 flex-1 overflow-hidden rounded-r-full bg-black/45 ring-1 ring-white/20"
                         style={{ backgroundImage: "repeating-linear-gradient(90deg, rgba(255,255,255,.14) 0 1px, transparent 1px 10%)" }}>
                         <motion.div className="absolute inset-y-0 rounded-full"
