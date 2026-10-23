@@ -113,7 +113,7 @@ export default function GameplayPanel(
             <div className="flex bg-linear-to-b from-[#7b4bd6] to-[#4b24a0] w-full rounded-t-3xl shadow-[inset_0_-4px_0_rgba(0,0,0,.2)]" >
                 <div className="flex-1">
                     <div className="flex items-center gap-3 w-full justify-center">
-                        <span className="title-ingame text-xl sm:text-3xl [@media(max-height:900px)]:text-base text-white font-black uppercase py-3 [@media(max-height:900px)]:py-1.5 pl-14 pr-20 sm:p-3 text-center [@media(max-height:520px)]:text-lg [@media(max-height:520px)]:py-1">Devine le Nombre mystère</span>
+                        <span className="title-ingame [@media(max-height:500px)]:hidden text-xl sm:text-3xl [@media(max-height:900px)]:text-base text-white font-black uppercase py-3 [@media(max-height:900px)]:py-1.5 pl-14 pr-20 sm:p-3 text-center [@media(max-height:520px)]:text-lg [@media(max-height:520px)]:py-1">Devine le Nombre mystère</span>
                     </div>
 
                     <div role="status" className={`relative mx-3 mb-3 [@media(max-height:900px)]:mb-2 overflow-hidden rounded-2xl px-3 py-2.5 [@media(max-height:900px)]:py-1 text-xl sm:text-3xl [@media(max-height:520px)]:text-lg [@media(max-height:520px)]:py-1 font-bold text-white text-center backdrop-blur-md ring-1 shadow-[0_8px_24px_rgba(0,0,0,.25),inset_0_1px_0_rgba(255,255,255,.45)] transition-colors duration-300 ${hint === "MOINS" ? "bg-rose-500/35 ring-rose-200/50" : hint === "PLUS" ? "bg-emerald-400/30 ring-emerald-100/50" : hint === "OK" ? "bg-yellow-300/35 ring-yellow-100/60" : "bg-white/12 ring-white/30"}`}>
@@ -136,7 +136,7 @@ export default function GameplayPanel(
 
 
             <MysteryOrb heat={heat} hint={hint} shaking={isShaking} fallback={
-            <div className="w-28 h-28 sm:w-45 sm:h-45 [@media(max-height:700px)]:hidden rounded-full flex items-center justify-center text-5xl sm:text-7xl text-center"
+            <div className="w-28 h-28 sm:w-45 sm:h-45 [@media(max-height:760px)]:hidden rounded-full flex items-center justify-center text-5xl sm:text-7xl text-center"
                     style={{ boxShadow: `0 8px 32px rgba(0,0,0,.35), 0 0 0 4px rgba(255,255,255,.5)` }}>
                     <motion.span className="font-[1000] text-cartoon-blue fun-title"
                         animate={{
@@ -154,13 +154,13 @@ export default function GameplayPanel(
                 </div>
             } />
 
-            <div className="flex gap-1 justify-center h-10">
+            <div className="flex gap-1 justify-center h-10 [@media(max-height:500px)]:hidden">
                 {numbers.map((n, idx) =>
                     (<div key={idx}><GuessChip number={n[0]} status={n[1]} /></div>))}
             </div>
 
             <div className="w-full px-4" role="group" aria-label={`Zone de recherche : entre ${zone.lo} et ${zone.hi}. ${mood.label}`}>
-                <div className="mb-1.5 [@media(max-height:900px)]:mb-0.5 flex items-center justify-between text-sm font-bold">
+                <div className="mb-1.5 [@media(max-height:900px)]:mb-0.5 [@media(max-height:500px)]:hidden flex items-center justify-between text-sm font-bold">
                     <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-white/90 ring-1 ring-white/25 backdrop-blur-sm tabular-nums">{zone.lo}</span>
                     <span className="font-game text-lg tracking-wide drop-shadow-[0_0_8px_var(--glow)]" style={{ color: mood.color, "--glow": mood.color }}>{mood.label}</span>
                     <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-white/90 ring-1 ring-white/25 backdrop-blur-sm tabular-nums">{zone.hi}</span>
@@ -206,14 +206,14 @@ export default function GameplayPanel(
                     className="grid w-12 shrink-0 place-items-center rounded-2xl bg-white/12 text-xl text-white ring-1 ring-white/25 active:translate-y-0.5 disabled:opacity-40 focus-visible:outline-4 focus-visible:outline-white"><FaTimes aria-hidden="true" /></button>
             </div>
 
-            <div className="grid w-full grid-cols-5 gap-1.5 px-4" role="group" aria-label="Clavier numérique">
+            <div className="grid w-full grid-cols-5 [@media(max-height:500px)]:grid-cols-10 gap-1.5 [@media(max-height:500px)]:gap-1 px-4" role="group" aria-label="Clavier numérique">
                 {["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map((d) => (
                     <button key={d} type="button" disabled={locked} onClick={() => press(d)}
-                        className="min-h-10 [@media(max-height:900px)]:min-h-9 rounded-xl bg-white/15 font-game text-xl text-white tabular-nums ring-1 ring-white/25 shadow-[0_3px_0_rgba(0,0,0,.25)] active:translate-y-0.5 active:bg-yellow-300 active:text-[#4a2200] disabled:opacity-40 focus-visible:outline-3 focus-visible:outline-white">{d}</button>
+                        className="min-h-10 [@media(max-height:900px)]:min-h-9 [@media(max-height:500px)]:min-h-8 [@media(max-height:500px)]:text-base rounded-xl bg-white/15 font-game text-xl text-white tabular-nums ring-1 ring-white/25 shadow-[0_3px_0_rgba(0,0,0,.25)] active:translate-y-0.5 active:bg-yellow-300 active:text-[#4a2200] disabled:opacity-40 focus-visible:outline-3 focus-visible:outline-white">{d}</button>
                 ))}
             </div>
 
-            <div className="w-full px-4 pb-4 [@media(max-height:900px)]:pb-2.5">
+            <div className="w-full px-4 pb-4 [@media(max-height:900px)]:pb-2.5 [@media(max-height:500px)]:pb-1">
                 <button className="guess-button w-full py-3 [@media(max-height:900px)]:py-2 text-[#073b1a] bg-linear-to-b from-[#7cf29a] to-[#27b35a] text-2xl sm:text-3xl rounded-2xl font-bold shadow-[0_5px_0_rgba(0,0,0,.3)] active:translate-y-0.5 focus-visible:outline-4 focus-visible:outline-white"
                     onClick={gameEnded ? onGameEnded : send}>{hint === "OK" ? "Recommencer" : sending ? "Envoi…" : "Deviner !"}
                 </button>

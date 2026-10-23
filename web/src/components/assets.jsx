@@ -7,7 +7,7 @@ export function Toggle({ children, current, setCurrent }) {
 
     return (<div className="mb-5 flex justify-between items-center bg-black/30 rounded-xl p-3">
         <label className="text-gray-700 dark:text-gray-200 font-black">{children}</label>
-        <button
+        <button role="switch" aria-checked={!!current}
             onClick={() => setCurrent(!current)}
             className={`w-12 h-6 rounded-full transition ${current ? "bg-green-500" : "bg-gray-400"
                 } relative after:absolute after:-inset-y-3 after:-inset-x-1 after:content-['']`}

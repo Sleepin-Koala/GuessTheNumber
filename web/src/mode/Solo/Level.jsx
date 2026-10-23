@@ -24,7 +24,7 @@ export function TimerRing({ total, left }) {
   
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: "clamp(48px, 8dvh, 72px)", height: "clamp(48px, 8dvh, 72px)" }}>
+    <div className="relative flex items-center justify-center" style={{ width: "clamp(40px, 8dvh, 72px)", height: "clamp(40px, 8dvh, 72px)" }}>
       <svg width="100%" height="100%" viewBox="0 0 100 100">
         {/* Fond du cercle */}
         <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="8" />
@@ -175,7 +175,7 @@ export default function Level({ playerData, playerSetter, current_level, setLeve
     return (
       <main className="flex flex-1 flex-col items-center justify-center">
 
-        <div className="flex w-full justify-between flex-wrap gap-4 items-center px-4 z-10">
+        <div className="flex w-full justify-between flex-wrap gap-4 [@media(max-height:900px)]:gap-1 items-center px-4 z-10">
           {/* Tentatives */}
           <div className="flex flex-col items-center gap-1.5">
             <span className="font-black  text-white text-xs uppercase tracking-wider">Essais</span>

@@ -10,10 +10,10 @@ const OrbScene = lazy(() => import("./OrbScene"))
  * `fallback` est affiche si WebGL est absent, pendant le chargement ou si le chargement echoue.
  */
 export default function MysteryOrb({ heat, hint, shaking, fallback }) {
-    const hasRoom = useMediaQuery("(min-height: 701px)")
+    const hasRoom = useMediaQuery("(min-height: 761px)")
     const reduced = useMediaQuery("(prefers-reduced-motion: reduce)")
     // pas de scene 3D si elle est masquee par la mise en page compacte (ecrans courts): elle tournerait pour rien
-    const ok = useMemo(() => webglAvailable() && gpuAccelerated() && window.matchMedia("(min-height: 701px)").matches, [])
+    const ok = useMemo(() => webglAvailable() && gpuAccelerated() && window.matchMedia("(min-height: 761px)").matches, [])
 
     if (!hasRoom) return null   // ecrans courts (paysage): on libere la place pour le champ de saisie
     if (!ok) return fallback

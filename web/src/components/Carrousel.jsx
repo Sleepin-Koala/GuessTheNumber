@@ -187,16 +187,16 @@ export function Carousel({ renderItem, itemWidth = 300, itemsPerView = 3  , onEn
 
 
             {/* Flèches de navigation */}
-            {currentIndex == 0 ? null : <FaChevronLeft onClick={prev} className="absolute left-2 bottom-12 sm:bottom-auto sm:left-4 z-20 bg-white/30 backdrop-blur rounded-full p-3 text-5xl sm:p-2 sm:text-9xl hover:bg-white/50 transition" />}
-            {currentIndex == CATEGORIES.length - 1 ? null : <FaChevronRight onClick={next} className="absolute right-2 bottom-12 sm:bottom-auto sm:right-4 z-20 bg-white/30 backdrop-blur rounded-full p-3 text-5xl sm:p-2 sm:text-9xl hover:bg-white/50 transition" />}
-            <div className="absolute bottom-0 flex">
+            {currentIndex == 0 ? null : <FaChevronLeft role="button" tabIndex={0} aria-label="Mode précédent" onKeyDown={(e) => e.key === "Enter" && prev()} onClick={prev} className="absolute left-2 bottom-12 sm:bottom-auto sm:left-4 z-20 bg-white/30 backdrop-blur rounded-full p-3 text-5xl sm:p-2 sm:text-9xl hover:bg-white/50 transition" />}
+            {currentIndex == CATEGORIES.length - 1 ? null : <FaChevronRight role="button" tabIndex={0} aria-label="Mode suivant" onKeyDown={(e) => e.key === "Enter" && next()} onClick={next} className="absolute right-2 bottom-12 sm:bottom-auto sm:right-4 z-20 bg-white/30 backdrop-blur rounded-full p-3 text-5xl sm:p-2 sm:text-9xl hover:bg-white/50 transition" />}
+            <div className="absolute bottom-0 inset-x-3 flex justify-center">
                 {[...Array(totalItems-2)].map((_, i) => (
                     <button
                         key={i}
                         onClick={() => setCurrentIndex(i+1)}
                         aria-label={`Aller a l'element ${i+1}`}
                         aria-current={i+1 === currentIndex}
-                        className="flex items-center justify-center w-11 h-11 cursor-pointer"
+                        className="flex min-w-0 flex-1 max-w-11 items-center justify-center h-11 cursor-pointer"
                     >
                         <span className={`block w-2 h-2 rounded-full transition-all ${i+1 === currentIndex ? "bg-white scale-125" : "bg-white/40"}`} />
                     </button>
